@@ -1,6 +1,10 @@
+import {mountSeasonControls} from './environment/season-controls.js';
+import {simulationBudget,formatSimulationBudget} from './renderer/dual-budget.js';
+import {windowFraction} from './environment/sim-lighting.js';
 import * as THREE from 'three';
 import { DetailAssetLibrary } from './assets/instanced-glb.js';
 import { createGrass } from './vegetation/grass.js';
+import { createStormEffects } from './environment/storm-effects.js';
 import { createCitySky } from './environment/sky.js';
 import { GeometryDebug } from './geometry/debug/geometry-debug.js';
 import { GeometryDetailManager } from './geometry/geometry-detail-manager.js';
@@ -24,15 +28,19 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   const grass=createGrass(scene,town),detailAssets=new DetailAssetLibrary(scene);
   const environment=createEnvironmentLight(renderer,scene);
   const skyDome=createCitySky(scene);
+  const stormEffects=createStormEffects(scene,town);
   const construction=new ConstructionRenderer(scene);
   const lod=new BuildingLOD(scene,visibility.chunks), cutaway=new BuildingCutaway(scene);
   const features={assets:true,grass:true,sky:true,environment:true,construction:true,lod:true,props:true,roads:true,traffic:true,vegetation:true,roofs:true,rain:true,facades:true,interiors:true,atmosphere:true,shadows:!embed,culling:true};
   const fog=new THREE.FogExp2(0x91afbf,.00023);
-  let renderInstances=0,adaptiveEnabled=true;
+  let renderInstances=0,adaptiveEnabled=true,simulationSource=()=>null;
   let state={timeOfDay:14},lastSettings='',lastOverlay=0,frameIndex=0,active=true,photoPreset=null,focus=null,visible={},cached={},disposed=false, benchmarkStart=null;
   const panel=document.createElement('aside');panel.hidden=true;panel.dataset.testid='render-performance';
   panel.style.cssText='position:fixed;top:12px;right:12px;z-index:100;background:#111e;color:#e1edf4;padding:14px;border:1px solid #52616c;border-radius:10px;font:12px/1.5 monospace;max-height:85vh;overflow:auto';
-  panel.innerHTML='<strong>City renderer · F3</strong><pre></pre><label>Lighting <select data-lighting aria-label="Scene lighting"><option value="14">Daylight</option><option value="18">Golden hour</option><option value="22">Night</option><option value="simulation">Simulation clock</option></select></label><label>Quality <select aria-label="Render quality"></select></label><label>Geometry <select data-geometry aria-label="Geometry detail"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>ULTRA</option></select></label><label>Geometry view <select data-geometry-debug aria-label="Geometry debug"><option value="off">Off</option><option value="lod">Show LOD</option><option value="heatmap">Triangle heatmap</option></select></label><label><input type="checkbox" data-wireframe>Wireframe selected</label><div data-features></div><button data-cutaway>Selected cutaway</button><button data-photo>Photo mode</button><button data-record>Record 30 seconds</button><button data-export>Export JSON</button><p role="status"></p>';
+  panel.innerHTML='<strong>City renderer · F3</strong><p>Storefronts, roof colors and window styles are cosmetic; they do not measure business activity.</p><pre></pre><label>Lighting <select data-lighting aria-label="Scene lighting"><option value="14">Daylight</option><option value="18">Golden hour</option><option value="22">Night</option><option value="simulation">Simulation clock</option></select></label><label>Quality <select aria-label="Render quality"></select></label><label>Geometry <select data-geometry aria-label="Geometry detail"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>ULTRA</option></select></label><label>Geometry view <select data-geometry-debug aria-label="Geometry debug"><option value="off">Off</option><option value="lod">Show LOD</option><option value="heatmap">Triangle heatmap</option></select></label><label><input type="checkbox" data-wireframe>Wireframe selected</label><div data-features></div><button data-cutaway>Selected cutaway</button><button data-photo>Photo mode</button><button data-record>Record 30 seconds</button><button data-export>Export JSON</button><p role="status"></p>';
+  panel.querySelector('[data-lighting]').value='14';
+  const seasonControls=mountSeasonControls(panel,value=>{state.season=value;});
+  panel.style.maxWidth='calc(100vw - 52px)';
   const select=panel.querySelector('[aria-label="Render quality"]');
   panel.querySelector('[data-lighting]').onchange=event=>{if(event.target.value==='simulation')delete state.timeOfDay;else api.setTimeOfDay(Number(event.target.value));};
   panel.querySelector('[data-geometry]').onchange=event=>api.setGeometryDetail(event.target.value);
@@ -52,7 +60,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     const url=URL.createObjectURL(new Blob([JSON.stringify(stats.lastReport,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='city-benchmark.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   };
   const targetLabel=document.createElement('label');targetLabel.textContent='Frame-rate target ';const targetSelect=document.createElement('select');targetSelect.setAttribute('aria-label','Frame-rate target');for(const fps of [30,60,120,144]){const option=document.createElement('option');option.value=String(fps);option.textContent=fps+' FPS target';targetSelect.append(option);}targetSelect.value=String(quality.targetFPS);targetSelect.onchange=()=>api.setTargetFPS(Number(targetSelect.value));targetLabel.append(targetSelect);panel.append(targetLabel);const targetNote=document.createElement('small');targetNote.textContent='Quality target only. Actual FPS depends on hardware, display and city load.';panel.append(targetNote);
-  const graphicsButton=document.createElement('button');graphicsButton.textContent='Graphics';graphicsButton.setAttribute('aria-label','Open graphics settings');graphicsButton.style.cssText='position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:80;background:#18242e;color:#e1edf4';graphicsButton.onclick=()=>{panel.hidden=!panel.hidden;};
+  const graphicsButton=document.createElement('button');graphicsButton.textContent='Graphics · illustrative seasons';graphicsButton.setAttribute('aria-label','Open graphics settings');graphicsButton.style.cssText='position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:80;background:#18242e;color:#e1edf4';graphicsButton.onclick=()=>{panel.hidden=!panel.hidden;};
   if(!embed)document.body.append(panel,graphicsButton);
   function hotkey(event){if(event.code==='F3'){event.preventDefault();panel.hidden=!panel.hidden;}}
   addEventListener('keydown',hotkey);
@@ -75,13 +83,15 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     setCutaway(value){cutaway.enabled=Boolean(value);},
     setWeather(value){details.setWeather(value);state.weather=value;},
     setTimeOfDay(hour){if(!Number.isFinite(hour))throw new TypeError('Hour must be finite');state.timeOfDay=((hour%24)+24)%24;},
+    getStormState(){return stormEffects.getState();},
     get timeOfDay(){return state.timeOfDay;},
     get density(){return quality.settings.density;},
     get cutawayEnabled(){return cutaway.enabled;},
     pickVehicle(raycaster){return details.pickVehicle?.(raycaster)||null;},
     getVehicle(id){return details.getVehicle?.(id)||null;},
     setReadbackEnabled(enabled){gpu.setEnabled(enabled);},
-    getPerformanceStats(){return {...cached,readback:gpu.getSnapshot(),backend:mode,quality:quality.preset,settings:quality.settings,features:{...features},geometryError:geometryDetail?.error,recording:!!stats.recording,lastBenchmark:stats.lastReport};},
+    setSimulationSource(read){if(typeof read!=='function')throw new TypeError('Simulation source must be a read function');simulationSource=read;},
+    getPerformanceStats(){return {...cached,simulation:simulationBudget(simulationSource()),lighting:state.lighting,buildingHomeCounts:state.buildingHomeCounts,readback:gpu.getSnapshot(),backend:mode,quality:quality.preset,settings:quality.settings,features:{...features},geometryError:geometryDetail?.error,recording:!!stats.recording,lastBenchmark:stats.lastReport};},
     startBenchmark({scripted=false}={}){benchmarkStart=scripted?performance.now():null;stats.start(performance.now(),{readback:gpu.getSnapshot(),backend:mode,preset:quality.preset,features:{...features},url:location.href,userAgent:navigator.userAgent,viewport:[innerWidth,innerHeight],devicePixelRatio,adaptive:false,settings:quality.settings,geometryDetail:geometryDetail?.quality,scripted});},
     focusBuilding(id){const b=town.buildings.find(b=>String(b.id)===String(id)||b.index===id);if(!b)return false;state.selectedBuilding=b.id;focus={target:new THREE.Vector3(b.center[0],b.height/2,b.center[1]),position:new THREE.Vector3(b.center[0]+b.height*1.8+35,b.height*1.5+30,b.center[1]+b.height*1.8+35)};return true;},
     focusDistrict({x=0,z=0,radius=250}={}){focus={target:new THREE.Vector3(x,0,z),position:new THREE.Vector3(x+radius,radius,z+radius)};},
@@ -94,7 +104,11 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       if(benchmarkStart!=null){const seconds=(now-benchmarkStart)/1000;scriptedCamera(camera,controls,seconds);camera.lookAt(controls.target);if(seconds>=24)api.setTimeOfDay(22);if(seconds>=30)benchmarkStart=null;}
       construction.animate(motion.now,features.construction);
       environment.update(daylight,features.environment);
-      skyDome.update(camera,daylight,state.weather,features.sky&&!visuals.skyColor);
+      const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const parcelStorm=state.parcelStorm??{};
+      const stormIntensity=parcelStorm.enabled===false?0:(parcelStorm.intensity??0);
+      stormEffects.update({...parcelStorm,intensity:stormIntensity,reducedMotion,rainEnabled:features.rain,low:quality.preset==='LOW'},camera);
+      skyDome.update(camera,daylight,state.weather,features.sky&&!visuals.skyColor,state.lighting,{minute:parcelStorm.minute,intensity:stormIntensity,reducedMotion});
       scene.fog=features.atmosphere?fog:null;fog.color.setHex(0x91afbf).multiplyScalar(.08+.92*daylight);
       visible=visibility.update(camera,quality.settings.distance,selected??state.selectedBuilding,features.shadows&&quality.settings.shadows,features.culling);
       const selectedId=selected??state.selectedBuilding;
@@ -105,8 +119,9 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       cutaway.update(now);
       grass.update(motion.now,camera,quality.settings,features.grass&&features.vegetation,quality.preset);
       detailAssets.update(motion.now,camera,quality.settings,features);
-      details.update(motion.now,motion.dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},features,state);
-      for(const facade of facades){facade.setNight(1-daylight);facade.setEnabled(features.facades);facade.setInteriorEnabled(features.interiors&&quality.settings.interiors);facade.setOccupancy(Number.isFinite(state.vacancy)?1-state.vacancy:.7);}
+      details.update(motion.now,motion.dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},{...features,rain:features.rain&&!reducedMotion&&stormIntensity===0},state);
+      const homes=new Map((state.buildingHomeCounts??[]).map(r=>[String(r.buildingId),r])),present=new Map((state.buildingOccupancy??[]).map(r=>[String(r.buildingId),r.count]));
+      for(const facade of facades){facade.setNight(1-daylight);facade.setEnabled(features.facades);facade.setInteriorEnabled(features.interiors&&quality.settings.interiors);const b=facade.building;facade.setOccupancy(b?windowFraction(b,homes.get(String(b.id)),present.get(String(b.id))??0,state.lighting?.hour??14,state.lighting?.day??0):0);}
       return active;
     },
     afterFrame(now,cpuMs,frameMs){
@@ -119,12 +134,12 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       stats.push(sample,now);
       if(document.visibilityState!=='hidden'&&adaptiveEnabled&&!photoPreset&&!stats.recording&&quality.sample(frameMs,gpu.ms,cpuMs))applyQuality();
       if(now-lastOverlay>250){lastOverlay=now;renderInstances=0;scene.traverseVisible(object=>{if(object.isInstancedMesh)renderInstances+=object.count;});cached=stats.current;
-        if(!panel.hidden){const n=v=>v==null?'unavailable':v.toFixed(2);panel.querySelector('pre').textContent=`${mode.toUpperCase()} · ${quality.preset}\nFPS ${n(cached.fps)} · 1% low ${n(cached.onePercentLowFps)}\nCPU ${n(cpuMs)} ms · GPU latest ${n(gpu.ms)} ms · age ${n(readback.latest?.ageMs)} ms\nFrame p95 ${n(cached.p95FrameMs)} ms\nDraws ${sample.drawCalls} · triangles ${sample.triangles}\nTextures ${sample.textures} · texture bytes unavailable\nInstances ${renderInstances} · HLOD ${visible.instances}\nChunks ${visible.visibleChunks} · buildings ${visible.visibleObjects}\nShadow casters ${visible.shadowCasters}\nGeometry ${(geometryDebug.stats.bytes/1048576).toFixed(1)} MiB · LOD ${geometryDebug.stats.lodCounts.join("/")}\nGrass ${grass.getStats().blades} blades · ${grass.getStats().drawCalls} draw\nScale ${quality.settings.scale.toFixed(2)} · slow frames ${cached.slowFrames}`;
+        if(!panel.hidden){const n=v=>v==null?'unavailable':v.toFixed(2);panel.querySelector('pre').textContent=`RENDER · ${mode.toUpperCase()} · ${quality.preset}\nFPS ${n(cached.fps)} · 1% low ${n(cached.onePercentLowFps)}\nFrame callback CPU estimate ${n(cpuMs)} ms · GPU timestamp latest ${n(gpu.ms)} ms · age ${n(readback.latest?.ageMs)} ms\nFrame p95 ${n(cached.p95FrameMs)} ms\nDraws ${sample.drawCalls} · triangles ${sample.triangles}\nTextures ${sample.textures} · texture bytes unavailable\nVisual instances ${renderInstances} (not agents) · HLOD ${visible.instances}\nChunks ${visible.visibleChunks} · buildings ${visible.visibleObjects}\nShadow casters ${visible.shadowCasters}\nGeometry buffer estimate ${(geometryDebug.stats.bytes/1048576).toFixed(1)} MiB (partial) · LOD ${geometryDebug.stats.lodCounts.join("/")}\nGrass ${grass.getStats().blades} blades · ${grass.getStats().drawCalls} draw\nScale ${quality.settings.scale.toFixed(2)} · slow frames ${cached.slowFrames}\n\n${formatSimulationBudget(simulationBudget(simulationSource(),now))}`;
           panel.querySelector('[role=status]').textContent=stats.recording?'Recording… quality held fixed':stats.lastReport?'Recording complete. Export JSON to compare.':'';
         }
       }
     },
-    destroy(){disposed=true;gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
+    destroy(){if(disposed)return;disposed=true;seasonControls.destroy();gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();stormEffects.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
   };
   applyQuality();return api;
 }

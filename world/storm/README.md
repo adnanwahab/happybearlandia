@@ -31,3 +31,52 @@ and replay. Its real GPU success case skips when Chromium exposes no adapter.
 Unit injection tests verify limit boundaries and reference equality; they do not
 measure hardware performance. Local browser execution evidence and limitations
 are recorded in `docs/implementation-plan.md` under SHE-168.
+
+### Decorative atmosphere (SHE-512)
+
+The heightfield-water.v1 snapshot has no wind speed, wind direction or cloud
+cover. The scene explicitly marks these unavailable (speed would use m/s if a
+future model supplied it). Five CSS marks provide decorative wind/cloud layers;
+the authored phase follows the selected step, wraps every 24 steps and carries
+no physical time, direction, strength, cloud coverage or probability meaning.
+Rainfall, flood depth, seed and comparison arm never scale the decoration.
+No new model fields, contracts, identifiers or random calls are introduced.
+A checkbox hides the layers. Reduced motion freezes their position and removes
+transitions; both terrain renderers share the same pointer-transparent overlay.
+Empty/invalid step selection hides it. No assets, timers or additional render
+loop are allocated; scene teardown removes the marks and listener. Page hide
+stops playback/ensemble work and destroys the scene unless entering bfcache.
+
+Checks: `bun test test/storm-atmosphere.test.js` and
+`bunx playwright test --config test/storm-atmosphere.browser.config.js`.
+The browser suite captures HEAD and edited scene screenshots at the storm route,
+then checks mobile layout, keyboard toggling/scrubbing, rapid arm/view changes,
+reduced motion, empty snapshots and teardown. See the review for execution limits.
+
+### Optional depth cutaway (SHE-517)
+
+Open **Flood and drainage fields → Water depth cutaway**. The selected grid row
+appears as a vertical depth profile above a schematic local-ground datum. Each
+column is a native button, sharing selection with Grid row/column and both maps.
+The recorded arm/step and recipe/model/seed provenance are reused unchanged.
+Depth always uses metres even when the separate hazard picker shows drainage.
+The 0–1 m vertical scale and 0/.10/.40 m colour thresholds never rescale between
+arms or steps. Values above 1 m show an arrow and an unclipped numeric reading;
+missing cells show a gray × and “missing”; zero remains dry. Readings round to
+0.001 m; positive depths below half that precision display `<0.001 m`.
+
+This is a synthetic depth profile, not surveyed terrain, underground geology,
+calibrated risk or a forecast. Structural uncertainty remains unquantified.
+The DOM/CSS 2D path is used at every quality level, including unavailable WebGL
+or Canvas2D. It adds no assets, GPU allocations, timers, animation or camera.
+Work is bounded to the selected row (32 columns in the current storm); a closed
+lens does no projection work. Horizontal scrolling contains the columns on mobile.
+Timeline updates reuse buttons to retain focus. Page departure destroys both
+inspectors and the terrain renderer, disconnects its observer and stops playback
+and ensemble work; back/forward-cache return reloads the recipe/step route.
+
+Checks: `bun test test/storm-cutaway.test.js test/hazard-field.test.js test/storm-*.test.js`
+and `node node_modules/playwright/cli.js test --config test/storm-cutaway.browser.config.mjs`.
+The browser suite records actual storm-route baseline/current desktop and mobile
+captures, exercises reduced motion, forced 2D, keyboard selection, rapid timeline
+and arm changes, no-canvas/missing/empty/overflow and idempotent disposal.

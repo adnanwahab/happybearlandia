@@ -1,0 +1,17 @@
+{
+  "scope": "Bun CPU: two lookups, provenance reads, detached pins and matched rows. Excludes DOM, graphics and browser input.",
+  "runtime": "1.4.2",
+  "synthetic": true,
+  "seed": "469",
+  "townSeed": "29.7286,-95.4746",
+  "modelVersion": "neighborhood-activity.v2",
+  "minute": 360,
+  "residents": 1000,
+  "buildings": 517,
+  "warmups": 20,
+  "iterations": 100,
+  "p50Ms": 0.10204099999999983,
+  "p95Ms": 0.17283299999999713,
+  "maxMs": 0.41825000000000045,
+  "checkpointUnchanged": true
+}

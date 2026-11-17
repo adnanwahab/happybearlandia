@@ -1,0 +1,108 @@
+import {chooseStreetResidents} from './people/street-residents.js';
+import {mountWorldStatusStack} from './hud-status.js';
+import {residentNeedQuests,describeResident,questProgress} from './launch-gameplay.js';
+/** SHE-789: one progressive shell over the existing authoritative World tools. */
+const params=new URLSearchParams(location.search);
+if(!['embed','business_mode','business','living'].some(k=>['1','true'].includes(params.get(k)))) mountLaunchShell();
+if(!['1','true'].includes(params.get('embed')))mountWorldStatusStack();
+export function mountLaunchShell(){
+ document.body.classList.add('launch-world');
+ const overlaySelect=document.getElementById('overlayMode');
+ for(const [value,label] of [['rent','Rent'],['jobs','Jobs'],['traffic','Traffic']]){if(overlaySelect&&!overlaySelect.querySelector(`option[value="${value}"]`)){const option=document.createElement('option');option.value=value;option.disabled=true;option.dataset.unavailable='';option.textContent=`${label} · unavailable in this model`;option.title='The active World model does not publish a supported spatial measure for this overlay.';overlaySelect.append(option);}}
+
+ const shell=document.createElement('aside');shell.id='launch-navigation';shell.setAttribute('aria-label','World navigation');
+ shell.innerHTML=`<a href="/" class="launch-brand">HBL <span>WORLD</span></a><h1>A city full of stories.</h1><p class="launch-intro">Meet a resident. Follow their day. Change their world.</p><button type="button" data-launch="start" class="launch-primary">Get started →</button><nav aria-label="Explore the world">${[['world','◎','World'],['people','♙','People'],['build','⌂','Build'],['laws','⚖','Laws'],['time','◷','Time'],['activity','≋','Activity'],['quests','!','Quests'],['legends','▤','Legends']].map(([id,icon,label])=>`<button type="button" data-launch="${id}" aria-expanded="false"><span aria-hidden="true">${icon}</span> ${label}<small data-count="${id}"></small></button>`).join('')}</nav><div class="launch-footer"><button type="button" data-launch="search">Search <kbd>⌘K</kbd></button><button type="button" data-launch="tiles">Tile view</button><button type="button" data-launch="sound" aria-pressed="false">Sound off</button><button type="button" data-launch="tools" aria-expanded="false">More tools</button><a href="/logs">Session logs ↗</a></div>`;
+ const panel=document.createElement('section');panel.id='launch-panel';panel.className='launch-panel';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','World explorer panel');panel.innerHTML='<header><h2></h2><button type="button" aria-label="Close panel" data-launch-close>×</button></header><div data-launch-content></div>';
+ const bar=document.createElement('section');bar.id='launch-playback';bar.setAttribute('aria-label','Simulation playback');bar.innerHTML='<button type="button" data-launch="pause" aria-label="Pause simulation">Ⅱ</button><button type="button" data-launch-speed="1">1×</button><button type="button" data-launch-speed="2">2×</button><button type="button" data-launch-speed="4">4×</button><button type="button" data-launch="overlay">Overlay: none</button><span data-launch-clock></span>';
+ const toast=document.createElement('output');toast.id='launch-status';toast.setAttribute('role','status');toast.textContent='Select Get started to meet your first resident.';
+ document.body.append(shell,panel,bar,toast);
+ bar.querySelector('[data-launch=overlay]').title='O cycles supported overlays. Rent, jobs and traffic spatial measures are unavailable in the current model; see More tools → Advanced settings.';
+
+ let active=null,backFocus=null,historyGeneration=0,disposed=false,trackedQuest=null,tileView=null,audio=null,updatePeoplePanel=null;
+ const content=panel.querySelector('[data-launch-content]');
+ const toolTray=document.createElement('section');toolTray.id='launch-extra-tools';toolTray.setAttribute('aria-label','Additional world tools');document.getElementById('top')?.append(toolTray);
+ function collectTools(){for(const node of document.querySelectorAll('body > .law-panel-toggle,body > .constitution-world-diff,body > .city-diff-radar,body > .culture-open,body > .weather-open,body > .worker-inspector-button,body > .challenge-open,body > .social-journey,body > [data-social-continuity],body > .hbl-command-trigger,body > .wt-affordances,body > #ambient-sound,body > #world-spatial-targets,body > .scene-context-trigger')){if(node.parentNode!==toolTray)toolTray.append(node);}}
+ const toolObserver=new MutationObserver(collectTools);toolObserver.observe(document.body,{childList:true});collectTools();
+
+ const tracker=document.createElement('aside');tracker.id='launch-quest-tracker';tracker.hidden=true;tracker.innerHTML='<strong></strong><p></p><button type=button>Clear objective</button>';tracker.querySelector('button').onclick=()=>{trackedQuest=null;tracker.hidden=true;status('Objective cleared.');};document.body.append(tracker);
+ function dialogue(person){if(!person)return status('Select a resident first.');show('dialogue',person.label??person.name??String(person.id));const facts=describeResident(person,{buildings:window.hblWorldTileSource?.getFrame?.().buildings});paragraph(facts.scope);const response=paragraph('Choose a question. Answers come from this resident’s current model state.');button('How are you doing?',()=>{response.textContent=facts.state;});button('Where do you live and work?',()=>{response.textContent=facts.home;});button('Can I help with anything?',()=>{const quests=residentNeedQuests([person],currentRunId());if(!quests.length){response.textContent='No low-need request is supported by the current observation.';return;}trackedQuest=quests[0];response.textContent=trackedQuest.description;refresh();});button('View your recorded history',()=>legends());}
+ window.addEventListener('hbl:resident-dialogue',event=>dialogue(event.detail?.person));
+
+ function status(message){toast.textContent=message;}
+ function close(){tileView?.close?.();window.hblVisualPass?.panels?.closeAll?.();historyGeneration++;panel.hidden=true;active=null;updatePeoplePanel=null;document.body.classList.remove('launch-tools-open');for(const button of shell.querySelectorAll('[aria-expanded]'))button.setAttribute('aria-expanded','false');const top=document.getElementById('top');if(top)top.open=false;for(const name of ['hblLawPanel','hblWeatherPanel','hblCulturePanel','hblCityScrapbook','hblTemporalCity','hblChallengePanel'])window[name]?.close?.();const focus=backFocus;backFocus=null;focus?.focus({preventScroll:true});}
+ function show(name,title){close();active=name;backFocus=document.activeElement;panel.hidden=false;panel.querySelector('h2').textContent=title;content.replaceChildren();shell.querySelector(`[data-launch="${name}"]`)?.setAttribute('aria-expanded','true');panel.querySelector('[data-launch-close]').focus({preventScroll:true});}
+ function paragraph(text){const p=document.createElement('p');p.textContent=text;content.append(p);return p;}
+ function button(label,callback){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>run(callback));content.append(b);return b;}
+ async function run(callback){try{await callback();}catch(error){status(error.message||String(error));}}
+ function snapshot(){return window.hblWorldActivity?.getSnapshot?.()??null;}
+ function people(){return snapshot()?.people??[];}
+ function currentRunId(){return window.hblWorldTileSource?.getFrame?.().runId??snapshot()?.runId;}
+ function openTools(){close();document.body.classList.add('launch-tools-open');const top=document.getElementById('top');if(top){top.open=true;top.querySelector('summary')?.focus();}shell.querySelector('[data-launch="tools"]').setAttribute('aria-expanded','true');status('Advanced tools opened. Escape returns to the map.');}
+ async function choosePerson(person){close();await window.hblWorldActivity?.selectPerson(person.id);status(`${person.name??person.id} selected. Use Walk somewhere, or right-click a destination. Space pauses.`);}
+ function listPeople(){
+  show('people','Meet the residents');
+  const summary=paragraph('Waiting for the first resident observation…');
+  const streetSummary=paragraph('Checking for residents outside…');
+  const findOutside=button('Find someone outside',async()=>{
+   const frame=window.hblWorldTileSource?.getFrame?.();
+   const resident=chooseStreetResidents(frame?.people,{mode:frame?.mode??'legacy'})[0];
+   if(!resident){status('No outdoor resident is in this observation yet. Resume time and try again as residents leave home.');return;}
+   await choosePerson(resident);
+  });
+  findOutside.title='Select an actual walking or park resident from the current observation.';
+  const input=document.createElement('input');input.type='search';input.placeholder='Find a resident';input.setAttribute('aria-label','Find a resident');content.append(input);
+  const list=document.createElement('div');list.className='launch-person-list';content.append(list);
+  const empty=paragraph('Residents are loading. This list updates automatically.');
+  let lastSignature=null;
+  updatePeoplePanel=frame=>{
+   if(active!=='people')return;
+   const rows=frame?.people??[];
+   const population=window.hblLivingWorld?.active?window.hblLivingWorld.getSnapshot()?.metrics?.syntheticPopulation:rows.length;
+   const text=`${population??'Pending'} modeled residents · ${rows.length} available in the current observation. These are synthetic people.`;
+   if(summary.textContent!==text)summary.textContent=text;
+   const exterior=chooseStreetResidents(rows,{mode:frame?.mode??'legacy'});
+   streetSummary.textContent=rows.length
+    ? `${exterior.length} ${frame?.mode==='living'?'walking in the current sample':'outside in the current observation'}. ${exterior.length?'Find someone outside to inspect their trip.':'Residents may be indoors at this time. Resume the simulation to follow their day.'}`
+    : 'No resident observation is available yet. This panel refreshes automatically.';
+   findOutside.disabled=!exterior.length;
+   const query=input.value.toLowerCase(),visible=[];
+   for(const person of rows){if(`${person.name??''} ${person.id}`.toLowerCase().includes(query))visible.push(person);if(visible.length===50)break;}
+   const signature=JSON.stringify([query,visible.map(person=>[person.id,person.name,person.doing??person.activity])]);
+   empty.hidden=visible.length>0;
+   const emptyText=rows.length?'No observed residents match your search.':'Residents are loading. This list updates automatically.';
+   if(empty.textContent!==emptyText)empty.textContent=emptyText;
+   if(signature===lastSignature)return;
+   lastSignature=signature;
+   const focusedId=list.contains(document.activeElement)?document.activeElement.dataset.personId:null;
+   const buttons=visible.map(person=>{const b=document.createElement('button');b.type='button';b.dataset.personId=String(person.id);b.textContent=`${person.name??person.id} · ${person.doing??person.activity??'Inspect resident'}`;b.addEventListener('click',()=>run(()=>choosePerson(person)));return b;});
+   list.replaceChildren(...buttons);
+   if(focusedId!==null)buttons.find(b=>b.dataset.personId===focusedId)?.focus({preventScroll:true});
+  };
+  input.addEventListener('input',()=>updatePeoplePanel?.(window.hblWorldTileSource?.getFrame?.()));
+  updatePeoplePanel(window.hblWorldTileSource?.getFrame?.());
+ }
+ async function legends(){show('legends','Recorded lives');const actor=window.hblPersonCommands?.getActor?.();if(actor)paragraph(`Selected resident: ${actor.label??actor.name??actor.id}. Events below are queried for this identity.`);paragraph('History is retained simulation evidence. Missing earlier events are not reconstructed. Select a person in People to inspect their current needs, home and work.');const api=window.hblWorldActivity;if(!api){paragraph('History becomes available after the scene loads.');return;}const generation=historyGeneration;const pending=paragraph('Loading recorded events…');try{const history=await api.getHistory(actor?{actorId:String(actor.id)}:{});if(generation!==historyGeneration)return;pending.remove();const events=(history.actorTimeline?.events??history.recentEvents??history.events??[]).filter(e=>!actor||String(e.personId??e.actorId??'')===String(actor.id)||e.personIds?.map(String).includes(String(actor.id)));if(!events.length)paragraph('No retained events in this history window yet.');for(const e of events.slice(-60).reverse()){paragraph(`${e.minute??e.t??'—'} · ${e.type??'Event'} · ${e.text??e.reason??JSON.stringify(e)}`);}paragraph(`Run: ${snapshot()?.runId??'unavailable'}. Detail retention: ${JSON.stringify(history.retention??'not reported')}`);}catch(e){if(generation===historyGeneration)pending.textContent=e.message;}}
+ function quests(){show('quests','Your first city stories');const observed=residentNeedQuests(people(),currentRunId());if(observed.length){paragraph('Requests inferred from currently observed low needs, using an explicit synthetic threshold of 30/100.');for(const quest of observed){paragraph(quest.description);button('Track '+quest.title,async()=>{trackedQuest=quest;await choosePerson(people().find(p=>String(p.id)===quest.personId));status('Objective tracked. Use the resident’s existing activity and household controls; needs change only through model rules.');});}}else paragraph('No low-need requests in the current visible observation.');paragraph('Starter objectives use the current simulation. No rent or flood problem is invented.');button('1 · Meet a resident',()=>{const p=people()[0];if(!p)throw Error('Residents are still loading.');return choosePerson(p);});button('2 · Inspect recorded activity',()=>{close();document.getElementById('activity-dashboard-button')?.click();});button('3 · Try a plan and compare a week',()=>{openTools();document.getElementById('policy')?.focus();status('Choose a plan, then Run cycle. Results compare actual modeled alternatives.');});if(window.hblChallengePanel)button('Open city challenges',()=>{close();window.hblChallengePanel.open?.();});}
+ function openSearch(){show('search','Find an action');const input=document.createElement('input');input.type='search';input.setAttribute('aria-label','Search world actions');input.placeholder='People, build, laws, time…';content.append(input);const results=document.createElement('div');content.append(results);function render(){results.replaceChildren();for(const [id,label] of [['people','Meet residents'],['build','Build something'],['laws','Explore laws'],['time','Pause and plan'],['activity','Activity history'],['quests','Starter quests'],['legends','Recorded lives'],['tiles','Open tile view']].filter(row=>row[1].toLowerCase().includes(input.value.toLowerCase()))){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>run(()=>action(id));results.append(b);}}input.oninput=render;render();input.focus();}
+ function overlay(){const select=document.getElementById('overlayMode');if(!select)throw Error('Overlays are loading.');const choices=[...select.options].filter(o=>!o.disabled);const next=choices[(choices.findIndex(o=>o.value===select.value)+1)%choices.length];select.value=next.value;select.dispatchEvent(new Event('change',{bubbles:true}));bar.querySelector('[data-launch="overlay"]').textContent=`Overlay: ${next.textContent}`;status(document.getElementById('overlayLegend')?.textContent||`Overlay ${next.textContent}`);}
+ async function action(id){
+  if(id==='start'){close();if(window.hblGuidedActions?.resident){await window.hblGuidedActions.resident();status('You are following a resident. Inspect their needs, choose Walk somewhere, then pick a destination.');}else if(people().length)await choosePerson(people()[0]);else status('Your neighborhood is loading. People will become available here when it is ready.');return;}
+  if(id==='people')return listPeople();if(id==='legends')return legends();if(id==='quests')return quests();if(id==='search')return openSearch();if(id==='tools'||id==='world')return openTools();
+  if(id==='sound'){if(!audio){const {createWorldAudio}=await import('./launch-sound.js');audio=createWorldAudio();}audio.enabled?audio.disable():await audio.enable();status(audio.enabled?'Sound enabled: quiet ambient, clicks and observed walking footsteps.':'Sound off.');return;}
+  if(id==='pause'){const playback=window.hblSimulationPlayback;if(!playback)throw Error('Simulation playback is loading.');const paused=playback.getState().paused;paused?playback.resume():playback.pause();status(paused?'Simulation resumed.':'Paused. Inspect the world and queue supported resident actions.');return;}
+  if(id==='overlay')return overlay();
+  if(id==='tiles'){close();if(!window.hblWorldTileSource)throw Error('Current world geometry is loading. Try Tile view after the scene is ready.');if(!tileView){const {mountTileView}=await import('./launch-tiles.js');tileView=mountTileView({getFrame:()=>window.hblWorldTileSource.getFrame(),onSelectPerson:async personId=>{await window.hblWorldTileSource.selectPerson(personId);tileView.close();},onSelectBuilding:buildingId=>{window.hblWorldTileSource.selectBuilding(buildingId);tileView.close();},onClose:()=>status('Returned to the world.')});}tileView.open();status('Tile view shows the same current world and clock. Click a tile to inspect.');return;}
+  if(id==='activity'){close();const b=document.getElementById('activity-dashboard-button');if(!b)throw Error('Activity history is loading.');b.click();return;}
+  if(id==='laws'){if(window.hblLawPanel?.open){close();window.hblLawPanel.open();return;}openTools();status('Law tools are in World controls. They become available after loading.');return;}
+  if(id==='build'){close();const tools=document.querySelector('.bw-world-tools');if(tools){tools.open=true;tools.querySelector('summary')?.focus();}else{openTools();status('Build tools are loading. Inspect the world while they load.');}return;}
+  if(id==='time'){show('time','Pause and plan');paragraph('Space pauses or resumes. Keys 1, 2 and 4 set simulation speed. Camera movement and inspection remain available while paused.');button('Pause / resume',()=>action('pause'));for(const speed of [1,2,4])button(`${speed}× simulation`,()=>setSpeed(speed));if(window.hblTemporalCity?.open)button('Open Time Machine',()=>{close();window.hblTemporalCity.open();});return;}
+ }
+ function setSpeed(speed){if(!window.hblSimulationPlayback)throw Error('Simulation playback is loading.');window.hblSimulationPlayback.setSpeed(speed);window.hblSimulationPlayback.resume();status(`Simulation running at ${speed}×.`);}
+ document.addEventListener('click',event=>{if(!event.target.closest('#world-guide-button'))return;event.preventDefault();event.stopImmediatePropagation();void run(()=>action('start'));},true);
+ document.addEventListener('click',event=>{const node=event.target.closest('[data-launch],[data-launch-speed],[data-launch-close]');if(!node)return;if(node.hasAttribute('data-launch-close'))return close();if(node.dataset.launchSpeed)return run(()=>setSpeed(Number(node.dataset.launchSpeed)));void run(()=>action(node.dataset.launch));});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'){close();document.querySelector('#inspect [data-close]')?.click();return;}if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();event.stopImmediatePropagation();openSearch();return;}if(event.target.closest('input,textarea,select,[contenteditable=true]')||event.metaKey||event.ctrlKey||event.altKey)return;if(event.code==='Space'){event.preventDefault();event.stopImmediatePropagation();void run(()=>action('pause'));}else if(['1','2','4'].includes(event.key)){event.preventDefault();void run(()=>setSpeed(Number(event.key)));}else if(event.key.toLowerCase()==='o'){event.preventDefault();void run(overlay);}},true);
+ function refresh(){if(disposed)return;const cheapFrame=window.hblWorldTileSource?.getFrame?.();if(active==='people')updatePeoplePanel?.(cheapFrame);if(trackedQuest){const progress=questProgress(trackedQuest,cheapFrame?.people??people(),cheapFrame?.runId??snapshot()?.runId);tracker.hidden=false;tracker.querySelector('strong').textContent=trackedQuest.title;tracker.querySelector('p').textContent=progress.text;}else tracker.hidden=true;shell.querySelector('[data-count=people]').textContent=window.hblLivingWorld?.active?(window.hblLivingWorld.getSnapshot()?.metrics?.syntheticPopulation??''):cheapFrame?.people?.length??'';const state=window.hblSimulationPlayback?.getState();if(state){const b=bar.querySelector('[data-launch=pause]');b.textContent=state.paused?'▶':'Ⅱ';b.setAttribute('aria-label',state.paused?'Resume simulation':'Pause simulation');for(const b of bar.querySelectorAll('[data-launch-speed]'))b.setAttribute('aria-pressed',String(!state.paused&&Number(b.dataset.launchSpeed)===state.speed));}bar.querySelector('[data-launch-clock]').textContent=document.getElementById('clock')?.textContent??'';}
+ const timer=setInterval(refresh,1000);refresh();window.addEventListener('pagehide',()=>{disposed=true;audio?.dispose();toolObserver.disconnect();clearInterval(timer);},{once:true});
+ window.hblLaunchShell={open:action,close,getState:()=>({active})};
+ return window.hblLaunchShell;
+}

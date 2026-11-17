@@ -17,7 +17,18 @@ export function createDetectiveHandler({root=process.env.HBL_DETECTIVE_ROOT||'.h
   let records;try{records=JSON.parse(readFileSync(path,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;records={};}
   const save=()=>{writeFileSync(path+'.tmp',JSON.stringify(records),{mode:0o600});renameSync(path+'.tmp',path);};
   const cache=new Map();
-  async function history(record){const key=record.caseIndex;if(cache.has(key))return cache.get(key);const recipe=record.recipe;const initial=initialForRecipe(recipe);const h={schemaVersion:recipe.schemaVersion,recipe,experimentId:null,initialHash:await stateHash(initial),modelVersion:recipe.modelVersion,seed:recipe.seed,baseline:run(initial),plan:run(initial,recipe.intervention),provenance:{...initial.provenance,modelManifest:createEngine().manifest,replay:'Deterministic recomputation; not independent checkpoint verification.'}};cache.set(key,h);return h;}
+  async function history(record){const key=await stateHash(record.recipe);if(cache.has(key))return cache.get(key);const recipe=record.recipe;const initial=initialForRecipe(recipe);const h={schemaVersion:recipe.schemaVersion,recipe,experimentId:null,initialHash:await stateHash(initial),modelVersion:recipe.modelVersion,seed:recipe.seed,baseline:run(initial),plan:run(initial,recipe.intervention),provenance:{...initial.provenance,modelManifest:createEngine().manifest,replay:'Deterministic recomputation; not independent checkpoint verification.'}};cache.set(key,h);return h;}
+  async function freeze(record) {
+    const h=await history(record);
+    const building=h.plan[120].state.buildings.find(b=>!h.baseline[120].state.buildings.some(a=>a.id===b.id));
+    const trail=building?buildEvidenceTrail(h,{collection:'buildings',id:building.id,month:120}):null;
+    const graph={schemaVersion:'detective-evidence.v1',modelVersion:h.modelVersion,seed:h.seed,
+      clock:'monthly City; month 0 is the starting state; plan and baseline share months',
+      inventory:{month:120,baselineHomes:h.baseline[120].metrics.housingUnits,hiddenFutureHomes:h.plan[120].metrics.housingUnits},
+      completion:{recordedCompletions:h.plan.flatMap(s=>s.events.filter(e=>e.eventType==='PROJECT_COMPLETE').map(e=>({month:s.month,eventId:e.id,homes:e.payload.units})))},
+      trail:{nodes:trail?.nodes.map(n=>({id:n.id,type:n.type,arm:n.arm,month:n.month,eventId:n.eventId,entity:n.entity,status:n.status,unavailableReason:n.unavailableReason,homes:n.type==='housing-units'?(n.record?.count??null):null})),relationships:trail?.edges.map(e=>({...e}))}};
+    record.frozen={graph,graphHash:await stateHash(graph),outcome:{homes:h.plan[120].metrics.housingUnits,meanRent:h.plan[120].metrics.meanRent},recipeHash:await stateHash(h.recipe),receipt:await createRunReceipt(h)};
+  }
   const json=(body,status=200)=>Response.json(body,{status,headers:{'cache-control':'no-store'}});
   const handle=async request=>{try{
     const url=new URL(request.url),parts=url.pathname.split('/').filter(Boolean).slice(2);
@@ -31,26 +42,24 @@ export function createDetectiveHandler({root=process.env.HBL_DETECTIVE_ROOT||'.h
       const id=randomUUID(),answer=[1,3,0,2,1][body.caseIndex];
       const choices=decisions.map((d,index)=>({id:randomUUID(),index,label:d.label}));
       for(let i=choices.length-1;i>0;i--){const j=randomInt(i+1);[choices[i],choices[j]]=[choices[j],choices[i]];}
-      records[id]={caseIndex:body.caseIndex,answer,choices,steps:[],recipe:{...decisions[answer].recipe,seed:42+body.caseIndex},createdAt:new Date().toISOString()};save();return json({experimentId:id},201);
+      records[id]={caseIndex:body.caseIndex,answer,choices,steps:[],recipe:{...decisions[answer].recipe,seed:42+body.caseIndex},createdAt:new Date().toISOString()};await freeze(records[id]);save();return json({experimentId:id},201);
     }
     const [id,action]=parts,r=records[id];if(!r||parts.length>2)return json({error:'Saved puzzle unavailable.'},404);
-    const h=await history(r);
-    if(!action&&request.method==='GET')return json({experimentId:id,caseNumber:r.caseIndex+1,month:120,outcome:{homes:h.plan[120].metrics.housingUnits,meanRent:h.plan[120].metrics.meanRent},choices:r.choices.map(({id,label})=>({id,label})),evidenceSteps:r.steps.length,reveal:r.reveal??null});
+    if(!r.frozen){await freeze(r);save();}
+    const frozen=r.frozen;
+    if(await stateHash(frozen.graph)!==frozen.graphHash)return json({error:'Frozen evidence unavailable: integrity check failed. Open a new case.'},409);
+    if(!action&&request.method==='GET')return json({experimentId:id,caseNumber:r.caseIndex+1,month:120,outcome:frozen.outcome,graphHash:frozen.graphHash,choices:r.choices.map(({id,label})=>({id,label})),evidenceSteps:r.steps.length,reveal:r.reveal??null});
     if(action==='evidence'&&request.method==='POST'){
       const {step}=await request.json();if(!['inventory','completion','trail'].includes(step))return json({error:'Unknown evidence step.'},400);
       if(!r.reveal&&!r.steps.includes(step)){r.steps.push(step);save();}
-      const completion=h.plan.flatMap(s=>s.events.filter(e=>e.eventType==='PROJECT_COMPLETE').map(e=>({month:s.month,eventId:e.id,homes:e.payload.units})));
-      // Never serialize raw states, policies, projects, or event payloads before reveal.
-      const building=h.plan[120].state.buildings.find(b=>!h.baseline[120].state.buildings.some(a=>a.id===b.id));
-      const trail=building?buildEvidenceTrail(h,{collection:'buildings',id:building.id,month:120}):null;
-      const evidence=step==='inventory'?{month:120,baselineHomes:h.baseline[120].metrics.housingUnits,hiddenFutureHomes:h.plan[120].metrics.housingUnits}:step==='completion'?{recordedCompletions:completion}: {nodes:trail?.nodes.map(n=>({type:n.type,arm:n.arm,month:n.month,status:n.status,unavailableReason:n.unavailableReason})),relationships:trail?.edges.map(e=>({relationship:e.relationship,status:e.status,causalClaim:false}))};
+      const evidence=frozen.graph[step];
       return json({step,evidence,evidenceSteps:r.steps.length,limits:'Synthetic monthly City records. Recorded relationships do not independently verify causality.'});
     }
     if(action==='answer'&&request.method==='POST'){
       if(r.reveal)return json(r.reveal);
       const {choiceId}=await request.json(),choice=r.choices.find(c=>c.id===choiceId);if(!choice)return json({error:'Choose one of the four answers.'},400);
-      const submitted={...decisions[choice.index].recipe,seed:h.seed},recipeHash=await stateHash(h.recipe),correct=await stateHash(submitted)===recipeHash;
-      r.reveal={experimentId:id,correct,recipeHash,submittedRecipeHash:await stateHash(submitted),evidenceSteps:r.steps.length,score:correct?50+Math.min(r.steps.length,3)*15:0,completedWithEvidence:correct&&r.steps.length>=2,answer:decisions[r.answer].label,receipt:await createRunReceipt(h)};save();return json(r.reveal);
+      const submitted={...decisions[choice.index].recipe,seed:frozen.graph.seed},recipeHash=frozen.recipeHash,correct=await stateHash(submitted)===recipeHash&&frozen.graph.inventory.hiddenFutureHomes-frozen.graph.inventory.baselineHomes===submitted.intervention.amount&&frozen.graph.trail.nodes?.some(n=>n.arm==='plan'&&n.type==='housing-units'&&n.status==='recorded'&&n.homes===submitted.intervention.amount)&&frozen.graph.completion.recordedCompletions.some(e=>e.homes===submitted.intervention.amount);
+      r.reveal={experimentId:id,correct,recipeHash,submittedRecipeHash:await stateHash(submitted),evidenceSteps:r.steps.length,score:correct?50+Math.min(r.steps.length,3)*15:0,completedWithEvidence:correct&&r.steps.length>=2,answer:decisions[r.answer].label,graphHash:frozen.graphHash,proof:frozen.graph,receipt:frozen.receipt};save();return json(r.reveal);
     }
     return json({error:'Unsupported method or action.'},405);
   }catch{return json({error:'Puzzle request failed. Retry or open a new case.'},400);}};

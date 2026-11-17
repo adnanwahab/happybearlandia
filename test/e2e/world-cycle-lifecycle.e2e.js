@@ -1,6 +1,12 @@
 import {test,expect} from '@playwright/test';
 const route='/world/?demo=1&synthetic=1&people=20&renderer=webgl';
-async function controls(page){if(!await page.locator('#runCycleBtn').isVisible())await page.getByText('World controls',{exact:true}).click();await expect(page.locator('#runCycleBtn')).toBeVisible();}
+async function controls(page){
+ // The sprint shell progressively discloses Classic controls through More tools.
+ // Follow that normal entry point before opening the legacy details element.
+ if(!await page.locator('#top').isVisible())await page.getByRole('button',{name:'More tools',exact:true}).click();
+ if(!await page.locator('#runCycleBtn').isVisible())await page.getByText('World controls',{exact:true}).click();
+ await expect(page.locator('#runCycleBtn')).toBeVisible();
+}
 async function ready(page){
  await page.goto(route);
  await page.waitForFunction(()=>window.hblGuidedActions,{timeout:60000});

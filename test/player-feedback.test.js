@@ -39,24 +39,79 @@ test('storage failure returns a generic nonblocking error without exposing paths
   expect(await response.json()).toEqual({ error: 'Feedback temporarily unavailable' });
 });
 
-test('form requires consent, sends only choices, recovers from network failure and supports opt-out', async () => {
+function fixture() {
+  const consent = { checked: false }, wow = { disabled: true }, confusing = { disabled: true };
+  const status = {}, dismiss = {}, clear = {}, summary = { focus() {} }, listeners = {};
+  const form = { elements: { consent, moment: { value: 'exploring' } },
+    querySelectorAll: () => [wow, confusing],
+    querySelector: selector => ({ '[role=status]': status, '[data-dismiss]': dismiss, '[data-clear]': clear })[selector] };
+  const panel = { open: true, querySelector: selector => selector === 'summary' ? summary : form,
+    addEventListener: (type, fn) => { listeners[type] = fn; } };
+  return { consent, wow, confusing, status, dismiss, clear, form, panel, listeners };
+}
+async function mounted(fetchImpl) {
   const { mountPlayerFeedback } = await import('../world/player-feedback.js');
-  const previous = globalThis.document;
-  const consent = { checked: false }, send = { disabled: true }, status = {}, dismiss = {};
-  const form = { elements: { consent, kind: { value: 'favorite' }, moment: { value: 'comparing' } }, querySelector: selector => selector === '[type=submit]' ? send : selector === '[role=status]' ? status : dismiss };
-  const panel = { open: true, querySelector: () => form };
-  globalThis.document = { createElement: () => panel };
+  const previous = globalThis.document, f = fixture();
+  globalThis.document = { createElement: () => f.panel };
+  try { mountPlayerFeedback({ append() {} }, { fetchImpl }); }
+  finally { globalThis.document = previous; }
+  f.submit = (value = 'favorite') => f.form.onsubmit({ preventDefault() {}, submitter: { value } });
+  f.allow = () => { f.consent.checked = true; f.consent.onchange(); };
+  return f;
+}
+test('one-tap reactions require explicit consent and use the compatible minimal aggregate contract', async () => {
   const calls = []; let fail = true;
+  const f = await mounted(async (url, options) => { calls.push({ url, options }); if (fail) throw Error('network'); return { ok: true }; });
+  await f.submit(); expect(calls).toHaveLength(0);
+  f.allow(); expect(f.wow.disabled).toBe(false);
+  f.form.elements.moment.value = 'comparing';
+  await f.submit(); expect(f.status.textContent).toContain('could not be confirmed'); expect(f.wow.disabled).toBe(false);
+  expect(JSON.parse(calls[0].options.body)).toEqual({ version: 1, consent: true, kind: 'favorite', moment: 'comparing' });
+  expect(calls[0].options.credentials).toBe('omit'); expect(calls[0].options.referrerPolicy).toBe('no-referrer');
+  fail = false; await f.submit('confusing');
+  expect(JSON.parse(calls[1].options.body).kind).toBe('confusing');
+  expect(f.status.textContent).toContain('counted privately'); expect(f.consent.checked).toBe(false);
+  expect(f.wow.disabled).toBe(true); expect(f.confusing.disabled).toBe(true);
+  f.allow(); f.dismiss.onclick(); expect(f.panel.open).toBe(false); expect(f.consent.checked).toBe(false);
+  await f.submit(); expect(calls).toHaveLength(2);
+});
+test('clear aborts pending requests, resets consent and ignores late results from a previous submission', async () => {
+  const pending = [];
+  const f = await mounted((url, options) => new Promise(resolve => pending.push({ resolve, options })));
+  f.allow(); const first = f.submit(); await f.submit(); expect(pending).toHaveLength(1);
+  f.clear.onclick(); expect(pending[0].options.signal.aborted).toBe(true);
+  expect(f.status.textContent).toContain('Local choices cleared'); expect(f.consent.checked).toBe(false);
+  f.allow(); const second = f.submit('confusing');
+  pending[0].resolve({ ok: true }); await first;
+  expect(f.wow.disabled).toBe(true); expect(f.status.textContent).toContain('Sending');
+  pending[1].resolve({ ok: true }); await second;
+  expect(f.status.textContent).toContain('counted privately');
+});
+test('unavailable response and missing reaction stay nonblocking; closing clears local input', async () => {
+  let calls = 0;
+  const f = await mounted(async () => { calls++; return { ok: false }; });
+  f.allow(); await f.submit('unknown'); expect(calls).toBe(0);
+  await f.form.onsubmit({ preventDefault() {} }); expect(calls).toBe(0);
+  await f.submit(); expect(f.status.textContent).toContain('could not be confirmed');
+  f.form.elements.moment.value = 'inspecting'; f.panel.open = false; f.listeners.toggle();
+  expect(f.form.elements.moment.value).toBe('exploring'); expect(f.consent.checked).toBe(false);
+});
+
+test('in-place reaction integrates with the real consent validator and private aggregate store', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'hbl-reaction-integration-'));
   try {
-    mountPlayerFeedback({ append() {} }, { fetchImpl: async (url, options) => { calls.push({ url, options }); if (fail) throw Error('network'); return { ok: true }; } });
-    const submit = () => form.onsubmit({ preventDefault() {} });
-    await submit(); expect(calls).toHaveLength(0);
-    consent.checked = true; consent.onchange(); expect(send.disabled).toBe(false);
-    await submit(); expect(status.textContent).toContain('could not be confirmed'); expect(send.disabled).toBe(false);
-    expect(JSON.parse(calls[0].options.body)).toEqual({ version: 1, consent: true, kind: 'favorite', moment: 'comparing' });
-    expect(calls[0].options.credentials).toBe('omit'); expect(calls[0].options.referrerPolicy).toBe('no-referrer');
-    fail = false; await submit(); expect(status.textContent).toContain('counted privately'); expect(consent.checked).toBe(false); expect(send.disabled).toBe(true);
-    consent.checked = true; dismiss.onclick(); expect(panel.open).toBe(false); expect(consent.checked).toBe(false);
-    await submit(); expect(calls).toHaveLength(2);
-  } finally { globalThis.document = previous; }
+    const handle = createPlayerFeedbackHandler({ directory });
+    const f = await mounted((url, options) => handle(new Request('https://game.test' + url, {
+      ...options, headers: { ...options.headers, origin: 'https://game.test' },
+    })));
+    await f.submit(); expect(() => statSync(join(directory, 'counts.sqlite'))).toThrow();
+    f.allow(); await f.submit('favorite');
+    expect(f.status.textContent).toContain('counted privately');
+    f.clear.onclick();
+    const db = new Database(join(directory, 'counts.sqlite'), { readonly: true });
+    expect(db.query('SELECT * FROM feedback_counts').all()).toEqual([{ kind: 'favorite', moment: 'exploring', count: 1 }]);
+    expect(db.query('PRAGMA table_info(feedback_counts)').all().map(column => column.name)).toEqual(['kind', 'moment', 'count']);
+    db.close();
+    expect(f.consent.checked).toBe(false);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
 });

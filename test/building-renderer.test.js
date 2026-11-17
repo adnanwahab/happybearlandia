@@ -23,3 +23,23 @@ test('physical metric mapping uses stored monthly snapshots without interpolatin
  const run={monthlyTimeline:[{month:0,year:0,metrics:{housing_supply:100,vacancy_rate:4}},{month:6,year:.5,metrics:{housing_supply:120,vacancy_rate:6}}]};
  expect(storedMetricSnapshot(run,5).month).toBe(0);expect(illustrativeWorldMapping(run,6)).toMatchObject({supply:120,supplyIndex:1.2,vacancyPercent:6,recordedMonth:6});expect(storedMetricSnapshot(null,12)).toBeNull();
 });
+
+import * as THREE from 'three';
+import {attachBuildingWorld} from '../world/buildings/renderer.js';
+test('actual Three scene uses recorded floors and selection ghost without mutating the run',async()=>{
+ class Node extends EventTarget {children=[];dataset={};hidden=false;append(child){this.children.push(child)}replaceChildren(){this.children=[]}setAttribute(key,value){this[key]=value}}
+ const win=new Node(),doc={defaultView:win,createElement:()=>new Node()},canvas=new Node();canvas.ownerDocument=doc;
+ const panel=new Node(),scene=new THREE.Scene(),project=createBuildingProposal({id:'hero',status:'approved'});
+ const run={projects:[{projectId:'hero',states:[{month:0,status:'approved',floorsBuilt:0},{month:18,status:'structure',floorsBuilt:9,progress:.4},{month:40,status:'occupied',floorsBuilt:24,occupiedUnits:310,completedUnits:310,progress:1}]}]};
+ const original=JSON.stringify(run),view=attachBuildingWorld({scene,camera:new THREE.PerspectiveCamera(),renderer:{domElement:canvas},panel,THREE});await view.ready;
+ view.update({projects:[project],run,month:18,worldVisuals:{treeDensity:0}});view.selectProject('hero');
+ expect(panel.children.some(node=>node.textContent==='Floors: 9 / 24')).toBe(true);
+ const meshes=[];scene.traverse(node=>{if(node.isMesh)meshes.push(node)});expect(meshes.length).toBeGreaterThan(40);
+ panel.children.find(node=>node.dataset.bwBefore==='hero').onclick();
+ expect(panel.children.find(node=>node.dataset.bwBefore==='hero')['aria-pressed']).toBe('true');
+ scene.traverse(node=>{if(node.isMesh)expect(node.material.wireframe).toBe(true)});
+ view.update({month:40});expect(panel.children.some(node=>node.textContent==='Occupied units: 310')).toBe(true);
+ panel.children.find(node=>node.dataset.bwBefore==='hero').onclick();scene.traverse(node=>{if(node.isMesh)expect(node.material.wireframe).toBe(false)});
+ view.update({month:0});expect(panel.children.some(node=>node.textContent==='Floors: 0 / 24')).toBe(true);
+ expect(JSON.stringify(run)).toBe(original);view.destroy();expect(scene.children).toHaveLength(0);
+});

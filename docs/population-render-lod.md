@@ -35,3 +35,13 @@ population-display-lod.v1. Tests traverse all levels against the identical
 serialized frame, conserve sampled identities, test thresholds, selected ID,
 disabled counts and cleanup. Existing marker/picking tests explicitly request
 resident mode to retain their specific coverage.
+
+SHE-261 extends the middle distance: current travelers remain individual moving
+points (or nearby mode instances), while only stationary sampled residents enter
+clusters. Individual and cluster counters reconcile separately. At >=900m the
+existing heat/selected-person policy remains. Car/bus/rail shapes use committed
+mode and endpoints for heading; bus/rail shapes identify passengers, not shared
+vehicle services. Hover shows synthetic name, destination activity and planned
+minutes; a normal unhandled click selects and follows, while existing person
+command interception and manual-pan cancellation remain supported. Trip geometry
+is still a straight-line model approximation, not a road or sidewalk path.

@@ -1,3 +1,18 @@
+import {mountInfrastructureScanner} from './infrastructure-scanner.js';
+import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
+import {mountSceneContextMenu} from './scene-context-menu.js';
+import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
+import {mountGamepadControls} from './gamepad-controls.js';
+import {mountSpatialTargets,spatialTargets} from './onboarding/spatial-targets.js';
+import {mountComparisonPinboard, spatialRecord} from './comparison-pinboard.js';
+import {mountAmbientSound} from './ambient/controls.js';
+import {createRoutePrewarmer} from './render/route-prewarmer.js';
+import {createShaderWarmup} from './render/shader-warmup.js';
+import {advanceFrameMinutes,createObservedClock} from './render/frame-work.js';
+import {mountStormCue} from './render/environment/storm-cue.js';
+import {stormIntensityAt} from './weather/parcel-storm.js';
+import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
+import {simulationLighting,legacyHomeCounts,legacyBuildingOccupancy} from "./render/environment/sim-lighting.js";
 import {createGlobalIllumination} from './render/global-illumination.js';
 import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
@@ -5,6 +20,7 @@ import {mountSessionSurvey} from './onboarding/session-survey.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
 import {createPanelManager} from './onboarding/panel-manager.js';
+import {mountCameraPresets} from './camera-presets.js';
 import {createCameraDirector} from './onboarding/camera-director.js';
 import {createSpotlight} from './onboarding/spotlight.js';
 import {mountWorldAccessibility} from './onboarding/accessibility.js';
@@ -24,7 +40,7 @@ import { createSimulationPlayback } from "./simulation-playback.js";
 import { personNeedsMarkup } from "./person-needs.js";
 import { mountLivingWorld } from "./population/world-view.js";
 import { createTrackedWorker } from "./workers/worker-registry.js";
-import { mountMinimap } from "./minimap.js";
+import { mountMinimap, resolveMinimapVisit } from "./minimap.js";
 import { mountVehicleInspector } from "./vehicle-inspector.js";
 import { mountMapControls } from "./map-controls.js";
 import { mountFpsMeter } from "./fps-meter.js";
@@ -111,6 +127,7 @@ $("goto").onsubmit = (e) => {
 $("preset").onchange = (e) => { if (e.target.value) { const [a, b] = e.target.value.split(",").map(Number); go(a, b); } };
 $("here").onclick = () => navigator.geolocation?.getCurrentPosition((p) => go(p.coords.latitude, p.coords.longitude));
 
+let spatialNavigationUpdate=null,spatialNavigation=null;
 let visualCamera=null, visualSpotlight=null, visualPanels=null, visualComparisonResult=null, visualComparisonView='withPlan';
 const startup = window.hblWorldStartup = { startedAt:performance.now(), firstFrameMs:null, mapReadyMs:null, placeholdersReadyMs:null, geometryReadyMs:null, readyMs:null, geometry:null, cancelled:false };
 const startupAbort = new AbortController();
@@ -138,36 +155,23 @@ const initialAreaRequest=(async()=>{
   }catch(error){return {source:"none",error:`area request failed: ${error.message}`};}
 })();
 
-const forceWebGL = params.get("renderer") === "webgl" || (loadedExperiment?.save.mode === "living" && !navigator.gpu);
-const useMainWorldGPU = loadedExperiment?.save.mode !== "living" && !forceWebGL && !params.has("living") && !businessMode && !embedMode;
 async function boundedGraphics(factory,milliseconds=8000){
  let timer,expired=false;const work=Promise.resolve().then(factory);
  work.then(value=>{if(expired)value?.renderer?.dispose?.();}).catch(()=>{});
- try{return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(new Error('Graphics initialization timed out; switching to a supported renderer.'));},milliseconds);})]);}finally{clearTimeout(timer);}
+ try{return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(new Error('WebGPU initialization timed out.'));},milliseconds);})]);}finally{clearTimeout(timer);}
 }
 let graphics;
-const canUseWebGL=()=>{const probe=document.createElement('canvas').getContext('webgl2');if(!probe)return false;probe.getExtension('WEBGL_lose_context')?.loseContext();return true;};
 try {
-  graphics = await boundedGraphics(async()=> (['canvas','canvas2d'].includes(params.get('renderer'))||forceWebGL&&!canUseWebGL()) ? (await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer() : useMainWorldGPU
-    ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
-    : await createCityRenderer({ forceWebGL, antialias: !embedMode }));
+  graphics=await boundedGraphics(()=>{const prepared=window.hblPreparedWorldGraphics;delete window.hblPreparedWorldGraphics;return prepared??createCityRenderer({antialias:!embedMode});});
 } catch (error) {
-  try {
-    if(!useMainWorldGPU||!canUseWebGL())throw error;
-    graphics=await boundedGraphics(()=>createCityRenderer({forceWebGL:true,antialias:!embedMode}),4000);
-    const loading=$('loading');loading.replaceChildren();loading.removeAttribute('role');loading.textContent='Starting World with WebGL2…';
-    startup.graphicsFallback='WebGPU unavailable; using WebGL2';
-  } catch (fallbackError) {
-    try{graphics=(await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer();startup.graphicsFallback='GPU unavailable; Canvas2D projected geometry';}catch(canvasError){
-    const loading=$('loading');loading.replaceChildren();loading.setAttribute('role','alert');
-    loading.textContent='3D World could not start. Check that WebGL2 and hardware acceleration are available. ';
-    const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();loading.append(retry);
-    const home=document.createElement('a');home.href='/';home.textContent=' Return home';loading.append(home);
-    if(loadedExperiment&&params.has('person')){const link=document.createElement('a');link.href='/tools/future-journey.html?'+params;link.textContent=' Return to Worldline';loading.append(link);}
-    startup.graphicsError=fallbackError.message;
-    throw canvasError;
-    }
-  }
+  const loading=$('loading');loading.replaceChildren();loading.setAttribute('role','alert');
+  const message=document.createElement('p');message.textContent='World requires WebGPU. Enable hardware acceleration in a WebGPU-capable browser, then try again.';
+  const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();
+  const home=document.createElement('a');home.href='/';home.textContent=' Return home';
+  loading.append(message,retry,home);
+  if(loadedExperiment&&params.has('person')){const link=document.createElement('a');link.href='/tools/future-journey.html?'+params;link.textContent=' Return to Worldline';loading.append(link);}
+  startup.graphicsError=error.message;
+  throw error;
 }
 const { renderer, mode: rendererMode } = graphics;
 renderer.setSize(innerWidth, innerHeight);
@@ -179,11 +183,27 @@ const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 5000
 camera.position.set(320, 125, 450);
 const globalIllumination=createGlobalIllumination({renderer,scene,camera,mode:rendererMode,button:$('global-illumination-button')});
 window.hblGlobalIllumination=globalIllumination;
+const shaderWarmup=createShaderWarmup({renderer,scene,camera});
+window.hblShaderWarmup=shaderWarmup;
+addEventListener('pagehide',()=>shaderWarmup.dispose(),{once:true});
 addEventListener('pagehide',()=>{globalIllumination.dispose();delete window.hblGlobalIllumination;},{once:true});
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 30, 0);
 controls.maxPolarAngle = Math.PI * 0.47;
 controls.enableDamping = true;
+// Arrival is visual only; the selected URL is the simulation authority.
+if(params.get('arrival')==='1'&&matchMedia('(prefers-reduced-motion: reduce)').matches){camera.position.set(22,18,32);controls.target.set(0,8,0);}
+let arrivalStart=null,arrivalDone=params.get('arrival')!=='1'||matchMedia('(prefers-reduced-motion: reduce)').matches;
+function updateArrival(now){
+  if(arrivalDone)return;
+  arrivalStart??=now;
+  const t=Math.min(1,(now-arrivalStart)/2600),ease=1-Math.pow(1-t,3);
+  camera.position.set(320*(1-ease)+22*ease,3000*(1-ease)+18*ease,450*(1-ease)+32*ease);
+  controls.target.set(0,8,0);
+  if(t===1)arrivalDone=true;
+}
+renderer.domElement.addEventListener('pointerdown',()=>{arrivalDone=true;},{once:true});
+
 const resizeWorldView = () => {camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);};
 addEventListener("resize",resizeWorldView);
 
@@ -217,7 +237,7 @@ scene.add(ground);
 
 
 scene.background=new THREE.Color(0xbcd3df);
-function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});globalIllumination.render();if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
+function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);updateArrival(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});globalIllumination.render();if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
 requestAnimationFrame(drawStartupFrame);
 addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);removeEventListener("resize",resizeWorldView);},{once:true});
 
@@ -232,7 +252,7 @@ const originalAreaGeometry=structuredClone(area);
 startup.mapReadyMs=performance.now();
 const town = buildTown(origin, area, { maxPeople, savedGeometry: savedSyntheticHome });
 mountConstitutionComparison({ THREE, scene, camera, controls, town, params });
-const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...(realityRunSeed ? { runSeed:realityRunSeed } : {}) });
+const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...((realityRunSeed || params.get("seed")) ? { runSeed:realityRunSeed || params.get("seed") } : {}) });
 const legacyJournalCity=journalCity(origin),legacyJournalRun=`legacy:${crypto.randomUUID()}`;
 const legacyJournalRecorder=world.journals?createJournalRecorder({city:legacyJournalCity,mode:'legacy',getRunId:()=>legacyJournalRun,getMinute:()=>world.t,getPage:query=>{for(const p of world.people)ensureJournal(world.journals,String(p.id),p.name,world.t);return journalPage(world.journals,query);},onSaved:minute=>pruneSavedJournals(world.journals,minute,world.t)}):null;
 if(legacyJournalRecorder)void legacyJournalRecorder.flush(true);
@@ -408,8 +428,8 @@ for (const [index,b] of town.buildings.entries()) {
 startup.placeholdersReadyMs=performance.now();
 const progressiveGeometry=createProgressiveLoader({items:town.buildings,signal:startupAbort.signal,concurrency:3,frameBudgetMs:4,maxAttachmentsPerFrame:6,
   priority:b=>Math.hypot(b.center[0]-camera.position.x,b.center[1]-camera.position.z),
-  load:b=>geometryCache.building({id:b.id,poly:b.poly,height:b.height,kind:b.kind}),
-  attach:(data,b)=>{const geo=toBufferGeometry(data),facade=createFacadeMaterial(b.baseColor,hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=b.mesh;const old=mesh.geometry;mesh.geometry=geo;mesh.material=facade.material;mesh.userData.loadingGeometry=false;mesh.userData.geometryTier=1;buildingDateBridge?.refresh();facades.push(facade);b.populationFacade=facade;old.dispose();return()=>{geo.dispose();facade.material.dispose();};},
+  load:b=>geometryCache.building({id:b.id,poly:b.poly,height:b.height,kind:b.kind,architecture:b.architecture,worldRevision:b.worldRevision}),
+  attach:(data,b)=>{const geo=toBufferGeometry(data),facade=createFacadeMaterial(b.baseColor,hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=b.mesh;const old=mesh.geometry;mesh.geometry=geo;mesh.material=facade.material;mesh.userData.loadingGeometry=false;mesh.userData.geometryTier=1;buildingDateBridge?.refresh();facade.building=b;facades.push(facade);b.populationFacade=facade;old.dispose();return()=>{geo.dispose();facade.material.dispose();};},
   fallback:(error,b)=>{b.mesh.userData.geometryError=error.message;return()=>b.mesh.geometry.dispose();},
   disposeSource:()=>geometryCache.dispose(),
   onProgress:progress=>{startup.geometry=progress;const label=$("loading");if(label)label.textContent=`Detailed buildings ${progress.successful} / ${progress.total}${progress.fallbacks?` · ${progress.fallbacks} footprints retained`:''}`;}
@@ -420,6 +440,9 @@ addEventListener("pagehide",()=>{progressiveGeometry.dispose();for(const materia
 let gpuParticleMenu=null,gpuParticleMenuDisposed=false;
 const cityRenderer = mountCityRenderer({ renderer, mode: rendererMode, scene, camera, controls, town, sun, facades, geometryCache, embed: embedMode });
 window.hblCityRenderer = cityRenderer;
+window.hblStorm={getSnapshot:()=>({minute:world.t,active:!livingWorld?.active,storm:structuredClone(world.policy?.storm??null),flooded:world.buildings.filter(b=>b.state.flooded).map(b=>({id:String(b.id),depthMeters:b.state.floodDepthMeters,polygon:structuredClone(b.state.floodSurfacePoly??b.poly)}))})};
+const stormCue=mountStormCue(document.querySelector('#stormBtn').parentElement);
+addEventListener('pagehide',()=>stormCue.dispose(),{once:true});
 startupCityRenderer=cityRenderer;
 if(loadedExperiment?.save.view.graphics){const graphics=loadedExperiment.save.view.graphics;if(graphics.quality)cityRenderer.setQuality(graphics.quality);if(graphics.settings?.targetFPS)cityRenderer.setTargetFPS(graphics.settings.targetFPS);for(const [name,value] of Object.entries(graphics.features??{}))cityRenderer.setFeature(name,value);}
 if(!embedMode)void import('./render/gpu-particle-menu.js').then(({mountGpuParticleMenu})=>{if(gpuParticleMenuDisposed)return;const container=document.querySelector('[data-testid=render-performance]');gpuParticleMenu=mountGpuParticleMenu({container,THREE,renderer,scene,bounds:{minX:-400,maxX:400,minZ:-400,maxZ:400},getSource:()=>({minute:livingWorld?.active?livingWorld.getClockMinute():world.t,frame:livingWorld?.active?physicalPolicySnapshot:null,electricity:world.electricity,weather:world.weather?.snapshot?.(),culture:world.cultureSnapshot})});window.hblGpuParticles=gpuParticleMenu;});
@@ -447,12 +470,12 @@ function updateContextMinimap(chunks){if(chunks)pendingContextChunks=chunks;if(!
 const mapStreamer=createMapStreamer({mode:generatedContext?'generated':'osm',buildGeneratedTile:tile=>buildTown({lat:tile.lat,lng:tile.lng},{source:'none'},{maxPeople:0}),origin,projector:geoProj,initialArea:{...area,origin:area.origin||origin},initialBuildingIds:town.buildings.map(b=>b.id),tileRadiusM:generatedContext?430:([150,250,400].includes(area.radiusM)?area.radiusM:400),geometryCache,camera,signal:startupAbort.signal,maxTiles:9,concurrency:2,
   getTarget:()=>controls.target,
   getView:()=>{const footprint=mapControls.getPanFootprint?.(),distance=camera.position.distanceTo(controls.target),halfHeight=distance*Math.tan(camera.getEffectiveFOV()*Math.PI/360);return {x:controls.target.x,z:controls.target.z,halfWidth:footprint?footprint.width/2:halfHeight*camera.aspect,halfDepth:footprint?footprint.depth/2:halfHeight};},
-  attachBuilding:(data,b)=>{const geometry=toBufferGeometry(data),facade=createFacadeMaterial(baseColorFor(b),hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=new THREE.Mesh(geometry,facade.material);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.contextBuilding=b;b.mesh=mesh;scene.add(mesh);buildingDateBridge?.register(mesh,b);facades.push(facade);contextBuildings.set(b.id,b);return()=>{contextBuildings.delete(b.id);buildingDateBridge?.unregister(mesh);scene.remove(mesh);geometry.dispose();facade.material.dispose();const index=facades.indexOf(facade);if(index>=0)facades.splice(index,1);};},
+  attachBuilding:(data,b)=>{const geometry=toBufferGeometry(data),facade=createFacadeMaterial(baseColorFor(b),hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=new THREE.Mesh(geometry,facade.material);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.contextBuilding=b;b.mesh=mesh;scene.add(mesh);buildingDateBridge?.register(mesh,b);facade.building=b;facades.push(facade);contextBuildings.set(b.id,b);return()=>{contextBuildings.delete(b.id);buildingDateBridge?.unregister(mesh);scene.remove(mesh);geometry.dispose();facade.material.dispose();const index=facades.indexOf(facade);if(index>=0)facades.splice(index,1);};},
   attachTile:(context,tile)=>{const group=new THREE.Group(),bounds=tile.actualBounds||tile.bounds,width=bounds.maxX-bounds.minX,depth=bounds.maxZ-bounds.minZ;const base=new THREE.Mesh(new THREE.PlaneGeometry(width,depth),new THREE.MeshLambertMaterial({color:0x626b50}));base.rotation.x=-Math.PI/2;base.position.set((bounds.minX+bounds.maxX)/2,-.12,(bounds.minZ+bounds.maxZ)/2);base.receiveShadow=true;group.add(base);const minimapRoads=[];for(const road of context.roads||[]){const projected=(road.pts||[]).map(point=>context.coordinates==='world'?point:geoProj.toXZ(point[0],point[1]));minimapRoads.push({...road,pts:projected});const points=projected.map(([x,z])=>new THREE.Vector3(x,.06,z));if(points.length<2)continue;group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0x92938e})));}scene.add(group);contextRoads.set(tile.key,minimapRoads);return()=>{contextRoads.delete(tile.key);disposeContext(group);};},
   onProgress:state=>{startup.stream=state;contextMapBounds=state.activeWindowBounds;contextViewLimited=state.viewLimited;const unavailable=state.tiles.filter(tile=>tile.status==='error').length,partial=state.tiles.filter(tile=>tile.status==='partial'||tile.error&&tile.status!=='error').length;retryNearby.hidden=!unavailable&&!partial;retryNearby.disabled=state.activeFetches>0;streamStatus.textContent=`${state.mode==='generated'?'Generated':'Real-map'} neighbor context: ${state.tileCount} / 9 retained areas · ${state.buildingCount} context buildings · ${state.activeFetches} map requests${unavailable?` · ${unavailable} unavailable`:''}${partial?` · ${partial} partial`:''}${state.viewLimited?' · zoom in for complete view coverage':''}. Original resident model unchanged.`;updateContextMinimap(state.tiles);}
 });
 window.hblMapStreamer=mapStreamer;
-minimap=!embedMode?mountMinimap(document.body,{town,camera,controls,THREE,bounds:geographicTileBounds(area,town),loadedChunks:mapStreamer.getState().tiles,onPan:()=>{manualPanRequested=true;streamingEnabled=true;},onPanScreen:direction=>mapControls.panScreen(direction)}):null;
+minimap=!embedMode?mountMinimap(document.body,{town,camera,controls,THREE,resolveVisit:entry=>resolveMinimapVisit(town,entry),bounds:geographicTileBounds(area,town),loadedChunks:mapStreamer.getState().tiles,onPan:()=>{follow=false;manualPanRequested=true;streamingEnabled=true;},onPanScreen:direction=>mapControls.panScreen(direction)}):null;
 window.hblMapControls=mapControls;
 let selectedVehicle=null,lastVehicleUpdate=0;
 const vehicleInspector=!embedMode?mountVehicleInspector(document.body,{onClose:()=>{selectedVehicle=null;}}):null;
@@ -502,7 +525,7 @@ async function withClassicWorld(action) {
   if (livingWorld?.active) await livingWorld.setActive(false);
   return action();
 }
-let speed = Math.max(1, Math.min(100, Number(params.get("speed")) || 1)); // game minutes per real second
+let speed = Math.max(0.25, Math.min(100, Number(params.get("speed")) || 1)); // game minutes per real second
 let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
 let overlayMode = "none";
@@ -512,13 +535,20 @@ let todayJournalPosts = [];
 let journalPins = [];
 const originalTrafficEnabled=cityRenderer.getPerformanceStats().features?.traffic!==false;
 let livingWorld=null,livingPlaybackUnsubscribe=null;
+const comparisonPinboard=mountComparisonPinboard($('comparison-pinboard'),{
+  resolve:(type,id)=>spatialRecord(town,world,type,id),available:()=>!livingWorld?.active,
+});
+window.addEventListener('world:building-selected',event=>comparisonPinboard.observe('building',event.detail?.id));
+window.addEventListener('world:person-selected',event=>{if(event.detail?.mode==='living')comparisonPinboard.observe('person',event.detail.id);});
 const activityListeners=new Set();let activityRuntimeUnsubscribe=null,activityDashboard=null,activityDashboardPromise=null,activityObserver=null,activityDisposed=false;
 function notifyActivity(){if(!activityListeners.size||!window.hblWorldActivity)return;const snapshot=window.hblWorldActivity.getSnapshot();for(const listener of activityListeners)listener(snapshot);}
 function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activityRuntimeUnsubscribe=runtime.subscribe(frame=>{physicalPolicySnapshot=frame;if(livingWorld?.active)notifyActivity();});}
 const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.active)notifyActivity();});
 const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();if(window.hblGuidedActions)worldFeedback("playback",{paused:state.paused,speed:state.speed});}});
 window.hblSimulationPlayback=playback;
-livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:loadedExperiment?false:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{if(active){window.hblVisualPass?.controller.stop();visualCamera?.cancel();visualSpotlight?.clear();}people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
+$("camera-speed").onchange=event=>{const value=Number(event.target.value);mapControls.setSpeed(value);controls.panSpeed=value;controls.rotateSpeed=value;controls.zoomSpeed=value;};
+livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:false,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{spatialNavigation?.refresh();if(active){window.hblVisualPass?.controller.stop();visualCamera?.cancel();visualSpotlight?.clear();}people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
+cityRenderer.setSimulationSource(()=>livingWorld?.active?livingWorld.getSnapshot():null);
 window.hblLivingWorld=livingWorld;
 const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
 addEventListener('pagehide',()=>neighborhoodWhatIf?.destroy(),{once:true});
@@ -528,6 +558,15 @@ window.hblWorldActivity={
  subscribe(listener){activityListeners.add(listener);return()=>activityListeners.delete(listener);},
  selectPerson(id){if(livingWorld?.active)return livingWorld.selectPerson(String(id));const index=town.people.findIndex(person=>String(person.id)===String(id));if(index>=0)select({type:'person',id:index});}
 };
+// Read-only references to the current authority, shared by tile and 3D views.
+window.hblWorldTileSource={
+ getRouteCacheStats:()=>world.getRouteCacheStats?.(),
+ getFrame(){const living=Boolean(livingWorld?.active),snapshot=living?livingWorld.getSnapshot():null;return{revision:living?`${snapshot?.runtime?.id}:${snapshot?.runtime?.revision}`:world.getActivityIdentity?.().runId??null,geometryKey:town.seedKey,runId:living?`${snapshot?.runtime?.id}:${snapshot?.runtime?.revision}`:world.getActivityIdentity?.().runId??null,minute:living?snapshot?.minute:world.t,seed:living?snapshot?.config?.seed:world.getActivityIdentity?.().seed??null,simulationSeed:living?snapshot?.config?.seed:world.simulationSeed??null,mode:living?'living':'legacy',modelVersion:living?snapshot?.modelVersion:world.modelVersion,residentRules:living?snapshot?.residentRules:world.getActivityIdentity?.().residentRules,buildings:town.buildings,roads:town.roads,people:living?(snapshot?.visibleAgents??[]):world.people,districts:living?(snapshot?.districts??[]):[],limitations:living?['People are the bounded worker sample, not the entire population.']:[]};},
+ selectPerson:id=>window.hblWorldActivity.selectPerson(id),
+ selectBuilding(id){const index=town.buildings.findIndex(building=>String(building.id)===String(id));if(index>=0)select({type:'building',id:index});}
+};
+window.hblTileWorld=window.hblWorldTileSource;
+window.hblSessionLogState=()=>{const living=Boolean(livingWorld?.active),seed=living?physicalPolicySnapshot?.config?.seed:world.simulationSeed;return{minute:living?livingWorld.getClockMinute():world.t,seed:Number.isFinite(seed)?seed:null,mode:living?'living':'legacy',camera:camera.position.toArray(),target:controls.target.toArray()};};
 const playbackFacts=mountPlaybackFacts(document);
 playbackFacts.update({mood:world.summary().mood,seed:town.seedKey});
 const activityButton=$('activity-dashboard-button');
@@ -652,11 +691,12 @@ const BASE_POLICY_PACKAGES = {
   },
 };
 
-let PLAN_PACKAGES = { ...BASE_POLICY_PACKAGES };
+let PLAN_PACKAGES = { ...BASE_POLICY_PACKAGES, custom:customPlan() };
+let planChoices;
 let PLAN_COMPARE_DIFF = {};
 let BALANCED_SIM_NOTE = "";
 let activePolicyId = "none";
-let policyYear = Math.max(0, Math.min(10, Number(params.get("year") ?? 0) || 0));
+let policyYear = Math.max(0, Math.min(10, Number(params.get("year") ?? 3) || 0));
 const planYearEl = $("planYear");
 const planYearNEl = $("planYearN");
 if (planYearEl) planYearEl.value = String(policyYear);
@@ -701,12 +741,13 @@ function refreshPolicySelect(selected = "none") {
     .join("");
   sel.innerHTML = options;
   sel.value = PLAN_PACKAGES[selected] ? selected : "none";
+  planChoices?.render();
 }
 
 function applyPolicy(id, year = policyYear) {
   const k = PLAN_PACKAGES[id] ? id : "none";
   const p = PLAN_PACKAGES[k];
-  const staged = computeEffectsForYear(p.proposalIds || [], year);
+  const staged = stagePlan(p, year);
 
   world.policy = {
     ...world.policy,
@@ -743,7 +784,7 @@ function applyPolicy(id, year = policyYear) {
     label: 'Plan configured',
     message: p.label + ' at plan year ' + year + '. These are configured mechanisms; run a paired experiment to measure outcomes.',
     metrics: [
-      {label:'Transit time multiplier',value:staged.effects.speedMult.toFixed(2) + '×'},
+      {label:'Transit speed multiplier',value:staged.effects.speedMult.toFixed(2) + '×'},
       {label:'Flood mitigation',value:Math.round(staged.effects.floodMitigation * 100) + '%'},
       {label:'Housing growth',value:Math.round(staged.effects.housingGrowth * 100) + '%'},
     ],
@@ -780,7 +821,8 @@ async function loadPolicyPackages() {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         const name = row?.name || row?.title || row?.label || row?.packageName || `Package ${i + 1}`;
-        const id = slug(row?.id || row?.slug || name);
+        const preset = Object.entries(BASE_POLICY_PACKAGES).find(([,p])=>p.label.toLowerCase()===name.toLowerCase());
+        const id = preset?.[0] || slug(row?.id || row?.slug || name);
         const items = row?.items || row?.proposals || row?.package?.items || [];
         const proposalIds = Array.from(new Set(items.map(proposalIdFrom).filter(Boolean)));
         if (!proposalIds.length) continue;
@@ -793,7 +835,7 @@ async function loadPolicyPackages() {
       }
       if (!n) continue;
 
-      PLAN_PACKAGES = {...BASE_POLICY_PACKAGES,...next};
+      PLAN_PACKAGES = {...BASE_POLICY_PACKAGES,custom:PLAN_PACKAGES.custom||customPlan(),...next};
       PLAN_COMPARE_DIFF = compareDiffById;
       const balancedId = Object.keys(next).find((k) => /balanced/i.test(next[k]?.label || ""));
       const d = balancedId ? PLAN_COMPARE_DIFF[balancedId] : null;
@@ -907,58 +949,18 @@ function rebuildJournalPins() {
   updateOverlayLegend();
 }
 
-function nearestSafeHome(fromHome) {
-  const src = town.buildings[fromHome];
-  const homes = town.buildings.filter((b) => b.kind === "home" && !b.state.flooded);
-  let best = null, bestD = Infinity;
-  for (const h of homes) {
-    const d = (h.center[0] - src.center[0]) ** 2 + (h.center[1] - src.center[1]) ** 2;
-    if (d < bestD) { bestD = d; best = h; }
-  }
-  return best;
-}
-
 function triggerStorm() {
-  const floodedIds = selectFloodedIds(floodFractionNow());
-  let floodedNow = 0;
-  for (const b of town.buildings) {
-    if (b.kind === "park") { b.state.flooded = false; continue; }
-    b.state.flooded = floodedIds.has(b.index);
-    if (b.state.flooded) floodedNow++;
-  }
-
-  let displaced = 0;
-  for (const p of town.people) {
-    const home = town.buildings[p.home];
-    if (!home?.state?.flooded) continue;
-    p.today.homeFlooded = true;
-    p.today.displaced = true;
-    const safe = nearestSafeHome(p.home);
-    if (!safe) continue;
-    displaced++;
-    p.home = safe.index;
-    p.mode = "idle";
-    p.action = null;
-    p.target = null;
-    p.path = null;
-    p.pathI = 0;
-    p.x = safe.center[0] + (world.rand() - 0.5) * 4;
-    p.z = safe.center[1] + (world.rand() - 0.5) * 4;
-    p.doing = "displaced after storm";
-    p.needs.energy = Math.max(0, p.needs.energy - 12);
-    p.needs.fun = Math.max(0, p.needs.fun - 15);
-    p.needs.social = Math.max(0, p.needs.social - 10);
-  }
-
-  world.policy.floodedNow = floodedNow;
-  world.policy.displaced = displaced;
+  const weather = world.weather?.snapshot?.();
+  const intensity = weather?.parameters?.automatic === false ? weather.stormIntensity : 1;
+  const {floodedNow, displaced} = world.startStorm({floodedIds:selectFloodedIds(floodFractionNow() * intensity), intensity});
+  if(intensity>0)stormCue.onset();
   world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "storm");
   overlayMode = 'flood';
   if (overlayEl) overlayEl.value = 'flood';
   updateOverlayLegend();
   worldFeedback('storm', {
     label:'Storm result',
-    message:'A synthetic storm has affected the classic town. The highlighted flooded parcels and relocated residents come from the simulation.',
+    message:'A synthetic storm has affected the classic town. The water depth and evacuating residents come from the simulation.',
     metrics:[
       {label:'Flooded parcels',value:String(floodedNow)},
       {label:'Residents displaced',value:String(displaced)},
@@ -971,6 +973,7 @@ function triggerStorm() {
 $("policy").onchange = (e) => {
   activePolicyId = e.target.value;
   applyPolicy(activePolicyId, policyYear);
+  planChoices?.render();
 };
 
 if (planYearEl) {
@@ -979,10 +982,18 @@ if (planYearEl) {
     if (planYearNEl) planYearNEl.textContent = `Year ${policyYear}`;
     params.set("year", String(policyYear));
     applyPolicy(activePolicyId, policyYear);
+    planChoices?.render();
   };
 }
 
-$("stormBtn").onclick = () => withClassicWorld(triggerStorm).catch(error => worldFeedback("error",{label:"Storm unavailable",message:error.message}));
+planChoices=mountPlanChoices({select:$('policy'),host:$('planChoices'),packages:()=>PLAN_PACKAGES,year:()=>policyYear,onCustom:()=>applyPolicy('custom',policyYear)});
+
+$("stormBtn").onclick = async () => {
+  const panel = $("top"), scrollTop = panel.scrollTop;
+  try { await withClassicWorld(triggerStorm); }
+  catch (error) { worldFeedback("error",{label:"Storm unavailable",message:error.message}); }
+  finally { panel.scrollTop = scrollTop; }
+};
 // A world embedded in the grid only needs its frozen plan, so it skips synthesizing packages.
 if (!loadedExperiment && !(embedMode && realityRunSeed)) {
   if(realityRunSeed)await loadPolicyPackages(); // Frozen reality ordering is unchanged.
@@ -1424,7 +1435,7 @@ function balancedPackageId() {
 }
 
 function cyclePackageId() {
-  if (PLAN_PACKAGES[activePolicyId] && activePolicyId !== "none" && !activePolicyId.startsWith("cycle-")) return activePolicyId;
+  if (PLAN_PACKAGES[activePolicyId] && !activePolicyId.startsWith("cycle-")) return activePolicyId;
   return balancedPackageId();
 }
 
@@ -1453,7 +1464,7 @@ function setCycleBusy(busy) {
   if (busy) $("cycleProgress").removeAttribute("value");
   $("runCycleBtn").disabled = busy;
   const next = $("cycleNext");
-  if (next) next.disabled = busy;
+  if (next) next.disabled = busy || Boolean(cycleResults[0]?.custom);
 }
 
 function failCycle(message, cancelled = false) {
@@ -1505,7 +1516,7 @@ function runCycle() {
   }
   const pkgId = pkg.id || requestedId || "none";
   const pkgLabel = pkg.label || pkgId;
-  const year = policyYear || 3; // effects ramp in over years; year 0 would show nothing
+  const year = policyYear;
   setCycleBusy(true);
   $("cycleStatus").textContent = "Starting…";
   cycleResults = [];
@@ -1518,19 +1529,20 @@ function runCycle() {
     if (planYearEl) planYearEl.value = String(year);
     if (planYearNEl) planYearNEl.textContent = `Year ${year}`;
     applyPolicy(pkgId, year);
+  planChoices.render();
 
     startCycleWorker(); // a fresh cycle 1 starts from fresh worlds
     pendingCycleLabel = pkgLabel;
     pendingCycleSource = pkg.source;
     cycleWorker.postMessage({
       type: "run",
-      payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkgLabel, remoteId: pkg.remoteId || null, year, days: 7 },
+      payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkgLabel, remoteId: pkg.remoteId || null, customEffects:pkg.customEffects, year, days: 7 },
     });
   } catch (error) { failCycle(error.message); }
 }
 
 function runNextCycle() {
-  if (cycleBusy || !cycleWorker || !cycleResults.length) return;
+  if (cycleBusy || !cycleWorker || !cycleResults.length || cycleResults[0]?.custom) return;
   setCycleBusy(true);
   $("cycleStatus").textContent = "Reading residents' journals…";
   pendingCycleLabel = null;
@@ -1711,8 +1723,8 @@ function renderCyclePanel() {
     </div>
     ${cycleIdx === cycleResults.length - 1 ? `
     <div class="row" style="margin-top:10px">
-      <button id="cycleNext" ${cycleBusy ? "disabled" : ""} title="Residents journal about this week; their journals pick the next change">Run cycle ${cycleResults.length + 1} →</button>
-      <span class="muted">let residents' journals pick the next fix</span>
+      <button id="cycleNext" ${cycleBusy || cycleResults[0]?.custom ? "disabled" : ""} title="Residents journal about this week; their journals pick the next change">Run cycle ${cycleResults.length + 1} →</button>
+      <span class="muted">${cycleResults[0]?.custom ? "Custom plans: edit sliders and Run cycle for another matched week." : "let residents' journals pick the next fix"}</span>
     </div>` : ""}
     <div class="exp-footnote">Synthetic residents. Well-being = day-averaged mood minus commute, housing, grocery and park frictions. Illustrative, not a forecast.</div>`;
 
@@ -2119,6 +2131,15 @@ async function publishSyntheticJournalsForDay(day) {
   }
 }
 
+const infrastructureScanner=!embedMode?mountInfrastructureScanner({container:$('top'),canvas:renderer.domElement,
+ getData:()=>({source:town.source,roads:town.roads}),toGround:event=>{
+ const rect=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();
+ picker.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);
+ const point=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
+ return point&&picker.ray.origin.distanceTo(point)<=camera.far?point:null;
+ }}):null;
+window.hblInfrastructureScanner={getState:()=>infrastructureScanner?.getState()};
+addEventListener('pagehide',()=>{infrastructureScanner?.destroy();delete window.hblInfrastructureScanner;},{once:true});
 const ray = new THREE.Raycaster();
 const ptr = new THREE.Vector2();
 let downAt = null,downVehicle = null;
@@ -2142,10 +2163,41 @@ const businessUI = businessMode ? mountBusinessMode(world, {
     focusBusiness(b);
   },
 }) : null;
-renderer.domElement.addEventListener("pointerdown", (e) => { downAt = [e.clientX, e.clientY];ptr.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(ptr,camera);downVehicle=cityRenderer.pickVehicle?.(ray)||null; });
-renderer.domElement.addEventListener("pointerup", (e) => {
+// Only actual frontmost rendered hits enter the magnetic candidate set.
+function rankCityTargets(x,y){
+ const rect=renderer.domElement.getBoundingClientRect();
+ return rankScreenTargets({x,y,rect,radius:inspectionFreeze.frozen?0:24,hitAt(px,py){
+  ptr.set((px-rect.left)/rect.width*2-1,-(py-rect.top)/rect.height*2+1);ray.setFromCamera(ptr,camera);
+  const hits=[];
+  const person=livingWorld?.active?null:humanPeople.pick(ray);
+  if(person&&isRenderedHit(person))hits.push({key:'person:'+person.id,label:town.people[person.index]?.name||'Person '+person.id,distance:person.distance,selection:{type:'person',id:person.index}});
+  const building=ray.intersectObjects(meshes).find(isRenderedHit);
+  if(building){const b=building.object.userData.b;hits.push({key:'building:'+b.id,label:b.name||'Building '+b.id,distance:building.distance,selection:{type:'building',id:b.index}});}
+  const journal=journalPins.length?ray.intersectObjects(journalPins.map(x=>x.mesh)).find(isRenderedHit):null;
+  if(journal)hits.push({key:'journal:'+journal.object.userData.journalIndex,label:'Journal '+journal.object.userData.journalIndex,distance:journal.distance,selection:{type:'journal',id:journal.object.userData.journalIndex}});
+  // Vehicles still block expansion; their existing exact-hit inspector owns selection.
+  const vehicle=cityRenderer.pickVehicle?.(ray);if(vehicle)hits.push({key:'vehicle:'+vehicle.id,label:'Vehicle '+vehicle.id,distance:vehicle.distance,vehicle});
+  return hits.sort((a,b)=>a.distance-b.distance)[0]||null;
+ }});
+}
+let frozenCamera=null;
+const inspectionFreeze=createInspectionFreeze({supported:()=>!livingWorld?.active&&!businessUI&&!window.hblWorldTileViewActive,
+ capture:()=>{frozenCamera={position:camera.position.clone(),quaternion:camera.quaternion.clone(),target:controls.target.clone(),enabled:controls.enabled};controls.enabled=false;return frozenCamera;},
+ release:pose=>{controls.enabled=pose.enabled;frozenCamera=null;}});
+const freezeUI=!embedMode?mountInspectionFreeze({container:$('top'),gate:inspectionFreeze,modelPaused:()=>playback.getState().paused}):null;
+window.hblInspectionFreeze={getState:()=>inspectionFreeze.getState()};
+addEventListener('pagehide',()=>freezeUI?.destroy(),{once:true});
+const magneticPicker=mountPickPreview(renderer.domElement,{rank:rankCityTargets,enabled:()=>!livingWorld?.active&&!businessUI,onPick:hit=>{
+ if(hit.vehicle){select(null);selectedVehicle=hit.vehicle.id;vehicleInspector?.select(hit.vehicle);return;}
+ selectedVehicle=null;vehicleInspector?.select(null);if(hit.selection.type==='person'&&emitLegacyPersonContext({clientX:hit.x,clientY:hit.y,type:'pointerup'},hit.selection.id)===false)return;select(hit.selection);
+}});
+addEventListener('pagehide',()=>magneticPicker.destroy(),{once:true});
+renderer.domElement.addEventListener("pointerdown", (e) => { if(e.button!==0)return;downAt = [e.clientX, e.clientY];ptr.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(ptr,camera);downVehicle=cityRenderer.pickVehicle?.(ray)||null; });
+function inspectWorldPointer(e) {
   if(e.defaultPrevented)return; // Living City claimed an actual sampled person; let OrbitControls finish release.
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return; // was a drag
+  if(e.button!==0)return;
+  if(!livingWorld?.active&&!businessUI){if(!magneticPicker.choose(e.clientX,e.clientY))select(null);return;}
   ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(ptr, camera);
   const hp = livingWorld?.active?null:humanPeople.pick(ray);
@@ -2166,13 +2218,40 @@ renderer.domElement.addEventListener("pointerup", (e) => {
   } else if (hp && (!hb || hp.distance < hb.distance)) {if(emitLegacyPersonContext(e,hp.index)!==false)select({ type: "person", id: hp.index });}
   else if (hb) select({ type: "building", id: hb.object.userData.b.index });
   else select(null);
-});
+}
+renderer.domElement.addEventListener("pointerup",inspectWorldPointer);
 addEventListener("keydown", (e) => { if (e.key === "Escape") select(null); });
+renderer.domElement.tabIndex=0;
+const gamepadControls=!embedMode?mountGamepadControls({container:$('top'),canvas:renderer.domElement,
+ onMove:({x,y,rx,ry,zoom,dt})=>{
+  if(!controls.enabled||!dt||!(x||y||rx||ry||Math.abs(zoom)>.1))return;
+  follow=false;visualCamera?.cancel();
+  const speed=Number($('camera-speed').value)||1,distance=camera.position.distanceTo(controls.target);
+  if(x)mapControls.pan(x>0?'east':'west',Math.abs(x)*distance*dt*speed);
+  if(y)mapControls.pan(y>0?'south':'north',Math.abs(y)*distance*dt*speed);
+  if(rx||ry||Math.abs(zoom)>.1){
+   const offset=camera.position.clone().sub(controls.target),spherical=new THREE.Spherical().setFromVector3(offset);
+   spherical.theta-=rx*dt*speed;spherical.phi=Math.max(.1,Math.min(Math.PI/2-.02,spherical.phi+ry*dt*speed));
+   spherical.radius=Math.max(controls.minDistance,Math.min(controls.maxDistance,spherical.radius*Math.exp(-zoom*dt*speed)));
+   camera.position.copy(controls.target).add(offset.setFromSpherical(spherical));controls.update();
+  }
+ },onInspect:()=>{const r=renderer.domElement.getBoundingClientRect(),e={clientX:r.left+r.width/2,clientY:r.top+r.height/2,type:'gamepad'};downAt=[e.clientX,e.clientY];downVehicle=null;inspectWorldPointer(e);downAt=null;},
+ onMenu:()=>document.querySelector('[data-testid="person-commands"] button')?.focus(),
+ onTour:()=>$('demoBtn')?.click()
+}):null;
+addEventListener('pagehide',()=>gamepadControls?.destroy(),{once:true});
 
+
+window.hblWorldContext={pick(event){const bounds=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();picker.setFromCamera(new THREE.Vector2((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1),camera);const person=livingWorld?.active?livingWorld.pick(picker):humanPeople.pick(picker),building=picker.intersectObjects(meshes)[0],ground=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());if(person&&(!building||person.distance<building.distance))return{kind:'person',id:String(livingWorld?.active?person.personId:town.people[person.index]?.id),point:{x:person.point?.x??ground?.x,z:person.point?.z??ground?.z}};if(building)return{kind:'building',id:String(building.object.userData.b.id),point:{x:building.point.x,z:building.point.z}};return ground?{kind:'ground',point:{x:ground.x,z:ground.z}}:null;},buildAt:event=>buildingBridge?.openWishAt(event)};
 function emitLegacyPersonContext(event,index){const person=town.people[index];return window.dispatchEvent(new CustomEvent('world:person-context',{cancelable:true,detail:{mode:'legacy',actorId:selected?.type==='person'?String(town.people[selected.id].id):null,targetId:String(person.id),clientX:event.clientX,clientY:event.clientY,...(event.type==='contextmenu'?{trigger:'contextmenu'}:{})}}));}
 renderer.domElement.addEventListener('contextmenu',event=>{if(livingWorld?.active||event.defaultPrevented)return;const bounds=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1);ray.setFromCamera(ptr,camera);const hit=humanPeople.pick(ray),building=ray.intersectObjects(meshes)[0];if(hit&&(!building||hit.distance<building.distance)){event.preventDefault();emitLegacyPersonContext(event,hit.index);}});
 function select(s) {
   selected = s;
+  if(s?.type==='person')comparisonPinboard.observe('person',town.people[s.id]?.id);
+  if(s?.type === 'building' || s?.type === 'person') {
+    const record = (s.type === 'building' ? town.buildings : town.people)[s.id];
+    if(record?.id != null) minimap?.visit({kind:s.type,id:String(record.id),label:record.name});
+  }
   if(s?.type==='building'){const building=town.buildings[s.id];if(building)window.dispatchEvent(new CustomEvent('world:building-selected',{detail:{id:String(building.id)}}));}
   $('inspect').toggleAttribute('data-inspector-focused',Boolean(s));
   if(s?.type==="person")world.trackActivityPerson(String(town.people[s.id]?.id??s.id));
@@ -2211,7 +2290,7 @@ function renderInspector() {
       <div style="margin:8px 0"><b>${p.doing}</b></div>
       ${needBars(p)}
       <div class="muted" style="margin-top:8px">Lives at ${home.name}<br/>${p.age < 18 ? "School" : "Works at"}: ${job}</div>
-      <div class="row"><button id="followBtn" class="${follow ? "on" : ""}">${follow ? "Following" : "Follow"}</button><button data-b="${p.home}">Show home</button></div>`;
+      <div class="row"><button id="followBtn" data-palette-action="follow" class="${follow ? "on" : ""}">${follow ? "Following" : "Follow"}</button><button data-b="${p.home}">Show home</button></div>`;
     $("followBtn").onclick = () => { follow = !follow; renderInspector(); };
     el.style.maxHeight='calc(100vh - 112px)';el.style.overflowY='auto';
     const relationships=document.createElement('section');el.append(relationships);
@@ -2253,17 +2332,28 @@ $("feed").addEventListener("click", (e) => {
 /* ---------------------------------------------------------------- */
 /* Loop                                                              */
 /* ---------------------------------------------------------------- */
-const night = new THREE.Color(0x1a1d2b), day = new THREE.Color(0xdfe7ee), sky = new THREE.Color();
+// Retain the authored storm sky tint independently of simulated solar lighting.
+const night = new THREE.Color(0x1a1d2b), sky = new THREE.Color();
+let lightingSnapshot=null,lightingMinute=null,lightingLiving=null;
+const ambientSound = !embedMode ? mountAmbientSound(window, document) : null;
+addEventListener('pagehide', () => ambientSound?.dispose(), {once:true});
+let ambientNextUpdate = 0;
 let acc = 0, slowTimer = 0, lastEvents = -1;
 let lastEmbedPostT = -Infinity;
 let last = performance.now();
+const policyPresentationClock=createObservedClock();
+const routePrewarmer=createRoutePrewarmer({getSource:()=>world,isActive:()=>!document.hidden&&!livingWorld?.active});
+routePrewarmer.start();window.hblRoutePrewarmer=routePrewarmer;
+addEventListener('pagehide',()=>routePrewarmer.dispose(),{once:true});
+let lastStreamUpdate=-Infinity;
 
 function frame(now) {
   if(startupAbort.signal.aborted)return;
-  mapControls.update(now);fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
-  if(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400){streamingEnabled=true;mapStreamer.update();}updateContextMinimap();
+  if(!inspectionFreeze.frozen){gamepadControls?.update(now);mapControls.update(now);}fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
+  if(!inspectionFreeze.frozen&&(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
   const cpuStart = performance.now();
   const frameMs = now - last;
+  infrastructureScanner?.recordFrame(frameMs);
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
 
@@ -2271,7 +2361,16 @@ function frame(now) {
   const simulationFrame=playback.update(now);
   if(!livingWorld?.active)acc += simulationFrame.deltaMs/1000;
   const steps = livingWorld?.active?0:Math.floor(acc);
-  if (steps > 0) { world.step(Math.min(steps, 240));if(legacyJournalRecorder)void legacyJournalRecorder.flush(); acc -= steps; if(selected?.type === "person")renderInspector(); }
+  if (steps > 0) { const advanced=advanceFrameMinutes(steps,minutes=>world.step(minutes));if(legacyJournalRecorder)void legacyJournalRecorder.flush(); acc -= advanced; if(selected?.type === "person")renderInspector(); }
+
+  if(inspectionFreeze.frozen&&(livingWorld?.active||businessUI||window.hblWorldTileViewActive))inspectionFreeze.clear();
+  freezeUI?.update();
+  if(inspectionFreeze.frozen){
+    camera.position.copy(frozenCamera.position);camera.quaternion.copy(frozenCamera.quaternion);controls.target.copy(frozenCamera.target);camera.updateMatrixWorld(true);
+    globalIllumination.render();inspectionFreeze.record(frameMs);
+    cityRenderer.afterFrame(now,performance.now()-cpuStart,frameMs);
+    requestAnimationFrame(frame);return;
+  }
 
   // Once per simulated day per tile: publish a few synthetic resident journals.
   // Trigger after 8:00 local sim time so demos show the loop quickly.
@@ -2283,22 +2382,34 @@ function frame(now) {
   if(!livingWorld?.active)businessUI?.update();
   livingWorld?.update(now);
 
-  // Keep the default daylight lighting independent of the simulation clock.
-  // Only follow simulated time when explicitly selected in the renderer controls.
+  // Follow the active simulated clock; manual renderer controls affect presentation only.
   const livingMinute=livingWorld?.active?livingWorld.getClockMinute():null;
   const policyFrame=livingWorld?.active?physicalPolicySnapshot:null;
   const policyMinute=Number.isFinite(livingMinute)?livingMinute:world.t;
-  physicalPolicyLayer.update({minute:policyMinute,transitService:livingWorld?.active?(policyFrame?.config?.transitService??0):(world.transitServiceMult??0),projects:world.projects??[],districts:policyFrame?.districts??[],source:livingWorld?.active?'Living configured transit service; no civic project ledger supplied':'Legacy transitServiceMult; actual civic projects only'});
-  const m = cityRenderer.timeOfDay != null ? cityRenderer.timeOfDay * 60 : Number.isFinite(livingMinute) ? livingMinute % 1440 : world.minuteOfDay();
-  const daylight = Math.max(0, Math.sin(((m - 6 * 60) / (14 * 60)) * Math.PI)); // 6am–8pm arc
-  sky.copy(night).lerp(day, daylight);
+  if (now >= ambientNextUpdate) {
+    ambientNextUpdate = now + 250;
+    ambientSound?.update({target:controls.target,height:camera.position.y,buildings:town.buildings,minute:policyMinute});
+  }
+  const policyDisplayMinute=policyPresentationClock.sample(policyMinute,now,{paused:playback.getState().paused,runId:livingWorld?.active?physicalPolicySnapshot?.runtime?.id:'legacy'});
+  physicalPolicyLayer.update({minute:policyMinute,presentationMinute:policyDisplayMinute,transitService:livingWorld?.active?(policyFrame?.config?.transitService??0):(world.transitServiceMult??0),projects:world.projects??[],districts:policyFrame?.districts??[],source:livingWorld?.active?'Living configured transit service; no civic project ledger supplied':'Legacy transitServiceMult; actual civic projects only'});
+  const stormIntensity = livingWorld?.active ? 0 : stormIntensityAt(world.policy?.storm, world.t);
+  cityRenderer.updateCity({parcelStorm:{minute:world.t,intensity:stormIntensity,enabled:!livingWorld?.active}});
+  const lighting=simulationLighting(policyMinute,cityRenderer.timeOfDay);
+  const {angle:ang}=lighting;
+  const daylight=lighting.daylight*(1-.78*stormIntensity);
+  sky.setHex(lighting.skyColor).lerp(night, stormIntensity*.65);
+  const lightSnapshot=livingWorld?.active?livingWorld.getSnapshot():null;
+  cityRenderer.updateCity({lighting:{...lighting,daylight}});
+  if(lightSnapshot!==lightingSnapshot||policyMinute!==lightingMinute||Boolean(livingWorld?.active)!==lightingLiving){
+    lightingSnapshot=lightSnapshot;lightingMinute=policyMinute;lightingLiving=Boolean(livingWorld?.active);
+    cityRenderer.updateCity({buildingHomeCounts:lightSnapshot?.buildingHomeCounts??(lightingLiving?[]:legacyHomeCounts(town.people,town.buildings)),buildingOccupancy:lightSnapshot?.buildingOccupancy??(lightingLiving?[]:legacyBuildingOccupancy(town.people,town.buildings))});
+  }
   scene.background = buildingBridge?.worldVisuals.skyColor ? new THREE.Color(buildingBridge.worldVisuals.skyColor) : sky;
   hemi.intensity = (buildingBridge?.worldVisuals.nightBrightness ?? 0.12) + 0.42 * daylight;
   hemi.color.setHex(0xc5ddf2);hemi.groundColor.setHex(0x55523f);
   sun.intensity = 2.8 * daylight;
   sun.color.setHex(daylight < .35 ? 0xffce98 : 0xffefda);
-  const ang = ((m - 6 * 60) / (14 * 60)) * Math.PI;
-  sun.position.set(Math.cos(ang) * 400, Math.max(40, Math.sin(ang) * 500), 200);
+  sun.position.set(Math.cos(ang) * 400, Math.sin(ang) * 500, 200);
 
   // People
   // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.
@@ -2316,7 +2427,7 @@ function frame(now) {
     const visible = (p.travelMode!=="transit"||p.transitWaitMinutesRemaining>0)&&(wbOverlay || selectedPerson || (withinDetailBudget && (p.mode === "moving" || OUTDOOR.has(p.action))));
     const scale = visible ? (p.age < 13 ? 0.7 : 1) * (wbOverlay ? 1.8 : 1) : 0;
     const hex=cycleScores?wellbeingHex(cycleScores[i]??0):wbOverlay?wellbeingHex(wellbeing(p)):null;
-    humanPeople.setPerson(i,{id:p.id??i,x:s.x,z:s.z,scale,visible,selected:selectedPerson,hovered:hoveredLegacyPerson===i,heading:Math.atan2(p.x-s.x,p.z-s.z),...(hex==null?{}:{shirtColor:hex})});
+    humanPeople.setPerson(i,{id:p.id??i,x:s.x,z:s.z,scale,visible,selected:selectedPerson,hovered:hoveredLegacyPerson===i,heading:p.socialEncounter?.heading??Math.atan2(p.x-s.x,p.z-s.z),social:Boolean(p.socialEncounter),quest:Object.values(p.needs||{}).some(value=>Number.isFinite(value)&&value<30),ageBand:p.age<18?'child':p.age>=65?'older':'adult',gesturePhase:p.socialEncounter?world.t*2:0,speech:Boolean(p.socialEncounter),...(hex==null?{}:{shirtColor:hex})});
   }
   humanPeople.commit();
 
@@ -2356,17 +2467,18 @@ function frame(now) {
     }
   }
 
-  controls.update();
+  updateArrival(now);cinematicCamera?.update(now);controls.update();
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
   gpuParticleMenu?.update();
   const drawCity=cityRenderer.beforeFrame(now,dt,daylight,selected?.type==='building'?selected.id:null,buildingBridge?.worldVisuals,{now:simulationFrame.simulationNow/10,dt:simulationFrame.deltaMs/10000});
   if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
-  if(drawCity){globalIllumination.render();startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
+  if(drawCity&&!window.hblWorldTileViewActive){shaderWarmup.draw(()=>globalIllumination.render());startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
   visualCamera?.update(now);
   visualSpotlight?.update(now);
+  spatialNavigationUpdate?.();
   requestAnimationFrame(frame);
 }
 
@@ -2521,7 +2633,7 @@ async function captureWorldExperiment({keepPaused=false}={}){
 window.hblCaptureWorldExperiment=captureWorldExperiment;
 let personCommandUI=null,personCommandDisposed=false;
 function commandSelection(){if(livingWorld?.active){const person=livingWorld.getSelection();return person?{...person,id:String(person.id??person.personId),label:person.name??'Person '+(person.id??person.personId),mode:'living'}:null;}if(selected?.type!=='person')return null;const person=town.people[selected.id];return person?{...person,id:String(person.id),label:person.name,mode:'legacy'}:null;}
-if(!embedMode)void import('./people/person-command-menu.js').then(({mountPersonCommands})=>{if(personCommandDisposed)return;personCommandUI=mountPersonCommands({container:document.body,canvas:renderer.domElement,getSelection:commandSelection,isPaused:()=>playback.getState().paused,onSelect:(mode,id)=>{if(mode==='living')return livingWorld.selectPerson(id);const index=town.people.findIndex(p=>String(p.id)===String(id));if(index>=0)select({type:'person',id:index});},toGround:event=>{const rect=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();picker.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);const point=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());return point&&picker.ray.origin.distanceTo(point)<=camera.far?{x:point.x,z:point.z}:null;},onWalk:async(actor,point)=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');if(actor.mode==='living'){const runtime=livingWorld.getRuntime();if(!runtime?.walkPerson)throw Error('Resident walk commands are not ready.');const result=await runtime.walkPerson(actor.id,point);await livingWorld.selectPerson(actor.id);return{...result,message:`Walking trip accepted · ${result.plannedMinutes.toFixed(1)} modeled minutes.`};}if(!world.commandPerson)throw Error('Legacy walk commands are not ready.');const result=world.commandPerson(actor.id,{type:'walk',destination:point});renderInspector();return result;},onSocial:async(actor,targetId,action)=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');if(actor.mode==='living'){const result=await livingWorld.getRuntime().socialAction(actor.id,String(targetId),action);await livingWorld.selectPerson(actor.id);return result;}const result=legacySocial(world).interact(actor.id,String(targetId),action);renderInspector();return result;}});window.hblPersonCommands=personCommandUI;}).catch(error=>console.error('Person commands unavailable',error));
+if(!embedMode)void import('./people/person-command-menu.js').then(({mountPersonCommands})=>{if(personCommandDisposed)return;personCommandUI=mountPersonCommands({container:document.body,canvas:renderer.domElement,getSelection:commandSelection,onPreview:(actor,point)=>{if(actor.mode!=='legacy'||livingWorld?.active)throw Error('Footstep preview unavailable: this simulation does not expose read-only walking routes.');return world.previewPersonWalk(actor.id,point);},project:point=>{const v=new THREE.Vector3(point[0],.25,point[1]).project(camera);if(v.z < -1||v.z > 1)return null;const r=renderer.domElement.getBoundingClientRect();return{x:r.left+(v.x+1)*r.width/2,y:r.top+(1-v.y)*r.height/2};},isPaused:()=>playback.getState().paused,onSelect:(mode,id)=>{if(mode==='living')return livingWorld.selectPerson(id);const index=town.people.findIndex(p=>String(p.id)===String(id));if(index>=0)select({type:'person',id:index});},toGround:event=>{const rect=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();picker.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);const point=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());return point&&picker.ray.origin.distanceTo(point)<=camera.far?{x:point.x,z:point.z}:null;},onWalk:async(actor,point)=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');if(actor.mode==='living'){const runtime=livingWorld.getRuntime();if(!runtime?.walkPerson)throw Error('Resident walk commands are not ready.');const result=await runtime.walkPerson(actor.id,point);await livingWorld.selectPerson(actor.id);return{...result,message:`Walking trip accepted · ${result.plannedMinutes.toFixed(1)} modeled minutes.`};}if(!world.commandPerson)throw Error('Legacy walk commands are not ready.');const result=world.commandPerson(actor.id,{type:'walk',destination:point});renderInspector();return result;},getSocial:async actor=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');return actor.mode==='living'?(await livingWorld.getRuntime().inspectPerson(actor.id)).social:legacySocial(world).inspect(actor.id);},onSocial:async(actor,targetId,action)=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');if(actor.mode==='living'){const result=await livingWorld.getRuntime().socialAction(actor.id,String(targetId),action);await livingWorld.selectPerson(actor.id);return result;}const result=legacySocial(world).interact(actor.id,String(targetId),action);renderInspector();return result;}});window.hblPersonCommands=personCommandUI;}).catch(error=>console.error('Person commands unavailable',error));
 addEventListener('pagehide',()=>{personCommandDisposed=true;personCommandUI?.destroy();},{once:true});
 
 let houseEntryControls=null,houseEntryDisposed=false;
@@ -2545,6 +2657,14 @@ if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
   window.dispatchEvent(new CustomEvent('hbl:world-ready'));
   addEventListener('pagehide',()=>{delete window.hblGuidedActions;},{once:true});
 }
+// Camera presets share existing scene coordinates; never select or command a model entity.
+const cinematicCamera=!embedMode?mountCameraPresets({container:$('top'),camera,controls,canvas:renderer.domElement,
+ getBuildings:()=>[...town.buildings,...contextBuildings.values()],
+ getSubject:()=>{if(livingWorld?.active)return livingWorld.getCameraSubject();if(selected?.type!=='person')return null;const p=smooth[selected.id];return p?{key:'legacy:'+String(town.people[selected.id].id??selected.id),position:{x:p.x,y:0,z:p.z}}:null;},
+ stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
+ reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
+addEventListener('pagehide',()=>cinematicCamera?.dispose(),{once:true});
+
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);
 
@@ -2566,6 +2686,29 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
   if(liveFeedbackGuide)visualPanels.register('live-feedback',liveFeedbackGuide);
   visualCamera=createCameraDirector({camera,controls,reducedMotion,getResidentPosition:residentPosition,now:()=>performance.now()});
   visualSpotlight=createSpotlight({THREE,scene,getResidentPosition:residentPosition,reducedMotion});
+  const resolveTarget=ref=>{
+    if(livingWorld?.active)return null;
+    const row=ref.kind==='resident'?town.people.find(p=>String(p.id)===String(ref.id)):town.buildings.find(b=>String(b.id)===String(ref.id));
+    return row?{position:ref.kind==='resident'?{x:row.x,y:0,z:row.z}:{x:row.center[0],y:0,z:row.center[1]}}:null;
+  };
+  const keyboardSpotlight=createSpotlight({THREE,scene,resolveEntity:resolveTarget,radius:6,depthTest:false});
+  spatialNavigation=mountSpatialTargets({document,container:document.body,
+    getTargets:()=>spatialTargets(town,{available:!livingWorld?.active}),
+    onFocus:row=>{
+      const position=resolveTarget(row)?.position;
+      if(!position||![position.x,position.z].every(Number.isFinite))return false;
+      visualCamera.cancel();visualSpotlight.clear();follow=false;
+      const delta=new THREE.Vector3(position.x,0,position.z).sub(controls.target);
+      camera.position.add(delta);controls.target.add(delta);controls.update();
+      return keyboardSpotlight.show({authority:'legacy-world',kind:row.kind,id:row.id});
+    },onClear:()=>keyboardSpotlight.clear(),
+    onInspect:row=>{const source=row.kind==='resident'?town.people:town.buildings;const index=source.findIndex(item=>String(item.id)===row.id);if(index>=0)select({type:row.kind==='resident'?'person':'building',id:index});},
+    onExit:()=>select(null)
+  });
+  // Keep a locator attached to the current actual position, using the existing loop.
+  const updateKeyboardTarget=()=>{if(livingWorld?.active)keyboardSpotlight.clear();else keyboardSpotlight.update();};
+  spatialNavigationUpdate=updateKeyboardTarget;
+  addEventListener('pagehide',()=>{spatialNavigationUpdate=null;spatialNavigation.dispose();keyboardSpotlight.dispose();},{once:true});
   let configurationSummary=null;
   let guide,controller,observation=null,measured=null,configuration=null,focusId=null,workerTimings=null;
   let comparisonWorker=null;
@@ -2667,4 +2810,33 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
   syncComparisonControls();const comparisonControlsTimer=setInterval(syncComparisonControls,200);
   guide.update(state());guide.show();
   addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();sessionSurvey.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
+}
+
+// Reuse current inspector commands; no independent simulation action catalogue.
+if(!embedMode){
+ const style=document.createElement('link');style.rel='stylesheet';style.href='/world/scene-context-menu.css';document.head.append(style);
+ renderer.domElement.tabIndex=0;
+ const readSelection=()=>{
+   const livingActor=livingWorld?.active&&!selected?commandSelection():null;
+   if(!selected&&!livingActor)return null;
+   const entity=livingActor|| (selected.type==='person'?town.people[selected.id]:selected.type==='building'?town.buildings[selected.id]:null);
+   if(!entity)return null;
+   const root=livingActor?document.querySelector('[data-lc-person]'):$('inspect');
+   const buttons=[...root.querySelectorAll(livingActor?'.lc-row button':'.row button')];
+   return {key:(livingActor?'living':selected.type)+':'+entity.id,label:entity.name||entity.label,actions:[
+     {label:'Inspect',run:()=>{if(!livingActor)visualPanels?.open('inspect');root.querySelector('button')?.focus();}},
+     ...buttons.map(button=>({label:button.textContent,reason:button.disabled?(button.title||'Currently unavailable'):null,run:()=>{const latest=[...root.querySelectorAll('button')].find(b=>b.textContent===button.textContent);if(latest&&!latest.disabled)latest.click();}}))
+   ]};
+ };
+ const contextMenu=mountSceneContextMenu({canvas:renderer.domElement,readSelection,resolve:async event=>{
+   const rect=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);ray.setFromCamera(ptr,camera);
+   const building=ray.intersectObjects(meshes)[0],person=livingWorld?.active?null:humanPeople.pick(ray);
+   const resident=livingWorld?.active?livingWorld.pick(ray):null;
+   if(resident&&(!building||resident.distance<building.distance)){select(null);await livingWorld.selectPerson(resident.personId);return readSelection();}
+   if(person&&(!building||person.distance<building.distance))select({type:'person',id:person.index});
+   else if(building)select({type:'building',id:building.object.userData.b.index});
+   else return null;
+   return readSelection();
+ }});
+ addEventListener('pagehide',()=>{contextMenu.destroy();style.remove();},{once:true});
 }

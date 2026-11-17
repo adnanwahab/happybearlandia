@@ -1,3 +1,6 @@
+import {bindScrubPreview} from './scrub-preview.js';
+import {mountSonicControls} from './sonic.js';
+import {mountFamilyCard} from './family-card.js';
 import {mountControlReadiness} from '../../onboarding/first-run-repairs.js';
 
 import {PLAYABLE_RECIPES} from '../recipes.js';
@@ -55,24 +58,25 @@ export function mountFutureMachineUI(root, options = {}) {
   const legends=node('div',undefined,'fm-legends'); legends.append(node('span','WITHOUT PLAN'),node('span','WITH PLAN'));
   const provenance=node('p','No spatial data loaded.','fm-provenance'); comparison.append(legends,stage,provenance); shell.append(comparison);
   const timeline=node('section',undefined,'fm-timeline'); timeline.setAttribute('aria-label','Shared timeline');
-  const date=node('output'); const slider=node('input'); slider.type='range';slider.dataset.testid='future-machine-timeline'; slider.min=0; slider.max=120; slider.step=1; slider.setAttribute('aria-label','Shared month for Future A and Future B');
+  const scrubCard=node('aside',undefined,'fm-scrub-preview');scrubCard.hidden=true;scrubCard.setAttribute('role','status');scrubCard.setAttribute('aria-live','polite');
+  const date=node('output');date.setAttribute('aria-live','polite'); const slider=node('input'); slider.type='range';slider.dataset.testid='future-machine-timeline'; slider.min=0; slider.max=120; slider.step=1; slider.setAttribute('aria-label','Shared month for Future A and Future B');
   const play=button('Play timelapse',()=>options.externalPlayback ? options.onPlay?.(!state.playing) : timer ? pause() : start());
   const blink=button('Blink A/B',()=>{update({blink:!state.blink}); options.onBlink?.(state.blink);});
   const changed=button('Show Me What Changed',()=>action(options.onShowChanges)); changed.className='fm-primary';
   const ticks=node('div',undefined,'fm-ticks'); for(const year of ['2026','2031','2036'])ticks.append(node('span',year));
   const transport=node('div',undefined,'fm-actions'); transport.append(play,blink,changed);
-  timeline.append(date,slider,ticks,transport,node('p','Focus the city canvas: Page Up advances one year; Page Down retreats one year; D jumps to the first recorded divergence (including policy or nonphysical changes). Years stop at Months 0 and 120.','fm-detail')); shell.append(timeline);
+  timeline.append(date,slider,scrubCard,ticks,transport,node('p','Focus the city canvas: Page Up advances one year; Page Down retreats one year; D jumps to the first recorded divergence (including policy or nonphysical changes). Years stop at Months 0 and 120.','fm-detail')); shell.append(timeline);
   const cards=node('section',undefined,'fm-metrics'); cards.setAttribute('aria-label','Measured outcomes');cards.dataset.testid='future-machine-metrics';
   const metricNodes={};
   for(const [key,label] of [['homes','Homes'],['rent','Mean unit rent'],['spending','City spending']]) {
     const card=node('article',undefined,'fm-card'), delta=node('strong'), values=node('p'), detail=node('p',undefined,'fm-detail'), badge=node('button',undefined,'fm-provenance-badge'); badge.type='button';
     const sourceDetail=node('p',undefined,'fm-detail');sourceDetail.hidden=true;badge.setAttribute('aria-expanded','false');listen(badge,'click',()=>{sourceDetail.hidden=!sourceDetail.hidden;badge.setAttribute('aria-expanded',String(!sourceDetail.hidden));});
-    const why=button(`WHY · ${label}`,()=>action(options.onMetric,key)); why.className='fm-metric-why'; why.disabled=true;
+    const why=button(`WHY · ${label}`,()=>action(options.onMetric,key)); why.dataset.paletteAction='why'; why.className='fm-metric-why'; why.disabled=true;
     card.append(node('h2',label),delta,values,badge,sourceDetail,detail,why); cards.append(card); metricNodes[key]={card,delta,values,badge,sourceDetail,detail,why};
   }
   shell.append(cards,node('p','Differences are WITH PLAN − WITHOUT PLAN at the selected month. Capital spending is cumulative cost, not a welfare gain; homes count recorded housing units. One paired synthetic run uses a shared seed, not an uncertainty interval. Uncalibrated assumptions and seed variation can change results; these values are not an empirical forecast.','fm-detail fm-metric-limits'));
   const inspectors=node('section',undefined,'fm-inspectors');
-  const householdPanel=node('section'), household=node('select'), householdBody=node('pre');
+  const householdPanel=node('section',undefined,'fm-household-legacy'), household=node('select'), householdBody=node('pre');
   const householdSummaryNode=node('p',undefined,'fm-household-summary'),householdRaw=node('details');householdRaw.append(node('summary','Inspect exact household records'),householdBody); household.setAttribute('aria-label','Monthly City household');
   householdPanel.append(node('h2','Household outcomes'),household,householdSummaryNode,householdRaw);
   const evidencePanel=node('section'), evidence=node('pre'); const evidenceRaw=node('details');evidenceRaw.append(node('summary','Inspect run and comparison record'),evidence);evidencePanel.append(node('h2','Evidence inspector'),node('p','Click a changed building or WHY on a measured outcome to inspect its recorded event, policy and model rule.'),evidenceRaw);
@@ -96,7 +100,7 @@ export function mountFutureMachineUI(root, options = {}) {
   function pause() { clearInterval(timer); timer=null; play.textContent='Play timelapse'; play.setAttribute('aria-pressed','false'); }
   function seek(month) { update({month:clampMonth(month)}); options.onMonthChange?.(state.month); }
   function start() { if(!state.ready || state.busy)return; if(state.month===120)seek(0); play.textContent='Pause timelapse'; play.setAttribute('aria-pressed','true'); timer=setInterval(()=>{seek(state.month+1);if(state.month===120)pause();}, options.playInterval ?? 400); }
-  listen(slider,'input',()=>{pause();seek(slider.value);});
+  const scrub=bindScrubPreview(slider,scrubCard,{getState:()=>state,onCommit:seek,onBrowse:()=>{pause();if(state.playing)options.onPlay?.(false);}});
   listen(city,'change',()=>{state.cityId=city.value;options.onCityChange?.(city.value);});
   listen(policy,'change',()=>{state.policyId=policy.value;renderPolicy();options.onPolicyChange?.(policy.value);});
   listen(household,'change',()=>{state.householdId=household.value;renderHousehold();options.onHouseholdChange?.(household.value);});
@@ -131,7 +135,7 @@ export function mountFutureMachineUI(root, options = {}) {
     if(!state.ready || state.busy)pause();
     else if(options.externalPlayback){play.textContent=state.playing?'Pause timelapse':'Play timelapse';play.setAttribute('aria-pressed',String(!!state.playing));}
     provenance.textContent=state.spatialLabel || 'No spatial data loaded. Unlocated changes remain in the inspector.';
-    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];const provenance=provenancePresentation(state.metrics?.[key]?.provenance);elements.sourceDetail.textContent=provenance.description;elements.badge.textContent=provenance.label;elements.badge.title=provenance.description;elements.badge.setAttribute('aria-label',provenance.description);elements.badge.dataset.category=provenance.category;elements.card.title=provenance.description;elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));const semantics=metricSemantics(key,state.metrics?.[key]);elements.card.dataset.tone=semantics.tone;elements.detail.textContent=key==='rent' && semantics.tone==='neutral' && item.delta!=='Unavailable' ? `${semantics.label}.` : `${semantics.label}. ${item.detail}`;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
+    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];const provenance=provenancePresentation(state.metrics?.[key]?.provenance);elements.sourceDetail.textContent=provenance.description;elements.badge.textContent=provenance.label;elements.badge.title=provenance.description;elements.badge.setAttribute('aria-label',provenance.description);elements.badge.dataset.category=provenance.category;elements.card.title=provenance.description;elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));const semantics=metricSemantics(key,state.metrics?.[key]);elements.card.dataset.tone=semantics.tone;elements.detail.textContent=key==='rent' && semantics.tone==='neutral' && item.delta!=='Unavailable' ? `${semantics.label}.` : `${semantics.label}. ${item.detail}`;elements.why.dataset.paletteContext=JSON.stringify([state.month,state.metrics?.[key]]);elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
     if(patch.households && JSON.stringify(patch.households)!==JSON.stringify(old.households)){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
     household.disabled=!state.households.length;
     if('householdId' in patch){household.value=state.householdId;renderHousehold();}
@@ -139,17 +143,20 @@ export function mountFutureMachineUI(root, options = {}) {
     if(!evidence.textContent)evidence.textContent='No recorded evidence selected.';
     if(!householdBody.textContent)renderHousehold();
     cardButton.disabled=!state.ready || state.busy || !options.onCard;share.disabled=!state.ready || state.busy || !options.onShare;exportButton.disabled=!state.ready || state.busy || !options.onExport;
+    scrub.update();
     readiness.update();
     if(old.month!==state.month)options.onRenderMonth?.(state.month);
   }
   update(state);
-  return {stage,update,getState:()=>({...state}),pause,destroy(){readiness.dispose();destroyed=true;generation++;pause();listeners.forEach(remove=>remove());shell.remove();}};
+  return {stage,update,getState:()=>({...state}),pause,destroy(){scrub.dispose();readiness.dispose();destroyed=true;generation++;pause();listeners.forEach(remove=>remove());shell.remove();}};
 }
 
 /** Frozen interface v1 adapter. The coordinator owns simulation, playback, and scene rendering. */
 export function createUI(container, callbacks = {}) {
   let current={status:'idle',month:0,playing:false,mode:'split',ghosts:true};
   let recipe=structuredClone(DEFAULT_RECIPE), configurationDirty=false;
+  const familyHost=container.ownerDocument.createElement("div");
+  const family=mountFamilyCard(familyHost,{onFollow:callbacks.onFollowFamily});
   const view=mountFutureMachineUI(container,{
     externalPlayback:true,
     onFork:()=>{if(!configureSeed())throw new Error(seedError.textContent);if(!configureAmount())throw new Error(amountInput.validationMessage);return callbacks.onRun?.(structuredClone(recipe));},
@@ -166,6 +173,7 @@ export function createUI(container, callbacks = {}) {
   });
   const doc=container.ownerDocument;
   const shell=view.stage.closest('.fm-ui');
+  const sonic=mountSonicControls(shell);
   const catalog=doc.createElement('details');
   const summary=doc.createElement('summary');summary.textContent='Three playable what-if recipes';catalog.append(summary);
   for(const entry of PLAYABLE_RECIPES){
@@ -222,6 +230,13 @@ export function createUI(container, callbacks = {}) {
 
   const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.dataset.testid='future-machine-why';storyElement.setAttribute('aria-label','Recorded change story');shell.querySelector('.fm-inspectors').after(storyElement);
   const actions=shell.querySelector('.fm-timeline .fm-actions');
+  const slowdownLabel=doc.createElement('label');
+  const slowdown=doc.createElement('input');slowdown.type='checkbox';slowdown.dataset.testid='event-slowdown';
+  slowdown.onchange=()=>callbacks.onEventSlowdown?.(slowdown.checked);
+  slowdownLabel.append(slowdown,doc.createTextNode(' Slow recorded event windows'));
+  slowdownLabel.title='Optional timelapse: hold each recorded month near construction or household stress events for 800 ms instead of 200 ms. Reduced motion keeps normal timing. No simulation changes. Guided demo keeps its own timing.';
+  const slowdownHelp=doc.createElement('small');slowdownHelp.textContent='Timelapse only: 800 ms per month near recorded events; otherwise 200 ms. Reduced motion keeps normal timing. No events means normal speed.';
+  actions.append(slowdownLabel,slowdownHelp);
   const demoPanel=doc.createElement('section');demoPanel.className='fm-demo';demoPanel.setAttribute('aria-label','Guided demo');
   const demo=doc.createElement('button');demo.type='button';demo.className='fm-primary fm-demo-play';demo.textContent='Play Demo';demo.dataset.testid='future-machine-demo';demo.onclick=()=>callbacks.onDemo?.();
   const demoPause=doc.createElement('button');demoPause.type='button';demoPause.textContent='Pause demo';demoPause.onclick=()=>callbacks.onDemoPause?.();demoPause.hidden=true;
@@ -239,7 +254,7 @@ export function createUI(container, callbacks = {}) {
   recentPanel.append(remember,clear,recentHelp,recentStatus);demoPanel.after(recentPanel);
   const runProvenance=doc.createElement('p');runProvenance.className='fm-run-provenance';runProvenance.setAttribute('aria-label','Simulation provenance');shell.querySelector('.fm-comparison').before(runProvenance);
   const difference=doc.createElement('button');difference.type='button';difference.textContent='Difference-only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
-  const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
+  const split=doc.createElement('button');split.type='button';if(callbacks.onMode)split.dataset.paletteAction='compare';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
   const browserShare=doc.createElement('button');browserShare.type='button';browserShare.textContent='Share comparison';browserShare.hidden=!callbacks.onBrowserShare;browserShare.onclick=()=>callbacks.onBrowserShare?.();shell.querySelector('footer').append(browserShare);
   const copyLabel=doc.createElement('label');copyLabel.textContent='Comparison URL';copyLabel.className='fm-copy-url';copyLabel.hidden=true;
@@ -268,6 +283,7 @@ export function createUI(container, callbacks = {}) {
     const previousExperiment=current.experimentId ?? current.provenance?.experimentId;
     const previousPreview=current.sharePreview;
     current={...current,...patch,...(patch.demo?{demo:{...current.demo,...patch.demo}}:{}),...(patch.provenance?{provenance:{...current.provenance,...patch.provenance}}:{})};
+    sonic.update(current);
     if(patch.recipe){
       const incomingExperiment=current.experimentId ?? current.provenance?.experimentId;
       const accepted=seedInput.getAttribute('aria-invalid')!=='true' && amountInput.getAttribute('aria-invalid')!=='true' && JSON.stringify(patch.recipe)===JSON.stringify(recipe);
@@ -281,6 +297,7 @@ export function createUI(container, callbacks = {}) {
     autoCamera.checked=current.autoCamera!==false;
     reset.disabled=configurationBusy || !callbacks.onReset;
     const demoState=current.demo || {};
+    slowdown.checked=Boolean(current.eventSlowdown);slowdown.disabled=busy||!current.frame||current.preview||!callbacks.onEventSlowdown;
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
     demo.disabled=!callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':demoState.status==='complete'?'Replay Demo':'Play Demo';demoSkip.hidden=!demoActive;demoSkip.disabled=busy || demoState.status==='preparing' || !callbacks.onDemoSkip;
     demoPause.hidden=!demoActive;demoPause.disabled=!callbacks.onDemoPause;demoPause.textContent=demoState.paused?'Resume demo':'Pause demo';demoPause.setAttribute('aria-pressed',String(!!demoState.paused));
@@ -307,10 +324,11 @@ export function createUI(container, callbacks = {}) {
       const metric=current.preview?null:current.diff?.metrics?.[source];
       metrics[key]=metric?{provenance:MONTHLY_CITY_PROVENANCE,...comparisonMetric(metric),note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
     }
+    family.update(current);
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
     const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null,baselineHousing:householdObservation(a.find(row=>row.id===id),current.frame?.baseline?.state?.units),planHousing:householdObservation(b.find(row=>row.id===id),current.frame?.plan?.state?.units)}));
-    view.update({busy,ready,preview:current.preview,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
+    view.update({history:current.familyHistory,busy,ready,preview:current.preview,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
       cities:[{id:'synthetic',label:'Riverside · Synthetic City'}],
       policies:policyChoices(recipe.intervention),
       policyId:policyId(recipe.intervention),spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',
@@ -325,7 +343,7 @@ export function createUI(container, callbacks = {}) {
     const legends=shell.querySelector('.fm-legends');
     legends.children[0].querySelector('.fm-arm-heading').textContent=`WITHOUT PLAN${identicalStart?' · Identical starting state':''}`;
     legends.children[1].querySelector('.fm-arm-heading').textContent=`WITH PLAN${identicalStart?' · Identical starting state':''}`;
-    difference.disabled=split.disabled=ghosts.disabled=!ready;difference.setAttribute('aria-pressed',String(current.mode==='difference'));split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
+    split.dataset.paletteContext=JSON.stringify([current.provenance,current.month]);difference.disabled=split.disabled=ghosts.disabled=!ready;difference.setAttribute('aria-pressed',String(current.mode==='difference'));split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
     browserShare.disabled=!ready || !!current.shareBusy;
     shell.querySelector('footer button').disabled=!ready || !!current.shareBusy || !callbacks.onShare;
     copyLabel.hidden=true;copyURL.value='';
@@ -341,5 +359,7 @@ export function createUI(container, callbacks = {}) {
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol)){shareLink.href=url.href;copyURL.value=url.href;copyLabel.hidden=false;}else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){copyShare.onclick=null;previewOpen.onclick=null;reset.onclick=null;autoCamera.onchange=null;retry.onclick=null;constructionWhy.onclick=null;remember.onclick=null;clear.onclick=null;amountInput.oninput=null;browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoSkip.onclick=null;demoManual.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  view.stage.after(familyHost);
+  container.querySelector('.fm-household-legacy').hidden=true;
+  return {stageElement:view.stage,storyElement,update,dispose(){sonic.dispose();family.dispose();familyHost.remove();copyShare.onclick=null;previewOpen.onclick=null;reset.onclick=null;autoCamera.onchange=null;retry.onclick=null;constructionWhy.onclick=null;remember.onclick=null;clear.onclick=null;amountInput.oninput=null;browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoSkip.onclick=null;demoManual.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }

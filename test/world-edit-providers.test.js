@@ -114,3 +114,14 @@ describe('world-edit providers (mocked network only)', () => {
     expect((await api(new Request('http://local/api/world-edits/propose', { method: 'POST', body: '{' }))).status).toBe(400);
   });
 });
+
+test('ground wish preserves coordinates, exposes interpreted quantities and rejects impossible floors without clamping',async()=>{
+ const world=input(),before=JSON.stringify(world);
+ const proposal=await proposeWorldEdit({...args(world),selection:{kind:'district',id:'chosen',location:{x:333,z:444}},prompt:'Build a 24-story, 310-unit apartment tower here'});
+ expect(proposal.operations[0].value.location).toMatchObject({x:333,z:444});
+ expect(proposal.operations[0].value.geometry.floors).toBe(24);
+ expect(proposal.warnings.join(' ')).toContain('No values were clamped');
+ expect(proposal.warnings.join(' ')).toContain('utility capacity');
+ await expect(proposeWorldEdit({...args(world),prompt:'Build a 200-story, 310-unit tower'})).rejects.toThrow('geometry.floors');
+ expect(JSON.stringify(world)).toBe(before);
+});

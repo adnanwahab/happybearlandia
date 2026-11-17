@@ -28,3 +28,15 @@ test('changing implementation year keeps real worker starting conditions and rep
   expect(changed.scores.withPlan).not.toEqual(original.scores.withPlan);
   expect(await compare({ ...recipe, year: 0 })).toEqual(changed);
 }, 90000);
+
+test('custom card levers reach real worker unchanged and replay against identical baseline',async()=>{
+  const recipe={origin:{lat:29.7286,lng:-95.4746},maxPeople:10,proposalIds:[],label:'Make my own',days:7,year:0};
+  const baseline=await compare(recipe);
+  const customEffects={speedMult:2.13,floodMitigation:.17,housingGrowth:.53,voucherMonthly:41};
+  const result=await compare({...recipe,customEffects});
+  expect(result.effects).toEqual({...baseline.effects,...customEffects});
+  expect(result.custom).toBe(true);expect(result.year).toBe(0);expect(result.proposalIds).toEqual([]);
+  expect(result.scores.noPlan).toEqual(baseline.scores.noPlan);expect(result.scores.before).toEqual(baseline.scores.before);
+  expect(result.scores.withPlan).not.toEqual(baseline.scores.withPlan);
+  expect(await compare({...recipe,customEffects})).toEqual(result);
+},90000);

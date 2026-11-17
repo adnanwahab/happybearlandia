@@ -1,0 +1,1 @@
+PASS: actual page DOM interactions: preview isolation, confirm, duplicate, stale preview, invalid JSON, editor and export fallback (18 assertions).

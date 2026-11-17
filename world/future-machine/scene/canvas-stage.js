@@ -1,3 +1,4 @@
+import {curtainSlices} from './curtain.js';
 import {LAYOUT_VERSION} from './mapping.js';
 /** Low-fidelity orthographic view of the existing City projection, never model authority. */
 const MODES = ['split', 'baseline', 'plan', 'difference'];
@@ -57,8 +58,10 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
   let ctx;
   try {ctx=canvas.getContext('2d');} catch(error) {canvas.remove();throw error;}
   if (!ctx) {canvas.remove();throw new Error('Canvas2D unavailable');}
+  let familyBuildings={};
   let projection=null,diff=null,mode='split',ghosts=true,selected=null,disposed=false,fitted=false;
-  let pixelRatio=null;
+  let pixelRatio=null,curtain=null;
+  const viewports=()=>curtain===null?canvasViewports(width,height,mode):curtainSlices(width,curtain).map(s=>({x:0,y:0,width,height,arm:s.arm?'plan':'baseline',clip:s}));
   let width=1,height=1,camera={x:0,z:0,zoom:1},drawn=0;
   const pointers=new Map(), listeners=[];
   let gesture=null;
@@ -66,9 +69,9 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
   function draw() {
     if(disposed)return;
     ctx.clearRect(0,0,width,height);drawn=0;
-    const viewports=canvasViewports(width,height,mode);
-    for(const view of viewports) {
-      ctx.save();ctx.beginPath();ctx.rect(view.x,0,view.width,height);ctx.clip();
+    const panels=viewports();
+    for(const view of panels) {
+      ctx.save();ctx.beginPath();ctx.rect(view.clip?.x??view.x,0,view.clip?.width??view.width,height);ctx.clip();
       ctx.fillStyle=view.arm==='baseline'?'#102936':'#102f31';ctx.fillRect(view.x,0,view.width,height);
       ctx.strokeStyle='#26434b';ctx.lineWidth=1;
       const spacing=24*camera.zoom;
@@ -82,7 +85,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
       for(const row of canvasRows(projection,diff,view.arm,mode,ghosts)) {
         const points=polygon(row).map(([x,z])=>canvasPoint(x,z,camera,view));
         ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();
-        const active=selected?.collection===row.collection&&selected?.id===row.id;
+        const active=selected?.collection===row.collection&&selected?.id===row.id || row.collection==='buildings'&&familyBuildings[view.arm]===row.id;
         ctx.setLineDash(row.ghost?[5,4]:[]);
         ctx.fillStyle=row.ghost?'#9fe4f015':row.collection==='projects'?'#d6a25c':row.change?'#56dca4':'#7d9fae';
         ctx.strokeStyle=active?'#fff2a1':row.ghost?'#9fe4f0':row.change?'#a0ffd0':'#bfd4df';
@@ -104,7 +107,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
       ctx.font='11px system-ui';ctx.fillText(`Month ${projection?.month ?? '—'} · ${canvasRows(projection,diff,view.arm,mode,false).filter(r=>!r.ghost).length} locations`,view.x+14,44);
       ctx.restore();
     }
-    if(mode==='split'){ctx.fillStyle='#a4c6d8';ctx.fillRect(width/2-1,0,2,height);}
+    if(mode==='split'&&curtain===null){ctx.fillStyle='#a4c6d8';ctx.fillRect(width/2-1,0,2,height);}
     ctx.fillStyle='#10232de8';ctx.fillRect(0,height-44,width,44);ctx.fillStyle='#eaf7fa';ctx.font='11px system-ui';
     ctx.fillText(width<500?'Low fidelity · unlocated data uses synthetic layout':'Low fidelity · Synthetic layout for unlocated City inventory · sourced footprints where available',12,height-27,Math.max(1,width-24));
     const previews=ghosts&&Object.values(projection?.constructionGhosts??{}).some(rows=>rows.length);
@@ -120,7 +123,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
   try {
   listen(canvas,'pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;const point=local(e);if(!point)return;onCameraInteraction?.();canvas.focus();pointers.set(e.pointerId,point);canvas.setPointerCapture?.(e.pointerId);startGesture();});
   listen(canvas,'pointermove',e=>{if(!pointers.has(e.pointerId)||!gesture)return;const point=local(e);if(!point)return;pointers.set(e.pointerId,point);const p=[...pointers.values()][0];const dx=p.x-gesture.start.x,dy=p.y-gesture.start.y;if(Math.hypot(dx,dy)>3||pointers.size>1)gesture.moved=true;camera={x:gesture.camera.x-dx/gesture.camera.zoom,z:gesture.camera.z-dy/gesture.camera.zoom,zoom:clamp(gesture.camera.zoom*(gesture.distance?distance()/gesture.distance:1),.02,32)};changed();});
-  function end(e){if(!pointers.has(e.pointerId))return;const point=local(e), click=point&&gesture&&!gesture.moved&&pointers.size===1&&Math.hypot(point.x-gesture.start.x,point.y-gesture.start.y)<=3;pointers.delete(e.pointerId);if(click&&e.type==='pointerup'){for(const view of canvasViewports(width,height,mode)){const hit=hitTestCanvas(canvasRows(projection,diff,view.arm,mode,ghosts),point.x,point.y,camera,view);if(hit){selected=hit;draw();onSelect?.({collection:hit.collection,id:hit.id,arm:view.arm});break;}}}if(pointers.size){startGesture();gesture.moved=true;}else gesture=null;}
+  function end(e){if(!pointers.has(e.pointerId))return;const point=local(e), click=point&&gesture&&!gesture.moved&&pointers.size===1&&Math.hypot(point.x-gesture.start.x,point.y-gesture.start.y)<=3;pointers.delete(e.pointerId);if(click&&e.type==='pointerup'){for(const view of viewports()){if(view.clip&&(point.x<view.clip.x||point.x>=view.clip.x+view.clip.width))continue;const hit=hitTestCanvas(canvasRows(projection,diff,view.arm,mode,ghosts),point.x,point.y,camera,view);if(hit){selected=hit;draw();onSelect?.({collection:hit.collection,id:hit.id,arm:view.arm});break;}}}if(pointers.size){startGesture();gesture.moved=true;}else gesture=null;}
   listen(canvas,'pointerup',end);listen(canvas,'pointercancel',end);listen(canvas,'lostpointercapture',end);
   listen(canvas,'wheel',e=>{if(!Number.isFinite(e.deltaY))return;onCameraInteraction?.();e.preventDefault();camera.zoom=clamp(camera.zoom*Math.exp(-clamp(e.deltaY,-200,200)*.003),.02,32);changed();},{passive:false});
   listen(canvas,'keydown',e=>{const delta=30/camera.zoom;switch(e.key){case 'ArrowLeft':camera.x-=delta;break;case 'ArrowRight':camera.x+=delta;break;case 'ArrowUp':camera.z-=delta;break;case 'ArrowDown':camera.z+=delta;break;case '+':case '=':camera.zoom=clamp(camera.zoom*1.2,.02,32);break;case '-':camera.zoom=clamp(camera.zoom/1.2,.02,32);break;case 'Home':camera=fitCanvasCamera(projection,width,height,mode);break;default:return;}onCameraInteraction?.();e.preventDefault();changed();});
@@ -130,8 +133,10 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
   } catch(error) {observer?.disconnect();for(const remove of listeners)remove();canvas.width=0;canvas.height=0;canvas.remove();throw error;}
   return {
     update(next,nextDiff){if(disposed)return;projection=validProjection(next);diff=nextDiff;pointers.clear();gesture=null;if(!fitted&&projection&&(projection.a.length||projection.b.length)){camera=fitCanvasCamera(projection,width,height,mode);fitted=true;}draw();},
+    setCurtain(value){curtain=value;draw();},
     setMode(next){if(!MODES.includes(next))throw new TypeError('Unknown scene mode');if(disposed)return;mode=next;draw();},
     setGhosts(value){if(disposed)return;ghosts=Boolean(value);draw();},
+    setFamilyBuildings(value){familyBuildings=value;draw();},
     focus(entity,{scale}={}){if(disposed)return false;const row=[...(projection?.a||[]),...(projection?.b||[])].find(r=>identity(r)===identity(entity||{}));if(!row)return false;selected={collection:row.collection,id:row.id};camera={...camera,x:row.x,z:row.z,...(scale?{zoom:Math.min(width/(mode==='split'?2:1),height)/(scale==='neighborhood'?400:150)}:{})};changed();return true;},
     setPixelRatio(value){if(!Number.isFinite(value)||value<=0||value>2)throw new RangeError('Pixel ratio must be positive and at most 2');pixelRatio=value;resize();},
     getCamera(){return {...camera};},

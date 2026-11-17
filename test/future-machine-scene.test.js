@@ -45,6 +45,12 @@ test('stage inventory selects exact IDs and missing snapshots clear selection an
   expect(button.textContent).toContain('schematic · unlocated');button.onclick();
   expect(selections).toEqual([{collection:'buildings',id:'a',arm:'baseline'}]);
   expect(stage.focus({collection:'buildings',id:'a'})).toBe(true);
+  const home=(month,buildingId)=>({month,buildings:[building('a'),building('b')],projects:[],households:[{id:'h1',unitId:'u1',income:2000}],units:[{id:'u1',householdId:'h1',status:'occupied',rent:500,buildingId}]});
+  stage.update({month:0,baseline:{month:0,state:home(0,'a')},plan:{month:0,state:home(0,'b')}},{entities:[]});
+  stage.followHousehold('h1');expect(stage.getStats().followedBuildings).toEqual({baseline:'a',plan:'b'});
+  stage.update({month:1,baseline:{month:1,state:home(1,'b')},plan:{month:1,state:home(1,'a')}},{entities:[]});
+  expect(stage.getStats().followedBuildings).toEqual({baseline:'b',plan:'a'});
+  stage.followHousehold(null);expect(stage.getStats().followedBuildings).toEqual({baseline:null,plan:null});
   stage.update({month:1,baseline:null,plan:null},null);
   expect(stage.focus({collection:'buildings',id:'a'})).toBe(false);
   expect(stage.getStats().objects).toBe(0);expect(stage.getStats().month).toBe(null);

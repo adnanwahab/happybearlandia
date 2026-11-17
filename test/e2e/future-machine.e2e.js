@@ -340,3 +340,21 @@ test('SHE-106: thirty sequential replays preserve model digest and bounded resou
  expect(errors).toEqual([]);
  await testInfo.attach('replay-resources.json',{body:JSON.stringify({digest,samples,boundBytes:32*1024*1024},null,2),contentType:'application/json'});
 });
+
+test('synthetic family cards follow exact buildings through shared playback',async({page})=>{
+ await page.goto('/world/future-machine.html');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ const card=page.getByRole('region',{name:'Follow a synthetic family'});
+ await expect(card.getByRole('combobox',{name:'Family',exact:true})).toBeEnabled();
+ const identity=await card.getByRole('heading',{level:3}).textContent();
+ await card.getByRole('button',{name:'Follow this family',exact:true}).click();
+ await seek(page,120);
+ const followed=await page.evaluate(()=>{const {scene}=futureMachine.stats;const {frame}=futureMachine.state;return ['baseline','plan'].map(arm=>{const h=frame[arm].state.households.find(h=>h.id===scene.followedHousehold);const u=frame[arm].state.units.find(u=>u.id===h?.unitId&&u.householdId===h.id&&u.status==='occupied');return {actual:scene.followedBuildings[arm],expected:u?.buildingId??null};});});
+ for(const value of followed)expect(value.actual).toBe(value.expected);
+ await expect(card.getByRole('heading',{level:3})).toHaveText(identity);
+ await card.getByRole('link',{name:/rent burden/}).first().click();
+ await expect(card.locator('details').first()).toHaveAttribute('open','');
+ expect(JSON.parse(await card.locator('pre').first().textContent()).month).toBe(120);
+ await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:'test-results/future-machine-family.png',fullPage:true});
+});

@@ -16,6 +16,7 @@ const household = mountHousehold(find('family'));
 const query = new URLSearchParams(location.search);
 let comparison;
 let timer;
+let activeWorker;
 
 find('baseline').textContent =
   `Baseline each month · ${BASELINE.permits} permit · ${BASELINE.labor} labor units · ${BASELINE.materials} material units`;
@@ -129,7 +130,8 @@ function run(input, selection = {}) {
   find('comparison').hidden = true;
   status.textContent = 'Running the same-seed City futures…';
   try {
-    const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+    activeWorker?.terminate();
+    const worker = activeWorker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
     const finish = message => {
       worker.terminate();
       submit.disabled = false;
@@ -185,3 +187,14 @@ try {
 } catch (error) {
   status.textContent = error.message;
 }
+
+window.addEventListener('pagehide', () => {
+  stop();
+  activeWorker?.terminate();
+  theater.destroy();
+  queues.destroy();
+  household.destroy();
+});
+
+// A bfcache return must recreate the disposed worker and render resources.
+window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });

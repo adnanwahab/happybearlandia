@@ -1,0 +1,61 @@
+name: SHE-63 cross-browser release matrix
+
+on:
+  pull_request:
+    branches: [sprint/one-city-two-futures-20261111]
+    paths:
+      - '.github/workflows/she63-browser-matrix.yml'
+      - 'scripts/run-she63-browser-matrix.mjs'
+      - 'test/she63-release-matrix.config.js'
+      - 'test/e2e/two-futures-sprint.e2e.js'
+      - 'test/e2e/two-futures-compatibility.e2e.js'
+      - 'test/e2e/future-machine-share-reliability.e2e.js'
+      - 'world/future-machine/**'
+      - 'server.js'
+  push:
+    branches: [sprint/one-city-two-futures-20261111]
+    paths:
+      - '.github/workflows/she63-browser-matrix.yml'
+      - 'scripts/run-she63-browser-matrix.mjs'
+      - 'test/she63-release-matrix.config.js'
+      - 'test/e2e/two-futures-sprint.e2e.js'
+      - 'test/e2e/two-futures-compatibility.e2e.js'
+      - 'test/e2e/future-machine-share-reliability.e2e.js'
+      - 'world/future-machine/**'
+      - 'server.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-matrix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Install Chrome, Firefox and WebKit test engines
+        run: bunx playwright install --with-deps chrome firefox webkit
+      - name: Log runner and browser versions
+        run: |
+          uname -a
+          bun --version
+          bunx playwright --version
+          google-chrome --version
+      - name: Execute 15 real-browser SHE-63 matrix cases
+        env:
+          HBL_SHE63_ARTIFACT_DIR: ${{ github.workspace }}/test-results/she63
+        run: bun scripts/run-she63-browser-matrix.mjs
+      - name: Preserve matrix JSON, screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: she63-browser-matrix-${{ github.run_id }}
+          path: test-results/she63
+          if-no-files-found: warn
+          retention-days: 14

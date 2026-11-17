@@ -39,3 +39,45 @@ describe("2D minimap coordinates and camera translation", () => {
     expect(minimapLoadedChunks([{ status: "ready", actualBounds: { ...bounds, maxX: Infinity } }])).toEqual([]);
   });
 });
+
+import { createMinimapTrail } from '../world/minimap.js';
+test('trail retains scoped stable identities, deduplicates and bounds page-session history', () => {
+  const trail = createMinimapTrail();
+  const record = {kind:'building',id:42,label:'Home'};
+  trail.visit(record); trail.visit({kind:'person',id:42,label:'Resident'}); trail.visit(record);
+  expect(trail.recent.map(e=>[e.kind,e.id])).toEqual([['building','42'],['person','42']]);
+  record.label='mutated'; expect(trail.recent[0].label).toBe('Home');
+  for(let i=0;i<10;i++)trail.visit({kind:'building',id:i});
+  expect(trail.recent).toHaveLength(6); expect(trail.recent[0].id).toBe('9');
+  expect(trail.visit({kind:'journal',id:1})).toBe(false);
+});
+test('bookmarks copy finite positions without mutating source records and have bounded lifetime', () => {
+  const trail=createMinimapTrail(), point={x:12,z:-20,y:5}, before=JSON.stringify(point);
+  trail.save(point); trail.save(point);
+  expect(JSON.stringify(point)).toBe(before); expect(trail.bookmarks).toHaveLength(1);
+  point.x=500; expect(trail.bookmarks[0].x).toBe(12);
+  expect(trail.save({x:Infinity,z:0})).toBe(false);
+  for(let i=0;i<10;i++)trail.save({x:i,z:i});
+  expect(trail.bookmarks).toHaveLength(6); expect(createMinimapTrail().bookmarks).toEqual([]);
+});
+
+import {resolveMinimapVisit,minimapContains} from '../world/minimap.js';
+test('return destinations resolve current IDs, never array indexes or old person coordinates',()=>{
+  const town={buildings:[{id:'osm:42',center:[1,2]}],people:[{id:'legacy:42',x:3,z:4}]};
+  const before=JSON.stringify(town);
+  expect(resolveMinimapVisit(town,{kind:'building',id:'osm:42'})).toEqual({x:1,z:2});
+  expect(resolveMinimapVisit(town,{kind:'person',id:'legacy:42'})).toEqual({x:3,z:4});
+  expect(resolveMinimapVisit(town,{kind:'building',id:'0'})).toBeNull();
+  expect(resolveMinimapVisit(town,{kind:'person',id:'osm:42'})).toBeNull();
+  expect(JSON.stringify(town)).toBe(before);
+  town.people[0].x=8;
+  expect(resolveMinimapVisit(town,{kind:'person',id:'legacy:42'})).toEqual({x:8,z:4});
+  town.people=[];
+  expect(resolveMinimapVisit(town,{kind:'person',id:'legacy:42'})).toBeNull();
+});
+test('teleports reject missing coordinates and unloaded holes, including invalid saved locations',()=>{
+ const regions=[{bounds:{minX:0,maxX:10,minZ:0,maxZ:10}},{bounds:{minX:20,maxX:30,minZ:0,maxZ:10}}];
+ expect(minimapContains(regions,{x:10,z:0})).toBe(true);
+ for(const point of [null,{x:NaN,z:0},{x:15,z:5},{x:31,z:5}])expect(minimapContains(regions,point)).toBe(false);
+ expect(minimapContains([],{x:0,z:0})).toBe(false);
+});

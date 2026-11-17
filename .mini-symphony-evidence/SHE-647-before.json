@@ -1,0 +1,26 @@
+{
+  "stage": "before",
+  "capturedAt": "2026-11-17T11:14:29.150Z",
+  "files": [
+    {
+      "path": ".mini-symphony-evidence/SHE-647-before-desktop-1.png",
+      "route": "/",
+      "viewport": "desktop 1440×1000"
+    },
+    {
+      "path": ".mini-symphony-evidence/SHE-647-before-desktop-2.png",
+      "route": "/world/?demo=1&synthetic=1&people=16",
+      "viewport": "desktop 1440×1000"
+    },
+    {
+      "path": ".mini-symphony-evidence/SHE-647-before-mobile-1.png",
+      "route": "/",
+      "viewport": "mobile 390×844"
+    },
+    {
+      "path": ".mini-symphony-evidence/SHE-647-before-mobile-2.png",
+      "route": "/world/?demo=1&synthetic=1&people=16",
+      "viewport": "mobile 390×844"
+    }
+  ]
+}

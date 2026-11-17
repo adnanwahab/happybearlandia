@@ -4,7 +4,7 @@ test('WebGL2 fallback exposes quality, cutaway, feature toggles and benchmark st
  await page.goto('/world?demo=1&renderer=webgl&people=20');
  await page.waitForFunction(()=>window.hblCityRenderer?.getPerformanceStats().frames>3,null,{timeout:90000});
  await page.keyboard.press('F3');await expect(page.getByTestId('render-performance')).toBeVisible();
- await expect(page.getByLabel('Scene lighting',{exact:true})).toHaveValue('14');
+ await expect(page.getByLabel('Scene lighting',{exact:true})).toHaveValue('simulation');
  await page.getByLabel('Scene lighting',{exact:true}).selectOption('simulation');
  expect(await page.evaluate(()=>window.hblCityRenderer.timeOfDay)).toBeUndefined();
  await page.getByLabel('Scene lighting',{exact:true}).selectOption('14');
@@ -88,3 +88,20 @@ for (const fallback of ['webgl2', 'canvas2d']) {
   expect(errors).toEqual([]);
  });
 }
+
+test('simulation lighting defaults to the HUD clock and manual night/day overrides are reversible',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.goto('/world?demo=1&renderer=webgl&people=10');
+ await page.waitForFunction(()=>window.hblCityRenderer?.getPerformanceStats().lighting);
+ await page.keyboard.press('F3');await expect(page.getByLabel('Scene lighting',{exact:true})).toHaveValue('simulation');
+ const initial=await page.evaluate(()=>window.hblCityRenderer.getPerformanceStats());
+ expect(initial.lighting.hour).toBeCloseTo((initial.lighting.minute%1440)/60,5);
+ await page.getByLabel('Scene lighting',{exact:true}).selectOption('22');
+ await expect.poll(()=>page.evaluate(()=>window.hblCityRenderer.getPerformanceStats().lighting.hour)).toBe(22);
+ const night=await page.evaluate(()=>window.hblCityRenderer.getPerformanceStats().lighting);expect(night.lamps).toBe(1);
+ await page.getByLabel('Scene lighting',{exact:true}).selectOption('14');
+ await expect.poll(()=>page.evaluate(()=>window.hblCityRenderer.getPerformanceStats().lighting.hour)).toBe(14);
+ expect(await page.evaluate(()=>window.hblCityRenderer.getPerformanceStats().lighting.skyColor)).not.toBe(night.skyColor);
+ await page.getByLabel('Scene lighting',{exact:true}).selectOption('simulation');
+ await expect.poll(()=>page.evaluate(()=>window.hblCityRenderer.timeOfDay)).toBeUndefined();expect(errors).toEqual([]);
+});

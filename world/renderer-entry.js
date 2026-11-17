@@ -1,32 +1,21 @@
-/** Start the full 3D renderer only when supported; Canvas2D never imports Three. */
+import {cityViewURL} from './static-city-model.js';
 const params=new URLSearchParams(location.search);
-const requested=params.get('renderer');
-const canvasMode=requested==='canvas2d'||requested==='lite'||requested==='2d';
-function hasWebGL2(){
-  try{const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl2');const ok=!!gl;
-    gl?.getExtension('WEBGL_lose_context')?.loseContext();return ok;}catch{return false;}
+const cityLink=document.getElementById('city-view-link');if(cityLink)cityLink.href=cityViewURL(location.href,'requested');let leaving=false;
+window.addEventListener('pagehide',()=>{leaving=true;const prepared=window.hblPreparedWorldGraphics;if(prepared){delete window.hblPreparedWorldGraphics;prepared.renderer.dispose();}},{once:true});
+const preview=reason=>{window.addEventListener('pageswap',event=>{const pending=event.viewTransition;if(pending){void pending.ready.catch(()=>{});void pending.finished.catch(()=>{});pending.skipTransition();}},{once:true});const transition=document.activeViewTransition;if(transition){void transition.ready.catch(()=>{});void transition.finished.catch(()=>{});transition.skipTransition();}location.replace(cityViewURL(location.href,reason));};
+function showGameError(error){const loading=document.getElementById('loading');if(loading&&!loading.querySelector('button')){loading.replaceChildren();loading.setAttribute('role','alert');const message=document.createElement('p');message.textContent='The game could not start. Try again, or open the city view without simulation.';const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();const view=document.createElement('a');view.href=cityViewURL(location.href,'initialization');view.textContent='Open city view';loading.append(message,retry,view);}console.error('[world] Game initialization failed:',error);}
+async function start(){
+ if(params.get('renderer')==='webgl2'){preview('requested');return;}
+ if(!navigator.gpu){preview('unavailable');return;}
+ let prepared,timer,expired=false;
+ try{
+  const{createWorldGPU}=await import('./world-gpu.js');const work=createWorldGPU({antialias:params.get('embed')!=='1'});work.then(value=>{if(expired||leaving)value.renderer.dispose();}).catch(()=>{});
+  prepared=await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(Error('WebGPU initialization timed out.'));},8000);})]);
+ }catch{preview('initialization');return;}finally{clearTimeout(timer);}
+ // render.js consumes this already initialized native backend. Preflight happens
+ // before its simulation imports so the fallback never loads a simulation graph.
+ if(leaving)return;
+ window.hblPreparedWorldGraphics=prepared;document.documentElement.dataset.renderer='webgpu';
+ try{await import('./render.js');}catch(error){if(window.hblPreparedWorldGraphics){delete window.hblPreparedWorldGraphics;prepared.renderer.dispose();}showGameError(error);}
 }
-const fallback=()=>{
-  document.documentElement.dataset.renderer='canvas2d';
-  const gi=document.getElementById('global-illumination-button');if(gi){gi.dataset.state='UNAVAILABLE';gi.title='Requires WebGPU. Direct lighting remains available.';}
-  return import('./canvas2d-world.js');
-};
-const link=document.getElementById('world-lite-link');
-if(link){
-  const url=new URL(location.href);url.searchParams.set('renderer',canvasMode?'webgl':'canvas2d');
-  link.href=url.pathname+url.search+url.hash;
-  link.textContent=canvasMode?'Try 3D rendering':'Use 2D low-fidelity mode';
-}
-// Saved checkpoints require the restoring renderer and its own Canvas2D fallback.
-// The standalone low-fidelity scene cannot reconstruct Living Population saves.
-if(params.has('experiment')){
-  import('./render.js').catch(error=>console.warn('[world] Saved renderer unavailable; retain its recovery view:',error));
-}else if(canvasMode||(!navigator.gpu&&!hasWebGL2())){
-  fallback().catch(error=>{const el=document.getElementById('loading');if(el)el.textContent='2D World could not start: '+error.message;});
-}else{
-  import('./render.js').catch(error=>{
-    console.warn('[world] 3D module unavailable, trying Canvas2D:',error);
-    const el=document.getElementById('loading');if(el)el.textContent='3D unavailable. Switching to low-fidelity Canvas2D…';
-    return fallback();
-  }).catch(error=>{const el=document.getElementById('loading');if(el)el.textContent='No supported renderer could load: '+error.message;});
-}
+void start();

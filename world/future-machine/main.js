@@ -1,3 +1,5 @@
+import {buildSpotlight} from './diff/spotlight.js';
+import {mountSpotlight} from './ui/spotlight.js';
 import {consumeDemoClick,createDemoTiming,visibleCity} from './demo-performance.js';
 import {createFollowUp} from './follow-up.js';
 import {mountLedger} from './butterfly-ledger.js';
@@ -39,7 +41,7 @@ function firstInput(control){recordLanding();recordMilestone('first_input',{cont
 function recordVisibleDivergence(){if(!['ready','error'].includes(state.status))return;const facts=visibleDivergence(history,diffs,state.month);if(facts)recordMilestone('first_divergence',{facts});}
 let originalRecipe=structuredClone(DEFAULT_RECIPE),configurationGeneration=0;
 let history=null,diffs=[],story=null,stage=null,storyDispose=()=>{},request=null,playTimer=null,disposed=false;
-let state={status:'idle',preview:false,message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,mode:'split',ghosts:true,autoCamera:true,experimentId:null,shareURL:null,error:null};
+let state={status:'idle',preview:false,message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,eventSlowdown:false,mode:'split',ghosts:true,autoCamera:true,experimentId:null,shareURL:null,error:null};
 let remembering=false;
 const demoTiming=createDemoTiming();
 let entryClick=consumeDemoClick(),timingFrame=null;
@@ -61,13 +63,15 @@ function measureVisibleDemo(generation,warm,activeStage){
 }
 const stats={startedAt:performance.now(),readyMs:null,runMs:null,evidenceTrailBuilds:0};
 app.replaceChildren();
-const ui=createUI(app,{onRetry:async()=>{if(!lastAttempt)return;takeover();try{await run(...lastAttempt);}catch{/* run already presents strict receipt errors. */}},onRun:recipe=>{firstInput('policy');takeover();return run(recipe,null,0,{userRun:true});},onConfigure:configure,onReset:resetConfiguration,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:()=>{firstInput('playback');return playDemo();},onAutoCamera(value){firstInput('scenario');state.autoCamera=value;stage?.cancelCamera?.();update();},onDemoPause:()=>{firstInput('playback');director.togglePause();},onDemoManual:()=>{firstInput('playback');takeover();},onDemoSkip:()=>{firstInput('playback');director.skip();},onMetric:explainMetric,onMode(mode){firstInput('scenario');takeover();state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){firstInput('scenario');takeover();state.ghosts=value;stage?.setGhosts(value);update();},onFirstConstruction:()=>jump(state.firstConstruction),onDirector:direct,onShare:share,onPreviewShare:previewShare,onCopyShare:copyShare,onBrowserShare:typeof navigator.share==='function'?browserShare:undefined,onExport:exportReport,onRemember:remember,onClearRecent:resetRecent,onCard:()=>downloadShareCard(history,state.month)});
+const ui=createUI(app,{onFollowFamily:id=>stage?.followHousehold(id),onRetry:async()=>{if(!lastAttempt)return;takeover();try{await run(...lastAttempt);}catch{/* run already presents strict receipt errors. */}},onRun:recipe=>{firstInput('policy');takeover();return run(recipe,null,0,{userRun:true});},onConfigure:configure,onReset:resetConfiguration,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onEventSlowdown(value){state.eventSlowdown=Boolean(value);update();},onDemo:()=>{firstInput('playback');return playDemo();},onAutoCamera(value){firstInput('scenario');state.autoCamera=value;stage?.cancelCamera?.();update();},onDemoPause:()=>{firstInput('playback');director.togglePause();},onDemoManual:()=>{firstInput('playback');takeover();},onDemoSkip:()=>{firstInput('playback');director.skip();},onMetric:explainMetric,onMode(mode){firstInput('scenario');takeover();state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){firstInput('scenario');takeover();state.ghosts=value;stage?.setGhosts(value);update();},onFirstConstruction:()=>jump(state.firstConstruction),onDirector:direct,onShare:share,onPreviewShare:previewShare,onCopyShare:copyShare,onBrowserShare:typeof navigator.share==='function'?browserShare:undefined,onExport:exportReport,onRemember:remember,onClearRecent:resetRecent,onCard:()=>downloadShareCard(history,state.month)});
 const receiptUI=mountReplayReceipt(app,{getContext:()=>({history,month:state.month}),onReopen:input=>{takeover();return run(null,null,0,{receiptInput:input});}});
 const followUp=createFollowUp(app,{onAccept:recipe=>{firstInput('policy');takeover();return run(recipe,null,0,{userRun:true});}});
 const quest=createDiscoveryQuest();
 const questView=mountDiscoveryQuest(app,{onVisit(){const stop=quest.state.stop;if(stop)manualMonth(stop.month);},onInspect(){const stop=quest.state.stop;if(stop){if(state.month!==stop.month)manualMonth(stop.month);select(stop.entity);}}});
 ui.stageElement.before(app.querySelector('.fm-quest'));
 const removeYearShortcuts=bindYearShortcuts(ui.stageElement,{getState:()=>state,getDiffs:()=>diffs,onMonth:manualMonth,onMissing(){state.message='No recorded divergence in this comparison.';update();}});
+const spotlight=mountSpotlight(app,{onVisit:stop=>jump(stop,{animate:true})});
+ui.stageElement.before(spotlight.root);
 const narration=mountChangeNarration(app);
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
 const diagnostic=mountDiagnosticReport(app);
@@ -79,7 +83,7 @@ stage.whenReady().then(recordLanding);
 
 // Guided presentation changes the selected recorded frame, never the simulation.
 let demoGeneration=0,linkGeneration=0;
-const director=createDemoController({onMonth:month=>{if(month!==state.month)setMonth(month);},onShot(stop){if(state.autoCamera)stage.focus(stop.entity,{animate:true,scale:stop.scale});},onHighlight(stop){showStory(withContext(entityDescription(stop.entity)));},onExplain(){if(!state.demoExplained){state.demoExplained=true;explainMetric('homes',false);}},onState(demo){const previous=state.demo;const inventory=stage?.getStats().backend==='inventory-fallback';state.demo={...demo,caption:inventory?`Inventory mode · ${demo.caption||'Explore the recorded comparison.'}`:demo.caption};if(demo.paused||demo.status==='complete'||demo.status==='manual'||(previous?.status==='playing'&&demo.status==='idle')){stage?.cancelCamera?.();updateURL();outcomeTimeline?.update(state.month,{announce:true});}update();}});
+const director=createDemoController({onMonth:month=>{if(month!==state.month)setMonth(month);},onShot(stop){if(state.autoCamera)stage.divergenceShot(stop);},onHighlight(stop){showStory(withContext(entityDescription(stop.entity)));},onExplain(){if(!state.demoExplained){state.demoExplained=true;explainMetric('homes',false);}},onState(demo){const previous=state.demo;const inventory=stage?.getStats().backend==='inventory-fallback';state.demo={...demo,caption:inventory?`Inventory mode · ${demo.caption||'Explore the recorded comparison.'}`:demo.caption};if(demo.paused||demo.status==='complete'||demo.status==='manual'||(previous?.status==='playing'&&demo.status==='idle')){stage?.cancelCamera?.();updateURL();outcomeTimeline?.update(state.month,{announce:true});}update();}});
 function takeover(){stopDemoTiming();demoGeneration++;stage?.cancelCamera?.();director.takeover();setPlaying(false);}
 function manualMonth(month){firstInput('timeline');takeover();setMonth(month,{reanchor:true});quest.visit(state.month);outcomeTimeline?.update(state.month,{announce:true});updateURL();update();}
 function manualPlay(value){firstInput('playback');takeover();setPlaying(value);}
@@ -127,7 +131,7 @@ function showPreview(recipe){
   showStory({title:'Model-backed initial snapshot · Month 0',summary:`Synthetic starting inventory · seed ${recipe.seed} · model ${recipe.modelVersion} · dataset ${initial.provenance.datasetVersion}. Choose a policy or inspect a building while the future model runs. No future outcomes or saved experiment are available yet.`,evidence:[],limitations:initial.provenance.assumptions});
 }
 let updateFrame=null;
-function update(){if(!disposed&&updateFrame===null)updateFrame=requestAnimationFrame(()=>{updateFrame=null;if(!disposed){ui.update({...state,originalRecipe,canRetry:Boolean(lastAttempt),comparisonRecipe:history?.recipe ?? null,comparisonInitial:history?.baseline?.[0]?.state ?? null});questView.update(quest.state,!!history&&['ready','error'].includes(state.status));followUp.update({history,month:state.month,status:state.status});challenges.update(state);receiptUI.update({history,month:state.month,ready:state.status==='ready'});outcomeTimeline?.update(state.month);}});}
+function update(){if(!disposed&&updateFrame===null)updateFrame=requestAnimationFrame(()=>{updateFrame=null;if(!disposed){ui.update({...state,familyHistory:history,originalRecipe,canRetry:Boolean(lastAttempt),comparisonRecipe:history?.recipe ?? null,comparisonInitial:history?.baseline?.[0]?.state ?? null});spotlight.update(!!history&&['ready','error'].includes(state.status));questView.update(quest.state,!!history&&['ready','error'].includes(state.status));followUp.update({history,month:state.month,status:state.status});challenges.update(state);receiptUI.update({history,month:state.month,ready:state.status==='ready'});outcomeTimeline?.update(state.month);}});}
 function visibilityChanged(){director.setHidden(document.hidden);}
 document.addEventListener('visibilitychange',visibilityChanged);
 function cancel(){stopDemoTiming();linkGeneration++;demoGeneration++;director.stop();request?.abort();request=null;setPlaying(false);state.status=history?'ready':'idle';state.error=null;state.message=history?'Run cancelled. Any completed comparison remains available.':'Run cancelled. Initial inventory remains available. Choose a policy and Fork City to retry.';update();}
@@ -178,7 +182,24 @@ function landingContext(){
 }
 function updateURL(){if(!history)return;state.shareURL=createShareURL({recipe:history.recipe,experimentId:history.experimentId,month:state.month,landing:landingContext()},location.href.split('#')[0]);if(state.challengeHash&&state.month===state.challengeMonth)state.shareURL+=state.challengeHash;if(location.href!==state.shareURL)try{window.history.replaceState(null,'',state.shareURL);}catch{state.message='Comparison link is ready to share; the browser could not update the address bar.';}persistRecent();}
 function setMonth(month,{reanchor=false}={}){if(!history)return;try{state.month=assertMonth(Number(month));if(history){state.frame=frame();state.diff=diffs[state.month];stage.update(state.frame,state.diff);if(inspectorMetric)explainMetric(inspectorMetric,false,{preserveTrail:!reanchor});else if(inspectorEntity&&reanchor)showStory(withContext(entityDescription(inspectorEntity)));else trailView?.update(state.month);}recordVisibleDivergence();update();}catch(error){state.error=error.message;update();}}
-function setPlaying(value){const wasPlaying=state.playing;clearInterval(playTimer);playTimer=null;state.playing=Boolean(value&&history);if(state.playing){if(state.month===MONTHS)setMonth(0);playTimer=setInterval(()=>{if(state.month>=MONTHS)return setPlaying(false);setMonth(state.month+1);},200);}else{updateURL();if(wasPlaying)outcomeTimeline?.update(state.month,{announce:true});}update();}
+function setPlaying(value){
+ const wasPlaying=state.playing;clearInterval(playTimer);playTimer=null;
+ state.playing=Boolean(value&&history);
+ if(state.playing){
+  if(state.month===MONTHS)setMonth(0);
+  // Editorial windows reuse exact recorded event months, never model time or inputs.
+  const windows=selectMoments(history,{limit:100}).filter(moment=>['construction','goal-conflict'].includes(moment.kind));
+  let held=0;
+  playTimer=setInterval(()=>{
+   if(state.month>=MONTHS)return setPlaying(false);
+   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   const slow=state.eventSlowdown&&!reduced&&windows.some(moment=>Math.abs(moment.month-state.month)<=1);
+   if(++held<(slow?4:1))return;
+   held=0;setMonth(state.month+1);
+  },200);
+ }else{updateURL();if(wasPlaying)outcomeTimeline?.update(state.month,{announce:true});}
+ update();
+}
 function select(entity){if(!history){
  const arm=entity?.arm??'baseline',row=state.preview&&['baseline','plan'].includes(arm)?state.frame?.[arm]?.state?.[entity?.collection]?.find(row=>row.id===entity.id):null;
  if(row){firstInput('scenario');takeover();stage.focus(entity);showStory({title:`Initial snapshot · ${entity.id}`,summary:`Month 0 · seed ${state.provenance.seed} · model ${state.provenance.modelVersion} · dataset ${state.provenance.datasetVersion}. Synthetic starting inventory; future outcomes and event receipts are unavailable.`,evidence:[],limitations:[`Initial inventory record: ${JSON.stringify(row)}`]});}
@@ -190,7 +211,7 @@ function select(entity){if(!history){
   manualMonth(entity.eventMonth);
  }
  quest.inspect(state.month,entity);update();firstInput('scenario');takeover();stage.focus(entity);showStory(withContext(entityDescription(entity)));if(constructionReceipts(history,entity,state.month).length)recordMilestone('why_opened',{target:'recorded-event'});}
-function jump(stop){if(!history||!stop)return;firstInput('scenario');takeover();setMonth(stop.month);quest.visit(state.month);update();outcomeTimeline?.update(state.month,{announce:true});updateURL();const located=stop.entity?stage.focus(stop.entity):false;const detail=stop.entity?entityDescription(stop.entity):stop;showStory(withContext({...stop,...detail,title:stop.title??detail.title,entity:stop.entity,evidence:stop.evidence?.length?stop.evidence:detail.evidence,summary:`${detail.summary}${stop.entity&&!located?' No unambiguous scene mapping for this entity; camera unchanged.':''}`,limitations:story.limitations}));if((stop.evidence?.length??detail.evidence?.length)>0)recordMilestone('why_opened',{target:'recorded-event'});}
+function jump(stop,{animate=false}={}){if(!history||!stop)return;firstInput('scenario');takeover();setMonth(stop.month);quest.visit(state.month);update();outcomeTimeline?.update(state.month,{announce:true});updateURL();const located=stop.entity?stage.focus(stop.entity,{animate,duration:900}):false;const detail=stop.entity?entityDescription(stop.entity):stop;showStory(withContext({...stop,...detail,title:stop.title??detail.title,entity:stop.entity,evidence:stop.evidence?.length?stop.evidence:detail.evidence,summary:`${detail.summary}${stop.entity&&!located?' No unambiguous scene mapping for this entity; camera unchanged.':''}`,limitations:story.limitations}));if((stop.evidence?.length??detail.evidence?.length)>0)recordMilestone('why_opened',{target:'recorded-event'});}
 function direct(){if(!story)return;firstInput('scenario');takeover();const physical=(story.stops||[]).filter(stop=>stop.entity?.collection==='buildings');const stops=physical.length?physical:story.stops||[];const next=stops.find(stop=>stop.month>state.month)||stops[0];if(next)jump(next);else showStory(story);}
 async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=false,userRun=false,receiptInput=null,challenge=null,challengeHash=null,entry=null,landing=null}={}){
   const configurationAtStart=configurationGeneration;
@@ -218,8 +239,8 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=fal
     state.challengeQuestion=challenge?.question??null;state.challengeHash=challenge?challengeHash:null;state.challengeMonth=challenge?.month;
     if(landing){state.mode=landing.mode;state.ghosts=landing.ghosts;}
     stage.dispose();stage=createStage(ui.stageElement,{onSelect:select,onCameraInteraction:stopCameraTour,history:loaded});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
-    trailView?.();trailView=null;trailAnchor=null;inspectorEntity=null;inspectorMetric=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth});
-    history=loaded;momentsDispose();momentsDispose=renderMoments(momentsHost,selectMoments(history),{onJump:jump});diffs=compareHistory(history);quest.reset(diffs,{userRun});
+    trailView?.();trailView=null;trailAnchor=null;inspectorEntity=null;inspectorMetric=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth,onChapter:jump});
+    history=loaded;momentsDispose();momentsDispose=renderMoments(momentsHost,selectMoments(history),{onJump:jump});diffs=compareHistory(history);quest.reset(diffs,{userRun});spotlight.reset(buildSpotlight(history,diffs));
     // A physical difference alone does not establish a construction event.
     const first=firstDivergence(history,diffs);
     state.firstConstruction=first&&constructionReceipts(history,first.entity,first.month).some(receipt=>receipt.month===first.month)?first:null;
@@ -251,7 +272,7 @@ function previewShare(){
 }
 function copyShare(){const preview=state.sharePreview;return preview?transferLink(false,{url:preview.url}):undefined;}
 function exportReport(){if(!history)return;const report=createEvidenceReport(history,{month:state.month,diff:diffs[state.month],story});const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='future-machine-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function dispose(){if(disposed)return;stopDemoTiming();persistRecent();disposed=true;if(updateFrame!==null)cancelAnimationFrame(updateFrame);document.removeEventListener('visibilitychange',visibilityChanged);request?.abort();removeYearShortcuts();clearInterval(playTimer);storyDispose();narration.dispose();momentsDispose();trailView?.();outcomeTimeline?.dispose();stage?.dispose();receiptUI.dispose();questView.dispose();followUp.dispose();ui.dispose();diagnostic.dispose();challenges.dispose();director.dispose();funnel.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
+function dispose(){if(disposed)return;stopDemoTiming();persistRecent();disposed=true;if(updateFrame!==null)cancelAnimationFrame(updateFrame);document.removeEventListener('visibilitychange',visibilityChanged);request?.abort();removeYearShortcuts();clearInterval(playTimer);storyDispose();narration.dispose();momentsDispose();trailView?.();outcomeTimeline?.dispose();stage?.dispose();receiptUI.dispose();spotlight.dispose();questView.dispose();followUp.dispose();ui.dispose();diagnostic.dispose();challenges.dispose();director.dispose();funnel.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
 window.addEventListener('pagehide',dispose);
 window.addEventListener('pageshow',event=>{if(event.persisted&&disposed)location.reload();});
 // Read-only diagnostics for local resource measurements and integration checks.

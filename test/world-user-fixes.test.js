@@ -79,8 +79,8 @@ function directorySession(initialFavorites='[]'){
  for(const [tag,key]of [['main','.routes'],['input','#search'],['div','.filters'],['h2','#results-heading'],['span','#result-count'],['section','.empty'],['button','.clear-search'],['button','#reset'],['section','.directory-tools']]){const node=document.createElement(tag);if(key[0]==='#')node.id=key.slice(1);else node.className=key.slice(1);document.body.append(node);}
  document.querySelector('.empty').append(document.createElement('p'));
  let saved=initialFavorites;const localStorage={getItem:()=>saved,setItem:(_,value)=>{saved=value;}};
- const html=readFileSync('routes.html','utf8'),script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/import .*?;\n/,'');
- new Function('document','localStorage','EXPERIENCES',script)(document,localStorage,EXPERIENCES);
+ const html=readFileSync('routes.html','utf8'),script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*?;\n/gm,'');
+ new Function('document','localStorage','EXPERIENCES','mountContextualHints',script)(document,localStorage,EXPERIENCES,()=>{});
  return{document,saved:()=>JSON.parse(saved)};
 }
 

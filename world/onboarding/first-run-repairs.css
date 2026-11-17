@@ -1,5 +1,5 @@
 /* The explorer dock and connected navigation share the lower edge. Reserve a row. */
 html:not(.embed) nav[aria-label="Connected universe"] { bottom:max(8px,env(safe-area-inset-bottom)) !important; }
-html:not(.embed) .explorer-dock { bottom:calc(max(8px,env(safe-area-inset-bottom)) + 56px); }
+
 #world-playback-facts { max-width:calc(100vw - 24px); overflow:hidden; text-overflow:ellipsis; }
 @media(max-width:640px) { #world-playback-facts { font-size:11px !important; } }

@@ -72,3 +72,12 @@ Next: select and document the million-resident architecture, obtain measured
 allocation budgets on target devices, implement its bounded initialization through
 the ordinary World entry, then rerun cold shipping Chrome/Safari/Firefox checks.
 This remains a partial review candidate, not a completion or deployment receipt.
+
+## Approved r2 follow-up
+
+The current change defers Population allocation on ordinary World visits too;
+explicit `living=1` and saved-run restoration remain supported. The probe now
+uses the ordinary route without demo/opt-out flags and records host startup-frame
+diagnostics. The historical audit and blocked receipt above remain unchanged.
+See [r2 review and actual verification](reviews/SHE-167-r2.md). Full architecture
+and shipping-browser measurement acceptance remains open.

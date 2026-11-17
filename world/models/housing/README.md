@@ -307,3 +307,22 @@ plan increases supply, reduces rents and spends more than baseline; every
 registered parameter affects dynamics. Stress application is idempotent and
 order independent, rejects unknown presets and changes numerical outcomes.
 Malformed parameters, nonnumeric inputs and invalid horizons fail explicitly.
+
+## Ground-wish presentation in World
+
+`/world` mounts `world/buildings/world-bridge.js`. Right-click or hold still for
+600 ms on empty ground to draft a wish at raycast world coordinates; moving more
+than 8 screen pixels cancels the hold. The local parser reports the quantities it
+interpreted and its assumptions. Schema/footprint failures prevent approval;
+zoning, utility capacity and land ownership remain unmodeled. Approval uses the
+existing versioned revision and Decision API; it does not change live Population
+or legacy World residents.
+
+Construction playback advances one recorded model month per 180 ms; automatic
+playback after approval respects reduced motion. Floors, crane/scaffold state,
+completion and occupied units come from the selected stored project timeline.
+The project World Diff and inspector expose the same proposal/project entity ID.
+Before/after uses the Future Machine's cyan translucent wireframe convention;
+the before condition is absence of this intervention, not a reconstructed
+historical parcel or a City-model counterpart. Occupied units are aggregate
+households; no individual move-in identity or walking route is inferred.

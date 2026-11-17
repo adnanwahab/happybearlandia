@@ -45,6 +45,16 @@ test('the production server keeps merged feature routes and simulation admission
     expect(home.status).toBe(200);
     expect(home.headers.get('content-type')).toContain('text/html');
     expect(await home.text()).toContain('Try Today’s Features');
+    for (const path of ['/shared/media/pipeline.js', '/shared/media/preferences.js']) {
+      const module = await fetch(origin + path, { signal: AbortSignal.timeout(3000) });
+      expect(module.status).toBe(200);
+      expect(module.headers.get('content-type')).toContain('javascript');
+      expect(await module.text()).toContain('export');
+    }
+    for (const path of ['/shared/media/not-public.js', '/shared/not-public.js', '/.env']) {
+      expect((await fetch(origin + path, { signal: AbortSignal.timeout(3000) })).status).toBe(404);
+    }
+
 
     // Exercise the real dispatcher: handler-unit tests cannot detect lost wiring.
     for (const path of ['/api/session-survey', '/api/player-feedback']) {

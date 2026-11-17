@@ -32,3 +32,41 @@ Human review of both tested integration branches, resolve any required CI/a11y f
 - [HBL draft PR320](https://github.com/adnanwahab/happybearlandia/pull/320), source revision `dc6b65f631017ee5fc82c1c99a73e1d4d8453d8e` plus this evidence-only follow-up.
 - [Civic draft PR123](https://github.com/adnanwahab/dear_congress/pull/123), revision `0028e961578ca3d906550b07648daa9e4c6c3631`.
 - Civic final mandatory suite536tests/106478assertions, typecheck/routes and focused accessibility5/5 passed. Real local cross-app browser receipt journey passed. Both branches remain draft; review, hosted CI and release approval are separate gates.
+
+---
+
+## Earlier independent sprint audit (historical evidence)
+
+The following records the earlier checkout and observations named within it.
+Later integration evidence above supersedes its implementation-status statements;
+production and acceptance gaps remain explicit. Both source reports are retained.
+
+# Civic engagement launch report — 2026-11-14
+
+## Result
+
+The current product has a visible HBL flagship entry and a substantial deterministic synthetic housing comparison. The local `/world` worker now has bounded progress/cancel/error/retry behavior. The planned native Civic law-behavior explorer is merged in GitHub PRs but is absent from the current local Civic checkout and from the live `/synth` page. Civic production identifies its build as unknown. The joined launch journey is therefore **not ready to promote**.
+
+## Verified in this pass
+
+- Live HBL home page exposes `Play Demo` to Future Machine.
+- Live Civic `/synth` shows frozen package capture and experimental synthesis controls, without the native recorded actor behavior viewer.
+- Live Civic HBL PR preview labels responses non-binding and reports governance paused, 0/100 approved roster, no allowed bases, and no required checks.
+- GitHub reports HBL #305 merged to the sprint branch; HBL #316 and Civic #120/#121 merged to `main`.
+- HBL weekly lifecycle + population scheduling tests: 6 passed, 0 failed after correcting the fixture and excluding nested Symphony worktrees from Bun test discovery.
+- HBL city suite: 22 passed, 0 failed. Focused Future Machine suite: see `TEST_RESULTS.md`.
+- Civic full suite: 506 passed, typecheck passed, and route smoke passed. The optional accessibility command could not find its Playwright executable. See `TEST_RESULTS.md`.
+- HBL model validation passed 106 replay cases. HBL startup browser smoke remains blocked before Chromium by `EADDRINUSE`.
+
+## Changes in this checkout
+
+- `.gitignore`: ignore generated nested Mini Symphony worktrees.
+- `bunfig.toml`: skip `workspaces/**` during Bun test discovery.
+- `test/world-cycle-lifecycle.test.js`: add `cycleResults` to the lifecycle fixture.
+- Seven evidence and release documents in this folder.
+
+These are local changes only. No commit, PR, merge, release, deployment, production write, vote, or outreach message was created.
+
+## Next action
+
+Reconcile the approved source and production SHA for both repositories, then complete and verify the already-merged HBL API → Civic native viewer on an approved staging pair. Keep civic governance paused and do not deploy until human review, storage/rollback, privacy, browser, and release-parity gates pass.

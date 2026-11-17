@@ -1,0 +1,28 @@
+bun test v1.4.2 (744846f84)
+
+test/cold-start-report.test.js:
+(pass) navigation-relative timestamps are preserved, not rebased to module startup [0.12ms]
+(pass) missing, negative and non-finite metrics remain unavailable, never zero success [0.03ms]
+(pass) error and fallback evidence survives normalization [0.01ms]
+(pass) observer waits for useful geometry and an unobscured enabled control [0.14ms]
+(pass) fallback is preserved but does not certify the requested renderer [0.06ms]
+(pass) launch and cleanup failures retain both path reports and write evidence [1.47ms]
+(pass) actual WebGL2 label qualifies the requested WebGL path without accepting a fallback [0.03ms]
+(pass) Canvas readiness proxy never fabricates the unavailable 3D render milestone [0.03ms]
+(pass) Canvas observer records only its explicit readiness proxy after a real context exists [0.09ms]
+
+test/render-performance.test.js:
+(pass) quality degrades only after sustained load and recovers slowly [0.41ms]
+(pass) recording reports real percentiles, slow frames, drops and unavailable GPU [0.19ms]
+(pass) chunk culling preserves selected building and never changes simulation fields [0.98ms]
+(pass) distant buildings batch with hysteresis and selected originals recover [0.77ms]
+(pass) cutaway and construction use detached visual state and dispose cleanly [0.78ms]
+(pass) benchmark routes are allowlisted and camera path is deterministic [0.09ms]
+(pass) park footprints stay visible and never become oversized rectangular distance proxies [0.24ms]
+(pass) severe half-second frames trigger adaptation instead of being discarded [0.03ms]
+(pass) 120 FPS is an explicit quality budget rather than a promised or artificial frame cap [0.03ms]
+
+ 18 pass
+ 0 fail
+ 91 expect() calls
+Ran 18 tests across 2 files. [34.00ms]

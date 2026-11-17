@@ -3,7 +3,9 @@ import {test,expect} from '@playwright/test';
 test('full guided demo and timelapse keep history bounded and Canvas independent of Three',async({page,browserName})=>{
  const errors=[],three=[];
  page.on('pageerror',e=>errors.push(e.message));
- page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/vendor/three/'))three.push(r.url());});
+ // The homepage includes independent gallery iframes (for example Bar Atlas).
+ // Enforce Canvas independence for the main application, not those 3D previews.
+ page.on('request',r=>{if(r.frame()===page.mainFrame()&&new URL(r.url()).pathname.startsWith('/vendor/three/'))three.push(r.url());});
  await page.addInitScript(({emulate})=>{
   if(location.pathname!=='/world/future-machine.html')return;
   const url=new URL(location.href);url.searchParams.set('renderer','canvas2d');history.replaceState(null,'',url);
@@ -37,5 +39,6 @@ test('full guided demo and timelapse keep history bounded and Canvas independent
  expect(result.urlMonth).toBe(result.month);expect(result.error).toBeNull();expect(result.writes).toBeLessThan(20);
  await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();
  await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('PROJECT_COMPLETE');
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('canvas2d');
  expect(three).toEqual([]);expect(errors).toEqual([]);
 });

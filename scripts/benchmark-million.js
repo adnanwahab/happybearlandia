@@ -2,7 +2,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import os from 'node:os';
-import { validate } from '../world/bench/million-kernel.js';
+import { validate, VERSION } from '../world/bench/million-kernel.js';
 const args = process.argv.slice(2);
 if (args.length > 4) throw new Error('Expected output, steps, seed, sizes');
 const [output = '/private/tmp/hbl-million-benchmark.json', stepText = '30', seedText = '42', sizeText = '10000,100000,1000000'] = args;
@@ -12,7 +12,9 @@ for (const size of sizes) validate({ size, steps, seed });
 const sources = {};
 for (const name of ['million-kernel.js', 'million-browser.js']) sources[`/${name}`] = await readFile(new URL(`../world/bench/${name}`, import.meta.url), 'utf8');
 const report = { schema: 'hbl.headless-million-benchmark.v1', status: 'running', reviewCandidate: true,
-  capturedAt: new Date().toISOString(), recipe: { sizes, steps, seed },
+  capturedAt: new Date().toISOString(), model: VERSION,
+  runnerHash: createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex'),
+  recipe: { sizes, steps, seed },
   sourceHashes: Object.fromEntries(Object.entries(sources).map(([name, source]) => [name, createHash('sha256').update(source).digest('hex')])),
   host: { platform: os.platform(), release: os.release(), arch: os.arch(), cpu: os.cpus()[0]?.model, logicalCPUs: os.cpus().length, totalMemoryBytes: os.totalmem(), runtime: process.versions },
   limitations: ['Synthetic paired energy transfers, not the production population model or scalar oracle.',
@@ -58,6 +60,13 @@ try {
 } catch (error) { report.status = 'failed'; report.error = error.message; process.exitCode = 1; }
 finally {
   await browser?.close();
+  // Explicitly account for every requested combination, including launch failure
+  // or a fail-fast phase that prevented later sizes from being attempted.
+  report.coverage = sizes.flatMap(size => ['compute-only', 'render-only', 'combined'].map(phase => {
+    const record = report.records.find(row => row.size === size && row.phase === phase);
+    return { size, phase, status: record?.status ?? 'unverified',
+      ...(record ? {} : { reason: 'Not executed because the benchmark failed before this phase completed.' }) };
+  }));
   await writeFile(output, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ status: report.status, output, records: report.records.length, error: report.error }));
 }

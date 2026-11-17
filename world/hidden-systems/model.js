@@ -124,6 +124,7 @@ function run(initial, settings, months) {
         const buildingId = project.stage === 'completion' ? housingProjectBuildingId(project.id) : null;
         return {
           id: project.id, districtId: project.districtId, districtName: districtName(project.districtId),
+          cost: project.cost, costOverrun: project.costOverrun,
           stage: project.stage, progress: project.progress, duration: project.duration, units: project.units,
           buildingId, occupied: buildingId
             ? state.units.filter(unit => unit.buildingId === buildingId && unit.householdId).length : null,

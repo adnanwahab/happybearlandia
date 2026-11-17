@@ -203,6 +203,57 @@ disposal also drops the history reference. The thirty-run test waits for actual
 WebGL readiness and hashes normalized model frames separately from each newly
 allocated experiment identity. Per-run experiment IDs remain in its evidence.
 
+## SHE-267 decorative neighborhood and divergence receipt
+
+`neighborhood.js` reuses World's `generateBuildingGeometry` for schematic
+buildings and muted context neighbors. Floor-spaced window details, roof edges,
+street lanes, sidewalks and trees are illustrative presentation. Context groups
+never enter mapped rows, inventory buttons, native mesh pick targets, diffs or
+metrics. The persistent legend labels decorative context and retains the
+schematic/not-real-geography disclaimer. Canvas keeps its existing low-fidelity
+schematic without these native-only details.
+
+`divergence.js` resolves the shared first physical divergence through the exact
+recorded next-month completion mapping. Stage updates require that event ID in
+the current frame, deduplicate the burst per stage, and animate synchronized
+rings and construction sparks for three seconds. These are emphasis, not
+simulated construction or causal links to decorative neighbors. The director's
+camera request is separately validated against that receipt and current entity;
+one shared camera makes both panels dolly together over 2.8 seconds. Reduced
+motion skips the burst and uses immediate framing. Month changes clear active
+particles; disposal releases all owned scenery. No model rules or metrics change.
+
+## SHE-475 aligned curtain
+
+The existing camera bar now offers **Aligned curtain** in Side by side mode.
+Drag the scene seam (44px pointer/touch target) or use the labeled native range
+with arrows/Home/End. Both arms render at the same full viewport scale with
+complementary scissors (native) or clips (Canvas). The camera and recorded
+checkpoint never change when dragging. Updates coalesce to one animation frame;
+there is no animated interpolation, including under reduced motion. Power saving
+and inventory-only fallback retain their established behavior.
+
+`curtain.js` refuses missing/empty pairs, unrelated inventories, unsupported or
+ambiguous supplied geometry and inconsistent common entity positions/footprints
+or source identities. Recorded additions/removals and height changes can be
+revealed. Existing frame integrity separately validates clocks, seed/model and
+run identities. Geographic mismatches remain viewable through existing modes,
+with the curtain disabled and an explicit reason. Native floating labels are
+hidden during reveal to avoid overlapping clipped labels; exact inventory
+controls remain. The displayed curtain note labels arms, illustrative date,
+month, seed and synthetic model scope. Curtain position is session-only, resets
+with a replacement stage and is not added to the v1 permalink contract.
+
+Checks: `bun test test/future-machine-curtain.test.js
+ test/future-machine-bookmark.test.js test/future-machine-canvas.test.js
+ test/future-machine-scene.test.js test/future-machine-integrity.test.js
+ test/future-machine-effects.test.js` (41 pass / 301 assertions).
+`bunx playwright test --config test/future-machine-curtain.browser.config.js`
+contains success, keyboard/touch/reduced-motion, unavailable geometry, screenshots
+and frame-opportunity timing collection. Execution is blocked locally by server
+bind failure; no fresh hardware speed or screenshot claim. See
+`docs/reviews/SHE-475.md` for remaining acceptance.
+
 
 The post-merge compatibility follow-up preserves main's history-reference cleanup
 and thirty-replay test identity/readiness corrections. Shared disposal ownership

@@ -1,3 +1,4 @@
+import {createChapters} from './chapters.js';
 import {createHouseholdTimeline} from './household-timeline.js';
 import {provenancePresentation, MONTHLY_CITY_PROVENANCE} from './provenance.js';
 import {METRIC_UNITS, MONTHS, assertMonth} from '../contracts.js';
@@ -27,7 +28,7 @@ export function buildOutcomeSeries(history,key) {
 }
 
 /** Renderer-independent recorded outcome chart. Recreate for a different history. */
-export function createOutcomeTimeline(container,{history,onMonth}={}) {
+export function createOutcomeTimeline(container,{history,onMonth,onChapter}={}) {
   const doc=container.ownerDocument,ns='http://www.w3.org/2000/svg';
   const series=new Map(Object.keys(METRIC_UNITS).map(key=>[key,buildOutcomeSeries(history,key)]));
   const supported=[...series].filter(([,rows])=>rows.some(row=>row.baseline!==null||row.plan!==null)).map(([key])=>key);
@@ -45,6 +46,7 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
   const note=node('p');note.className='fm-outcome-note';
   const details=node('details'),scroll=node('div'),table=node('table');scroll.className='fm-outcome-scroll';details.append(node('summary','Exact recorded values and month selection'),scroll);scroll.append(table);
   shell.append(style,node('h2','How outcomes diverge'),label,modeLabel,legend,chart,summary,note,details);container.append(shell);
+  const chapters=createChapters(shell,{history,onJump:onChapter});
   const household=createHouseholdTimeline(shell,{history,onMonth:next=>{update(next,{announce:true});onMonth?.(next);}});
   function choose(next){if(disposed)return;const row=series.get(key)[next];if(!row || (row.baseline===null&&row.plan===null))return;update(next,{announce:true});onMonth?.(next);}
   let cursor,highlight,highlightTitle,position;
@@ -105,5 +107,5 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
   const tableClick=event=>{const point=event.target.closest?.('[data-month]');if(point)choose(Number(point.dataset.month));};
   chart.addEventListener('click',chartClick);table.addEventListener('click',tableClick);
   renderTable(series.get(key));update(0,{announce:true});
-  return {update,dispose(){if(disposed)return;disposed=true;household.dispose();select.onchange=modeSelect.onchange=null;chart.removeEventListener('click',chartClick);table.removeEventListener('click',tableClick);shell.remove();}};
+  return {update,dispose(){if(disposed)return;disposed=true;chapters.dispose();household.dispose();select.onchange=modeSelect.onchange=null;chart.removeEventListener('click',chartClick);table.removeEventListener('click',tableClick);shell.remove();}};
 }

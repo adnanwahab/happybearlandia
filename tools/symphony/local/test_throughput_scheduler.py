@@ -112,6 +112,26 @@ class SchedulerTest(unittest.TestCase):
         self.assertEqual(self.services.calls,['id-1'])
         self.assertEqual(c.load_state(self.directory)['leases']['id-1']['status'],'active')
 
+    def test_slow_inventory_refreshes_runtime_before_reporting_stale(self):
+        from unittest.mock import patch
+        current = [time.time()]
+        reads = []
+        original = c.cycle
+        def slow(*args, **kwargs):
+            result = original(*args, **kwargs)
+            current[0] += 67
+            return result
+        def fresh():
+            reads.append(current[0])
+            value = runtime()
+            value['generated_at'] = datetime.fromtimestamp(current[0], timezone.utc).isoformat()
+            return value
+        with patch.object(c, 'cycle', side_effect=slow):
+            result = s.run_loop(**dict(self.kw, apply=False, runtime_reader=fresh), clock=lambda:current[0])[0]
+        self.assertGreaterEqual(len(reads), 2)
+        self.assertNotIn('stale-runtime', [x['code'] for x in result['scheduler']['watchdog']])
+        self.assertEqual(self.services.calls, [])
+
     def test_pressure_or_stale_runtime_audits_but_never_grants(self):
         values=resources();values['swap_used_bytes']=28*GIB
         result=s.run_loop(**dict(self.kw,resource_reader=lambda:values))[0]
@@ -200,7 +220,7 @@ class SchedulerTest(unittest.TestCase):
                         else:
                             service.snapshot['publication_receipts']=[dict(identifier='SHE-99',status='committed',at=1)]
                 services.change=change
-                directory=Path(self.tmp.name)/kind
+                directory=Path(self.tmp.name)/kind/'state'
                 result=s.run_loop(**dict(self.kw,services=services,directory=directory))[0]
                 self.assertEqual(services.calls,[])
                 self.assertFalse(result['scheduler']['apply_effective'])
@@ -228,7 +248,7 @@ class SchedulerTest(unittest.TestCase):
                     return value
                 def fresh_config():
                     return dict(self.config,enableApprovals=False) if changed and kind=='policy' else copy.deepcopy(self.config)
-                directory=Path(self.tmp.name)/kind
+                directory=Path(self.tmp.name)/kind/'state'
                 result=s.run_loop(**dict(self.kw,services=services,directory=directory,resource_reader=fresh_resources,
                     runtime_reader=fresh_runtime,config_loader=fresh_config))[0]
                 self.assertEqual(services.calls,[])

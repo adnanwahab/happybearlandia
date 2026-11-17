@@ -1,0 +1,67 @@
+{
+  "schema": "hbl.headless-million-benchmark.v1",
+  "status": "failed",
+  "reviewCandidate": true,
+  "capturedAt": "2026-11-12T23:07:48.720Z",
+  "model": "hbl.synthetic-paired-transfer.v1",
+  "runnerHash": "0bc90aca3ab6004ee0647cb0758276dd879556cab7d994e3b4e2b4d07411eac2",
+  "recipe": {
+    "sizes": [
+      10000,
+      100000,
+      1000000
+    ],
+    "steps": 3,
+    "seed": 42
+  },
+  "sourceHashes": {
+    "/million-kernel.js": "a388c902fa74cdb4b8e8bddaaf1476a3751cc796a8e1324eea701cc812114ba4",
+    "/million-browser.js": "e43bc000b6013af36a7b563e9f45a7ff4d824e7eced5514ce23b506199e11743"
+  },
+  "host": {
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "logicalCPUs": 10,
+    "totalMemoryBytes": 17179869184,
+    "runtime": {
+      "node": "26.3.0",
+      "bun": "1.4.2",
+      "boringssl": "41bf9b59c2ebf277a7aa427e1ecad5cc80dd4d4f",
+      "openssl": "1.1.0",
+      "llhttp": "9.3.0",
+      "libarchive": "ded82291ab41d5e355831b96b0e1ff49e24d8939",
+      "mimalloc": "6a64e1ba7f5b2130d4efccb67ec87fd0003f0f6a",
+      "picohttpparser": "066d2b1e9ab820703db0837a7255d92d30f0c9f5",
+      "uwebsockets": "744846f844374847c902b5e7fd59b4342a51ef99",
+      "webkit": "2e2aa2290fac856d6f451ceacb58f7f5b44dd057",
+      "zig": "04e7f6ac1e009525bc00934f20199c68f04e0a24",
+      "zlib": "12731092979c6d07f42da27da673a9f6c7b13586",
+      "tinycc": "05f0fafaa3be31e31d7b4b5c17dc60f62c991171",
+      "lolhtml": "725ce499aa9b71e38b7a2d0a9fbb6d7294a4079e",
+      "ares": "c7a3138dcfe3bb0eaaf10c0c24c36dc66dc790ab",
+      "libdeflate": "c8c56a20f8f621e6a966b716b31f1dedab6a41e3",
+      "usockets": "744846f844374847c902b5e7fd59b4342a51ef99",
+      "lshpack": "8905c024b6d052f083a3d11d0a169b3c2735c8a1",
+      "zstd": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
+      "v8": "14.6.202.34-node.20",
+      "uv": "1.48.0",
+      "napi": "10",
+      "icu": "76.1",
+      "unicode": "16.0",
+      "sqlite": "3.43.2",
+      "modules": "147"
+    }
+  },
+  "limitations": [
+    "Synthetic paired energy transfers, not the production population model or scalar oracle.",
+    "Point instances overlap; submitted instances are not distinct visible residents.",
+    "Frame time is CPU submission plus gl.finish GPU completion, not presentation time. RAF intervals are separate.",
+    "Step time includes changed-ID instrumentation; setup and final digest excluded from wall time.",
+    "Memory is sampled JS heap, excludes process/GPU memory and may miss transient peaks; null means unavailable.",
+    "Headless software rendering may differ from target hardware. No public performance certification."
+  ],
+  "records": [],
+  "error": "Chromium launch failed: macOS MachPortRendezvous bootstrap_check_in permission denied (1100). Raw local report: /private/tmp/she171-r2-browser-final.json"
+}

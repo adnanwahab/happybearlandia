@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "hbl-cold-start-suite.v1",
+  "measuredAt": "2026-11-14T18:24:33.925Z",
+  "host": {
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "totalMemoryBytes": 17179869184
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 900,
+    "deviceScaleFactor": 1
+  },
+  "nativeWebGPU": "Explicitly requested; actual selected backend and any fallback are recorded per path.",
+  "actionableControl": "Native World controls disclosure (#top > summary), sampled only after app readiness; no simulation is started.",
+  "cache": "fresh browser/context per path; OS, server and disk caches not cleared",
+  "reports": [
+    {
+      "timing": {
+        "appReadyMs": 487.80000019073486,
+        "firstUsefulRenderMs": 1042.6999998092651,
+        "firstActionableControlMs": 503.69999980926514
+      },
+      "control": "#top > summary",
+      "startup": {
+        "startedAt": 169.30000019073486,
+        "firstFrameMs": 221.59999990463257,
+        "mapReadyMs": 177.09999990463257,
+        "placeholdersReadyMs": 394.59999990463257,
+        "geometryReadyMs": null,
+        "readyMs": 487.80000019073486,
+        "geometry": {
+          "total": 517,
+          "completed": 3,
+          "attached": 3,
+          "successful": 3,
+          "failed": 0,
+          "fallbacks": 0,
+          "cancelled": 0,
+          "inFlight": 0,
+          "peakInFlight": 3,
+          "peakReady": 3,
+          "yields": 1,
+          "maxChunkMs": 0.20000028610229492,
+          "maxBatchMs": 0.40000009536743164,
+          "budgetOverruns": 0,
+          "budgetDeferrals": 0,
+          "status": "running",
+          "queued": 511,
+          "ready": 3,
+          "attaching": 0
+        },
+        "cancelled": false,
+        "policyStatus": "loading"
+      },
+      "selectedBackend": "webgpu",
+      "graphicsRenderer": null,
+      "canvasPixelEvidence": null,
+      "memory": {
+        "usedJSHeapBytes": 59772333,
+        "scope": "Chromium performance.memory JS heap only; excludes GPU and total process memory"
+      },
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+      "sourceLabel": "Demo town (pinned procedural layout) · 30 synthetic residents · renderer WEBGPU",
+      "timeOrigin": 1794680661763.9,
+      "sampledAtMs": 1142.5,
+      "browserVersion": "157.0.8103.52",
+      "requestedBackend": "webgpu",
+      "url": "http://127.0.0.1:3497/world?demo=1&people=30&seed=42&quality=LOW&renderer=webgpu",
+      "errors": [],
+      "schemaVersion": "hbl-cold-start.v1",
+      "renderObservation": "3D placeholder/frame hook followed by an animation-frame observation; not GPU presentation",
+      "graphicsExecution": "unknown",
+      "validationErrors": []
+    },
+    {
+      "timing": {
+        "appReadyMs": 450.59999990463257,
+        "firstUsefulRenderMs": 1210,
+        "firstActionableControlMs": 461.80000019073486
+      },
+      "control": "#top > summary",
+      "startup": {
+        "startedAt": 107.40000009536743,
+        "firstFrameMs": 164.09999990463257,
+        "mapReadyMs": 120.69999980926514,
+        "placeholdersReadyMs": 332,
+        "geometryReadyMs": null,
+        "readyMs": 450.59999990463257,
+        "geometry": {
+          "total": 517,
+          "completed": 3,
+          "attached": 3,
+          "successful": 3,
+          "failed": 0,
+          "fallbacks": 0,
+          "cancelled": 0,
+          "inFlight": 0,
+          "peakInFlight": 3,
+          "peakReady": 3,
+          "yields": 1,
+          "maxChunkMs": 0.3000001907348633,
+          "maxBatchMs": 0.5,
+          "budgetOverruns": 0,
+          "budgetDeferrals": 0,
+          "status": "running",
+          "queued": 511,
+          "ready": 3,
+          "attaching": 0
+        },
+        "cancelled": false,
+        "policyStatus": "loading"
+      },
+      "selectedBackend": "webgl2",
+      "graphicsRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+      "canvasPixelEvidence": null,
+      "memory": {
+        "usedJSHeapBytes": 143565665,
+        "scope": "Chromium performance.memory JS heap only; excludes GPU and total process memory"
+      },
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+      "sourceLabel": "Demo town (pinned procedural layout) · 30 synthetic residents · renderer WEBGL2",
+      "timeOrigin": 1794680663417,
+      "sampledAtMs": 1232.9000000953674,
+      "browserVersion": "157.0.8103.52",
+      "requestedBackend": "webgl",
+      "url": "http://127.0.0.1:3497/world?demo=1&people=30&living=0&seed=42&quality=LOW&renderer=webgl",
+      "errors": [],
+      "schemaVersion": "hbl-cold-start.v1",
+      "renderObservation": "3D placeholder/frame hook followed by an animation-frame observation; not GPU presentation",
+      "graphicsExecution": "reported renderer; hardware acceleration unverified",
+      "validationErrors": []
+    },
+    {
+      "timing": {
+        "appReadyMs": 8095.700000286102,
+        "firstUsefulRenderMs": null,
+        "firstActionableControlMs": 8098.800000190735,
+        "firstCanvasReadyFrameProxyMs": 8117.800000190735
+      },
+      "control": "#top > summary",
+      "startup": {
+        "readyMs": 8095.700000286102,
+        "mode": "canvas2d",
+        "origin": {
+          "lat": 0,
+          "lng": 0
+        }
+      },
+      "selectedBackend": "canvas2d",
+      "graphicsRenderer": null,
+      "canvasPixelEvidence": {
+        "width": 1440,
+        "height": 900,
+        "sampleCount": 144,
+        "uniqueSampleColors": 12,
+        "opaqueSamples": 144
+      },
+      "memory": {
+        "usedJSHeapBytes": 4897827,
+        "scope": "Chromium performance.memory JS heap only; excludes GPU and total process memory"
+      },
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+      "sourceLabel": "Canvas2D low fidelity · Procedural fictional neighborhood · same legacy City activity rules as the classic World, simplified graphics.",
+      "timeOrigin": 1794680665670.6,
+      "sampledAtMs": 8137.599999904633,
+      "browserVersion": "157.0.8103.52",
+      "requestedBackend": "canvas2d",
+      "url": "http://127.0.0.1:3497/world?demo=1&people=30&living=0&seed=42&quality=LOW&renderer=canvas2d",
+      "errors": [],
+      "schemaVersion": "hbl-cold-start.v1",
+      "renderObservation": "Canvas readiness proxy: two animation frames after initialized Canvas2D; not a 3D milestone or presentation timestamp",
+      "graphicsExecution": "unknown",
+      "validationErrors": []
+    }
+  ]
+}

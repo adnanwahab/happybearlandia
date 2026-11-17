@@ -227,3 +227,23 @@ outcomes are explicitly assumptions. Missing trips are unavailable. No Populatio
 OSM or Decision Studio identity mapping is claimed. Branch history is session-only;
 the quest's existing challenge link continues to share the original quest recipe,
 not a builder branch. Reloading discards builder history.
+
+## Editable-world hints (SHE-468)
+
+The existing World tools expose a static **What can I change?** interaction layer.
+In `/world` it floats over the scene; in Decision Studio it stays within the
+shared tools. Selecting a scenario project offers its existing building editor;
+selecting ground offers a new-building draft only when the default footprint
+passes the complete edit validator in that placement context. Map/source
+buildings remain context, even if their ID coincides with a scenario project.
+The policy hint opens the existing prompt for a supported housing parameter.
+These are synthetic housing assumptions, independent of resident simulation.
+
+Hints are discovery for representative drafts, not approval of arbitrary values,
+legal parcel rights, or a forecast. Changing dimensions or values requires the
+usual review and approval validation. Read-only tools remove hints, and missing
+or incompatible inputs expose no actions. Native buttons have visible focus and
+44px minimum height. The layer is static for reduced motion and low-end devices;
+it refreshes on tool/selection updates, never in the render loop. Canvas2D's
+standalone fallback does not mount the building editor and exposes no edit hints.
+There are no per-building meshes, animated highlights, or automatic simulation.

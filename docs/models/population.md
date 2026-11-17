@@ -20,6 +20,13 @@ Basic principles: bounded needs and constrained utility choices, with analyst co
 
 ## 5. Initialization
 
+Ordinary World visits defer this model until a Population toolbar action. Explicit
+`living=1` links still initialize on entry; saved Living runs restore their recorded
+checkpoint. Deferral changes allocation timing only, not the generator, seed,
+initial model minute or configured resident count. The legacy preview has its own
+model identity and is not a partially initialized Population run.
+
+
 [createPopulationModel](../../world/population/model.js) normalizes config, calls [generatePopulation](../../world/population/generator.js), initializes needs, employment, economy and histories and aggregates. A fresh initialMinute is within day one; it supplies no prehistory. Save full config, context, initialMinute/tick and optional subsystem configuration, or use the [checkpoint codec](../../world/population/checkpoint.js) for continuation. Keep the recorded POPULATION_VERSION from contracts.js rather than assuming the latest version.
 
 ## 6. Input data
@@ -80,3 +87,143 @@ from slow commits. Failed or cancelled commits produce no successful timing
 sample. The guard cannot preempt a single expensive tick or promise a frame-rate
 bound. See [the runtime policy](../../world/workers/README.md#adaptive-live-population-scheduling-she-174).
 Verify with `bun test test/population-scheduling.test.js test/population-memory-pressure.test.js`.
+
+
+### Building home observation for lighting
+
+`buildingHomeCounts` in [model.js](../../world/population/model.js) scans the full
+individual population at snapshot time, grouping assigned `homeLocation` IDs and
+counting presence with House `personAtHome`. It has no RNG, scheduling or state
+mutation. Unmapped homes are omitted; raw residents and atHome counts are
+unweighted. The renderer uses their ratio; no visible-sample or district-vacancy
+substitution is allowed. Synthetic anchors are not observed unit occupancy.
+Visitors are excluded from the resident numerator; this does not alter housing
+assignment or the House guest/roommate roster.
+
+### Current-trip presentation (SHE-261)
+
+`world/population/trip-display.js` projects committed `remaining`, `tripTotal`,
+`departureMinute`, `plannedActivity` and endpoint arrays into each bounded
+snapshot/inspection row. Null means no current trip. This read introduces no
+random draws, rules or time advancement. Coordinates retain behavior.js's
+straight-line approximation for older checkpoints without the residentRules
+manifest; sidewalk access endpoints alone do not establish a road
+path. Car shapes represent traveling residents; bus/rail shapes represent
+passengers, since the model has no shared fleet identity. Neither shape counts
+nor sampled points establish real traffic volume. Ongoing trips are distinct
+from a retained completed-trip ledger. Seed, model version, clock and run
+identity remain on the enclosing snapshot/runtime. Verify with
+`test/population-trip-display.test.js` and the existing model/replay suites.
+
+### Bounded neighborhood What If comparison
+
+The [What If orchestrator](../../world/what-if/README.md) runs two fresh synthetic
+Population instances from the same context and seed, adds one supported project
+after generation, then advances each through 96 fifteen-minute steps. It does not
+edit the live Population. SHE-561 adds placement validation and retention of the
+existing hash recipe as a manifest; no generator, model coefficients, IDs, clock
+or random stream changed. Local x/z pins must be finite and inside inclusive,
+positive-area loaded rectangular bounds. These bounds do not establish parcel
+feasibility. Unsupported policy keys reject. Context origin, geometry source,
+synthetic district identities and assumptions remain in the recorded recipe.
+
+### Neighbor RSVP rule (house-rsvp.v1)
+
+The existing Population visit subsystem now accepts opt-in RSVP commands; see
+[invitation contract](../../world/house/invitation-contract.md#opt-in-synthetic-rsvp--house-rsvpv1-she-554).
+Current obligations, host physical presence and needs gate a keyed synthetic
+relationship-influenced willingness draw. Declines are minute/ID/seed/version
+recorded; acceptance uses existing walking and explicit door admission, with
+care constraints retained. No empirical preference calibration or future
+calendar reservation is implied. Existing immediate player transport remains
+unchanged. Reproduce with checkpoint, command history and identical step sizes;
+`world/house/rsvp.test.js` checks decisions and arrival replay.
+
+### Tiny shelf repair — shelf-repair.v1 (SHE-557)
+
+This optional House submodel reuses the existing repair café and Population
+identity, clock, life conditions, ledger, task queue and progression. It introduces
+no independent agents or RNG draws. Its purpose is a bounded repair story, not an
+empirically calibrated maintenance estimate. Existing broken household `books`
+furniture is the supported object; quote/init does not generate damage or items.
+
+An explicit `quote-shelf` command records one current quote for a helper and café
+job; `undo-shelf` removes it without time or money. `commit-shelf` preflights the
+same object, worker, budget and free queue, then starts a canonical 30-minute
+`cafeRepair` and records it as an active resident task. The synthetic material
+assumption is wood glue plus two brackets, costing 12 illustrative USD, consumed
+once at commitment by the house ledger. No separate stock or real purchase is
+claimed. Atomic rejection leaves the original model untouched. Retried command
+IDs reuse café receipts; changed requests with the same ID reject.
+
+Actual attendance grows existing repair and handiness skill minutes. Only full
+attendance completes the repair, resets the existing life condition and appends
+an action-linked event and material receipt (`shelf-repair.v1`, object/job,
+source action, helper and completion minute). Cancellation spends materials and
+retains attended learning but does not repair the object. There is no random
+repair-success probability. Failure means unavailable resources/worker/object or
+interrupted attendance. Current quote, bounded café jobs/events and task history
+persist in the same checkpoint; replay requires that checkpoint and the same
+commands and time partition. Quote amounts/durations/version are validated on
+restore. No mapping to Monthly City is implied. See
+[repair source](../../world/house/repair-cafe.js),
+[house system contract](../../world/house/systems-contract.md) and
+[deterministic tests](../../world/house/tiny-repair.test.js).
+
+The optional Tonight pantry approach orchestrates the existing recipe economy,
+shared dinner and conversation submodels; see [evening contract](../../world/house/evening-contract.md).
+It always starts with preparation, enumerates recipe catalog order, and requests the
+first feasible recipe at max(30, recipe minutes). This is an authored gameplay
+selection rule, not an observed food preference. Finite ingredients reserve at
+admission, food requires completed attendance, and kitchen help remains a separate
+real cleaning task. Inspector stock counts are saved synthetic gameplay quantities.
+No new agent, RNG, clock, need coefficient or independent state authority is added.
+
+
+### Versioned pedestrian paths and visible encounters (SHE-789)
+
+Fresh Population states carry `residentRules` alongside the unchanged compatible
+model envelope: `sidewalks.v1` and `resident-encounters.v1`. Full checkpoints retain
+that manifest, network, active routes, social holds/cooldowns and bounded outcomes.
+Absent manifests retain former behavior on restore. The initial road-polylines
+input is the same x/z metre geometry passed by `deriveLivingContext`; no entity or
+time mapping to Legacy is asserted.
+
+`pedestrian-routes.js` splits roads at intersections, offsets sidewalks by 6m,
+trims segment ends by up to 6.5m and joins adjacent ends around each junction.
+These synthetic dimensions match the nominal 9m road/2m sidewalk renderer, not
+surveyed footways. A keyed seed/person/day draw allows at most the declared 2%
+short crossing opportunity on opposite sides of one block; lack of opportunity
+does not force a jaywalk. Walking mode utility and duration use routed distance
+at configured km/h, and every movement substep interpolates that same polyline.
+Missing/disconnected networks declare a straight-line fallback. Building access
+connectors and geographic obstacle avoidance remain approximations. Other modes
+retain their original district route assumptions.
+
+After the outer activity/hotspot update, `resident-encounters.js` scans a bounded
+spatial candidate sample per cell and admits at most eight nearby pairs (4m),
+awake and available, drawn from housemates/coworkers/neighbors or shared park/food
+activity. Work/school, care, House actions and manual walks take priority. The
+existing relationship authority records the talk outcome and +8 social need at
+initiation; some outcomes are awkward. A three-minute hold consumes actual
+activity time without locomotion, followed by a fifteen-minute resident cooldown.
+Trip metadata separates the added social delay, and completion records elapsed
+travel including holds. The outer partition affects admission frequency; retain
+it for replay. Active participant IDs, start/until, heading, text and outcome feed
+the same snapshot used by the renderer; animation never creates an encounter.
+
+Inspect [the data contract](../../world/population/DATA_FORMATS.md#current-trip-read-projection)
+and [implementation evidence](../she-789-residents.md). Verify route continuity,
+missing paths, genuine social effects, pause and checkpoint continuation with
+`bun test test/resident-launch.test.js test/population-trip-display.test.js
+world/population/checkpoint.test.js`.
+
+
+The shared [resident-rule validator](../../world/resident-rules.js) accepts the
+known two-field manifest or absent/null older state, and rejects unknown or mixed
+versions before restore mutates resident state. Snapshots, previous-run and social
+network provenance, future recipes and their workers retain `residentRules`.
+Replay and future inspection honor the stored manifest; an older recipe without
+it uses prior rules. The runtime retains restored rules across explicit config
+resets, rather than changing assumptions silently. `resident-rules-compatibility.test.js`
+checks atomic unknown-version failure and matching old/new future replay results.

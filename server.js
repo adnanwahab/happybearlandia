@@ -1,4 +1,6 @@
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
+import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
+const handleMiniSymphony = createMiniSymphonyHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createGitHubHandler} from './ops/previews/api.js';
 const handleGitHub=createGitHubHandler();
@@ -51,7 +53,7 @@ import {createOpenQuestionsHandler} from './world/questions/api.js';
 const handleRealityShares=createRealityShareHandler({dbPath:process.env.HBL_REALITY_SHARE_DB_PATH||undefined});
 const handleOpenQuestions=createOpenQuestionsHandler();
 import {createTemporalCityHandler} from './world/temporal/api.js';
-const handleTemporalCity=createTemporalCityHandler();
+const handleTemporalCity=createTemporalCityHandler({dbPath:process.env.HBL_TEMPORAL_DB_PATH||undefined});
 import {createCharacterJournalsHandler} from './world/journals/api.js';
 const handleCharacterJournals=createCharacterJournalsHandler({root:process.env.HBL_JOURNAL_ROOT||'.hbl-city'});
 import {createConstitutionSourceHandler} from './world/constitution-city/source-api.js';
@@ -457,11 +459,17 @@ const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>
 const server = serve({
   maxRequestBodySize:EXPERIMENT_MAX_BYTES,
   port: PORT,
+  hostname: process.env.HBL_BIND_HOST || undefined,
 
   async fetch(request, server) {
     const releaseResponse=handleReleaseExperiment(request);
     if(releaseResponse)return releaseResponse;
     const { pathname } = new URL(request.url);
+    if (pathname === '/logs' || pathname === '/logs/') return serveFile('./world/session-logs.html');
+    if (pathname === '/mini-symphony' || pathname === '/mini-symphony/') return serveFile('./tools/mini-symphony-dashboard/index.html');
+    if (pathname.startsWith('/api/mini-symphony')) return handleMiniSymphony(request, {localAddress: server.requestIP(request)?.address});
+    if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');
+    if (pathname === '/mini-symphony/style.css') return serveFile('./tools/mini-symphony-dashboard/style.css');
     if (pathname === "/api/operations-observatory") return handleOperationsObservatory(request);
     if (pathname === "/tools/operations-observatory") return Response.redirect(new URL("/tools/operations-observatory/",request.url),302);
     const admission=admitSimulation(request,server.requestIP(request)?.address);
@@ -496,7 +504,7 @@ const server = serve({
     if (pathname === "/" || pathname === "/index.html") {
       return serveFile("./index.html");
     }
-    if (pathname === "/favicon.ico") return new Response(null, { status: 204 });
+    if (pathname === "/favicon.ico") return serveFile("./favicon.ico");
     // This Jolt distribution embeds its WASM; no CDN or separate WASM fetch is needed.
     if (pathname === "/vendor/jolt/jolt-physics.wasm-compat.js") return serveFile("./node_modules/jolt-physics/dist/jolt-physics.wasm-compat.js");
     // Curated local Three modules for the building workspace. No general
@@ -510,7 +518,7 @@ const server = serve({
     }
 
     // Browser-safe universe wire contracts; keep server-only shared modules private.
-    if (["/shared/media/pipeline.js","/shared/media/preferences.js"].includes(pathname)) return serveFile(`.${pathname}`);
+    if (["/shared/media/pipeline.js","/shared/media/preferences.js","/shared/media/motion.js","/shared/media/transition-diagnostics.js","/shared/media/motion-entry.js"].includes(pathname)) return serveFile(`.${pathname}`);
     if (pathname === "/shared/causality/index.js") return serveFile("./shared/causality/index.js");
     if (under(pathname, "/visualizations")) return serveStatic("/visualizations", "./visualizations", pathname);
 
@@ -581,6 +589,7 @@ const server = serve({
     // Asset URLs in this entry point are absolute so household IDs are not directories.
     if (/^\/world\/date\/[^/]{1,540}\/?$/.test(pathname)&&!pathname.endsWith('.js')&&!pathname.endsWith('.css')&&!pathname.endsWith('.html')) return serveFile("./world/date/index.html");
     if (/^\/world\/house(?:\/[A-Za-z0-9_-]{1,80})?\/?$/.test(pathname)) return serveFile("./world/house/index.html");
+    if (/^\/world\/city-speaks\/?$/.test(pathname)) return serveFile("./world/city-speaks/index.html");
     if (pathname === "/world/bars" || pathname === "/world/bars/") return serveFile("./world/bars/index.html");
     if (pathname.replace(/\/$/, "") === "/visualize-constitution") return serveFile("./world/constitution-city.html");
     if (["/world/visualize-consitution", "/world/visualize-constitution"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/constitution-city.html");

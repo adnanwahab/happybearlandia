@@ -176,3 +176,19 @@ test('SHE-71 actual network failure, loading explanation and retry', async ({pag
  await ready(page);
  await capture(page, info, 'recovered');
 });
+
+test('SHE-267 native neighborhood stays decorative and divergence retains its exact receipt',async({page},info)=>{
+ await page.goto(route+'?renderer=webgl');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('webgl');
+ await seek(page,0);
+ await expect(page.getByRole('region',{name:'Synchronized City comparison'})).toContainText('decorative context');
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.decorativeContext)).toBe(true);
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.targets.every(t=>['buildings','projects'].includes(t.collection)))).toBe(true);
+ await capture(page,info,'SHE-267-month-0');await seek(page,16);
+ const receipt=await page.evaluate(()=>{const h=window.futureMachine.history;return h.plan[16].events.find(e=>e.eventType==='PROJECT_COMPLETE'&&e.payload.projectId==='project-policy-1-0').id;});
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.divergenceEventId)).toBe(receipt);
+ const heights=await page.evaluate(()=>window.futureMachine.stats.scene.targets.filter(t=>t.arm==='plan').map(t=>({id:t.id,height:t.height})));
+ expect(heights.find(t=>t.id==='building-project-policy-1-0').height).toBeGreaterThan(heights.find(t=>t.id==='building-d1').height);
+ await capture(page,info,'SHE-267-month-16');
+});

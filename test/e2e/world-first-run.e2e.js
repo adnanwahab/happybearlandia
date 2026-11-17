@@ -1,5 +1,12 @@
 import {test, expect} from '@playwright/test';
 
+async function openWorldControls(page) {
+  if (!await page.locator('#runCycleBtn').isVisible()) {
+    await page.getByText('World controls', {exact:true}).click();
+  }
+  await expect(page.locator('#runCycleBtn')).toBeVisible();
+}
+
 const fixture = '<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="/world/first-run-guide.css"></head><body><script type="module" src="/world/first-run-guide.js"></script></body></html>';
 
 test.beforeEach(async ({page}) => {
@@ -71,46 +78,32 @@ test('World HTML keeps primary actions visible and advanced controls opt-in', as
   expect(html).toContain('/world/first-run-guide.js');
 });
 
-test('guided actions operate on the actual World simulator', async ({page}) => {
+test('guided launch selects an actual resident and controls the same simulation', async ({page}) => {
   test.setTimeout(120000);
-  const lat=29.7286,lng=-95.4746,radiusM=400,kx=111320*Math.cos(lat*Math.PI/180);
-  const coord=(x,z)=>[lat-z/110540,lng+x/kx];
-  const buildings=Array.from({length:16},(_,i)=>{
-    const x=(i%4-1.5)*85,z=(Math.floor(i/4)-1.5)*85;
-    return {id:'first-run-building-'+i,kind:i%5===0?'work':'home',levels:3,
-      pts:[coord(x-12,z-12),coord(x+12,z-12),coord(x+12,z+12),coord(x-12,z+12),coord(x-12,z-12)]};
-  });
-  const core={source:'osm',origin:{lat,lng},radiusM,areaKey:lat+','+lng+','+radiusM,
-    bbox:{s:lat-radiusM/110540,n:lat+radiusM/110540,w:lng-radiusM/kx,e:lng+radiusM/kx},
-    buildings,roads:[{kind:'residential',pts:[coord(-300,0),coord(300,0)]}],pois:[],
-    attribution:'Synthetic test geometry',phase:'core',floodZones:[],
-    floodZonesSource:'pending',floodZonesStatus:'pending'};
-  await page.route('**/api/area?**',route=>route.fulfill({json:core}));
-  await page.route('**/api/area/enrichment?**',route=>route.fulfill({json:{
-    ...core,source:'area-enrichment',floodZonesSource:'unavailable',
-    floodZonesStatus:'ready',floodZones:[],
-  }}));
-  await page.route('**/api/plan',route=>route.fulfill({json:{packages:[]}}));
-  await page.route('**/api/dear-congress/**',route=>route.fulfill({json:{packages:[]}}));
-  await page.goto('/world?demo=1&people=16&renderer=webgl',{waitUntil:'domcontentloaded'});
-  const guide=page.locator('#world-first-run-guide');
-  await expect(guide).toBeVisible();
-  await expect.poll(()=>page.evaluate(()=>Boolean(window.hblGuidedActions && window.hblWorldStartup?.readyMs)),{timeout:90000}).toBe(true);
-  // The early guide hands visibility to the richer ready-state guide. Its live
-  // experiments remain available through one explicitly selected companion sheet.
-  await expect(page.locator('#firstRunGuide')).toBeVisible();
-  await expect(guide).toBeHidden();
-  await page.getByText('More city actions', {exact:true}).click();
-  await page.getByTestId('live-experiment-feedback').click();
-  await expect(guide).toBeVisible();
-  await expect(page.locator('#firstRunGuide')).toBeHidden();
-  await expect(guide.locator('[data-guide-action="storm"]')).toBeEnabled();
-  await guide.locator('[data-guide-action="storm"]').click();
-  await expect(guide.locator('[data-guide-kind]')).toHaveText('Storm result');
-  await expect(guide.locator('[data-guide-metrics]')).toContainText('Flooded parcels');
-  await expect(page.locator('#overlayMode')).toHaveValue('flood');
-  await guide.locator('[data-guide-action="week"]').click();
-  await expect(guide.locator('[data-guide-kind]')).toHaveText('Paired weekly result',{timeout:90000});
-  await expect(guide.locator('[data-guide-metrics]')).toContainText('Well-being difference');
-  await expect(guide.locator('[data-guide-metrics]')).toContainText('Residents better off');
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.route('**/api/area?**',route=>route.fulfill({json:{source:'none',buildings:[],roads:[],pois:[]}}));
+  await page.goto('/world?demo=1&people=16&quality=LOW');
+  await page.waitForFunction(()=>window.hblWorldStartup?.readyMs&&window.hblPersonCommands);
+  expect(await page.evaluate(()=>window.hblCityRenderer.getPerformanceStats().backend)).toBe('webgpu');
+  await page.getByRole('button',{name:'Get started →',exact:true}).click();
+  await expect(page.locator('#inspect')).toBeVisible();
+  await expect(page.locator('#inspect')).toContainText('Lives at');
+  await page.getByRole('button',{name:'Play as resident',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>window.hblPersonCommands.getState().controlled)).toBe(true);
+  await page.keyboard.press('Space');
+  await expect.poll(()=>page.evaluate(()=>window.hblSimulationPlayback.getState().paused)).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('unavailable WebGPU opens a city-only WebGL2 viewer without simulation', async ({page}) => {
+  const errors=[],requests=[];let workers=0;
+  page.on('pageerror',error=>errors.push(error.message));page.on('worker',()=>workers++);
+  page.on('request',request=>requests.push(new URL(request.url()).pathname));
+  await page.addInitScript(()=>Object.defineProperty(navigator,'gpu',{configurable:true,get:()=>undefined}));
+  await page.goto('/world?demo=1&people=16');
+  await expect(page).toHaveURL(/\/world\/static-city\.html/);
+  await page.waitForFunction(()=>window.hblStaticCity?.getState().ready);
+  expect(await page.evaluate(()=>window.hblStaticCity.getState())).toMatchObject({backend:'webgl2',viewOnly:true,people:0,workers:0,simulation:false});
+  expect(workers).toBe(0);expect(requests.filter(path=>/\/(sim\.js|population\/|render\.js|simulation-playback\.js)/.test(path))).toEqual([]);
+  expect(errors).toEqual([]);
 });

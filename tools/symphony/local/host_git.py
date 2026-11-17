@@ -1,5 +1,6 @@
 """Host-owned exact-file staging. Never execute this module inside a worker."""
 import hashlib
+import math
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -52,9 +53,11 @@ def safe_name(name):
 
 
 def assignment(issue):
+    if not isinstance(issue, str) or not re.fullmatch(r'SHE-[1-9][0-9]*', issue):
+        raise p.PublicationError('ASSIGNMENT_UNSAFE: canonical issue identifier required')
     directory = p.STATE / 'assignments'
     if directory.is_symlink() or p.STATE.is_symlink():
-        raise p.PublicationError('Host assignment directory must not be a symlink')
+        raise p.PublicationError('ASSIGNMENT_UNSAFE: Host assignment directory must not be a symlink')
     target = directory / (issue + '.json')
     try:
         fd = os.open(target, os.O_RDONLY | os.O_NOFOLLOW)
@@ -63,15 +66,32 @@ def assignment(issue):
             if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077 or info.st_nlink != 1 or info.st_size > 65536:
                 raise ValueError('unsafe policy')
             value = json.load(stream)
+    except FileNotFoundError:
+        raise p.PublicationError('ASSIGNMENT_MISSING: Missing or unsafe host-owned assignment; operator must review exact file scope') from None
     except (OSError, ValueError):
-        raise p.PublicationError('Missing or unsafe host-owned assignment; operator must review exact file scope') from None
-    files = value.get('files')
-    if (value.get('version') != 1 or value.get('issue') != issue or value.get('repository') != p.REPO or
-            value.get('base') != p.BASE or not SHA.fullmatch(str(value.get('baseCommit', ''))) or
-            not isinstance(files, list) or not files or len(files) > 100 or len(set(files)) != len(files) or
-            any(not safe_name(f) for f in files) or not value.get('reviewedBy') or
-            not isinstance(value.get('expiresAt'), (int, float)) or not time.time() < value['expiresAt'] <= time.time() + 86400):
-        raise p.PublicationError('Invalid or expired host assignment; never infer scope from worker input')
+        raise p.PublicationError('ASSIGNMENT_UNSAFE: Missing or unsafe host-owned assignment; operator must review exact file scope') from None
+    return validate_assignment(value, issue)
+
+
+def validate_assignment(value, issue, now=None):
+    """One shared admission/publisher contract; does not infer operator authority."""
+    now = time.time() if now is None else now
+    try:
+        bounded = len((json.dumps(value, sort_keys=True, indent=2)+'\n').encode()) <= 65536
+    except (TypeError, ValueError):
+        bounded = False
+    files = value.get('files') if isinstance(value, dict) else None
+    if (not isinstance(issue, str) or not re.fullmatch(r'SHE-[1-9][0-9]*', issue) or
+            not bounded or not isinstance(value, dict) or type(value.get('version')) is not int or value['version'] != 1 or
+            value.get('issue') != issue or value.get('repository') != p.REPO or value.get('base') != p.BASE or
+            not SHA.fullmatch(str(value.get('baseCommit', ''))) or
+            not isinstance(files, list) or not files or len(files) > 100 or
+            any(not isinstance(f, str) or not safe_name(f) for f in files) or len(set(files)) != len(files) or
+            not isinstance(value.get('reviewedBy'), str) or not value['reviewedBy'].strip() or
+            type(value.get('expiresAt')) not in (int, float) or not math.isfinite(value['expiresAt'])):
+        raise p.PublicationError('ASSIGNMENT_UNSAFE: Invalid or expired host assignment; never infer scope from worker input')
+    if not now < value['expiresAt'] <= now + 86400:
+        raise p.PublicationError('ASSIGNMENT_EXPIRED: Invalid or expired host assignment; never infer scope from worker input')
     return value
 
 
