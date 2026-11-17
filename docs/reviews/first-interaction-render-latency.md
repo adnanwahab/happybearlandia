@@ -101,5 +101,22 @@ targets; this change is a partial improvement, not performance acceptance.
 
 External raw receipts, screenshots, traces and source metadata:
 `/private/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-render-budget-gP4eWX`.
-The two added normal/reduced native Forward/Back regressions are assigned to the
-coordinator for execution after this run, avoiding concurrent measurement noise.
+After cold measurement stopped, the coordinator ran the new normal/reduced
+native Forward/Back regressions on composed source `f3632957`: **2 passed,
+0 failed in8.5seconds**, retaining the zero-pageerror checks:
+
+```sh
+HBL_STARTUP_SMOKE_PORT=43182 npx playwright test --config=test/portal.browser.config.js --workers=1 --grep 'primary launch and Back'
+```
+
+That composed checkout also includes startup error reporting, the separate
+homepage Open Graph tags and verification-only SHE-990 checks. Before the cold
+run, the exact startup command passed **6/6,0fail/skip/flaky in4.2seconds**,
+with empty JavaScript and WebGPU error arrays for every route; startup route-link
+units passed **2/2,13assertions**. No product/model source changed afterward.
+
+The canonical repository entry point for repeating the unmodified budget suite
+is `npx playwright test --config=test/first-interaction.browser.config.js --workers=1`
+with `HBL_PERF_CALIBRATE` unset. The local wrapper named above only relocates its
+server/data/artifacts; the recorded external config and source metadata retain
+those overrides. No measured limits or test profiles were changed.
