@@ -2,6 +2,7 @@ import {mountInfrastructureScanner} from './infrastructure-scanner.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
 import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
+import {mountMobileExplorer} from './mobile-explorer.js';
 import {mountGamepadControls} from './gamepad-controls.js';
 import {mountSpatialTargets,spatialTargets} from './onboarding/spatial-targets.js';
 import {mountComparisonPinboard, spatialRecord} from './comparison-pinboard.js';
@@ -2197,7 +2198,7 @@ function inspectWorldPointer(e) {
   if(e.defaultPrevented)return; // Living City claimed an actual sampled person; let OrbitControls finish release.
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return; // was a drag
   if(e.button!==0)return;
-  if(!livingWorld?.active&&!businessUI){if(!magneticPicker.choose(e.clientX,e.clientY))select(null);return;}
+  if(!livingWorld?.active&&!businessUI){const found=magneticPicker.choose(e.clientX,e.clientY);if(!found)select(null);return found;}
   ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(ptr, camera);
   const hp = livingWorld?.active?null:humanPeople.pick(ray);
@@ -2205,8 +2206,8 @@ function inspectWorldPointer(e) {
   const hj = journalPins.length ? ray.intersectObjects(journalPins.map((x) => x.mesh))[0] : null;
   const vehicle=cityRenderer.pickVehicle?.(ray)||downVehicle;
   const populationHit=livingWorld?.pick(ray);
-  if(populationHit&&(!hb||populationHit.distance<hb.distance)&&(!hp||populationHit.distance<hp.distance)&&(!hj||populationHit.distance<hj.distance)&&(!vehicle||populationHit.distance<vehicle.distance)){select(null);livingWorld.selectPerson(populationHit.personId);return;}
-  if(vehicle&&(!hb||vehicle.distance<hb.distance)&&(!hp||vehicle.distance<hp.distance)&&(!hj||vehicle.distance<hj.distance)) {select(null);selectedVehicle=vehicle.id;vehicleInspector?.select(vehicle);return;}
+  if(populationHit&&(!hb||populationHit.distance<hb.distance)&&(!hp||populationHit.distance<hp.distance)&&(!hj||populationHit.distance<hj.distance)&&(!vehicle||populationHit.distance<vehicle.distance)){select(null);livingWorld.selectPerson(populationHit.personId);return true;}
+  if(vehicle&&(!hb||vehicle.distance<hb.distance)&&(!hp||vehicle.distance<hp.distance)&&(!hj||vehicle.distance<hj.distance)) {select(null);selectedVehicle=vehicle.id;vehicleInspector?.select(vehicle);return true;}
   selectedVehicle=null;vehicleInspector?.select(null);
   if (businessUI && hb && (!hp||hb.distance<hp.distance)) {
     businessUI.choose(hb.object.userData.b);
@@ -2218,14 +2219,15 @@ function inspectWorldPointer(e) {
   } else if (hp && (!hb || hp.distance < hb.distance)) {if(emitLegacyPersonContext(e,hp.index)!==false)select({ type: "person", id: hp.index });}
   else if (hb) select({ type: "building", id: hb.object.userData.b.index });
   else select(null);
+  return Boolean(hj||hp||hb);
 }
 renderer.domElement.addEventListener("pointerup",inspectWorldPointer);
 addEventListener("keydown", (e) => { if (e.key === "Escape") select(null); });
 renderer.domElement.tabIndex=0;
-const gamepadControls=!embedMode?mountGamepadControls({container:$('top'),canvas:renderer.domElement,
- onMove:({x,y,rx,ry,zoom,dt})=>{
+const explorerMove=({x,y,rx,ry,zoom,dt})=>{
   if(!controls.enabled||!dt||!(x||y||rx||ry||Math.abs(zoom)>.1))return;
-  follow=false;visualCamera?.cancel();
+  arrivalDone=true;follow=false;visualCamera?.cancel();
+  dispatchEvent(new CustomEvent('world:local-pan'));
   const speed=Number($('camera-speed').value)||1,distance=camera.position.distanceTo(controls.target);
   if(x)mapControls.pan(x>0?'east':'west',Math.abs(x)*distance*dt*speed);
   if(y)mapControls.pan(y>0?'south':'north',Math.abs(y)*distance*dt*speed);
@@ -2235,11 +2237,28 @@ const gamepadControls=!embedMode?mountGamepadControls({container:$('top'),canvas
    spherical.radius=Math.max(controls.minDistance,Math.min(controls.maxDistance,spherical.radius*Math.exp(-zoom*dt*speed)));
    camera.position.copy(controls.target).add(offset.setFromSpherical(spherical));controls.update();
   }
- },onInspect:()=>{const r=renderer.domElement.getBoundingClientRect(),e={clientX:r.left+r.width/2,clientY:r.top+r.height/2,type:'gamepad'};downAt=[e.clientX,e.clientY];downVehicle=null;inspectWorldPointer(e);downAt=null;},
+ };
+const explorerInspect=()=>{
+ const r=renderer.domElement.getBoundingClientRect();
+ // The normal picker requires a primary-button release even for synthetic input.
+ const event={clientX:r.left+r.width/2,clientY:r.top+r.height/2,type:'gamepad',button:0};
+ downAt=[event.clientX,event.clientY];downVehicle=null;
+ try{return inspectWorldPointer(event);}finally{downAt=null;}
+};
+const mobileExplorer=!embedMode?mountMobileExplorer({
+ container:document.body,settingsContainer:$('top'),onMove:explorerMove,onInspect:explorerInspect,
+ available:()=>controls.enabled&&!businessMode&&!inspectionFreeze.frozen,
+ blocked:()=>{
+  const overlays=document.querySelectorAll('dialog[open],[role="dialog"],#inspect,section.living-person,[role="tooltip"]');
+  return [...overlays].some(node=>!node.hidden&&getComputedStyle(node).display!=='none'&&node.getClientRects().length>0);
+ }
+}):null;
+const gamepadControls=!embedMode?mountGamepadControls({container:$('top'),canvas:renderer.domElement,
+ onMove:explorerMove,onInspect:explorerInspect,
  onMenu:()=>document.querySelector('[data-testid="person-commands"] button')?.focus(),
  onTour:()=>$('demoBtn')?.click()
 }):null;
-addEventListener('pagehide',()=>gamepadControls?.destroy(),{once:true});
+addEventListener('pagehide',()=>{gamepadControls?.destroy();mobileExplorer?.destroy();},{once:true});
 
 
 window.hblWorldContext={pick(event){const bounds=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();picker.setFromCamera(new THREE.Vector2((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1),camera);const person=livingWorld?.active?livingWorld.pick(picker):humanPeople.pick(picker),building=picker.intersectObjects(meshes)[0],ground=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());if(person&&(!building||person.distance<building.distance))return{kind:'person',id:String(livingWorld?.active?person.personId:town.people[person.index]?.id),point:{x:person.point?.x??ground?.x,z:person.point?.z??ground?.z}};if(building)return{kind:'building',id:String(building.object.userData.b.id),point:{x:building.point.x,z:building.point.z}};return ground?{kind:'ground',point:{x:ground.x,z:ground.z}}:null;},buildAt:event=>buildingBridge?.openWishAt(event)};
@@ -2349,7 +2368,7 @@ let lastStreamUpdate=-Infinity;
 
 function frame(now) {
   if(startupAbort.signal.aborted)return;
-  if(!inspectionFreeze.frozen){gamepadControls?.update(now);mapControls.update(now);}fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
+  mobileExplorer?.update(now,{enabled:!inspectionFreeze.frozen});if(!inspectionFreeze.frozen){gamepadControls?.update(now);mapControls.update(now);}fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
   if(!inspectionFreeze.frozen&&(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
   const cpuStart = performance.now();
   const frameMs = now - last;
