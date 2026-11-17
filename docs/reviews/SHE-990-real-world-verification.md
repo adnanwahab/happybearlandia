@@ -88,3 +88,15 @@ browser launch configuration. This receipt describes only these installed Chrome
 runs and cannot override that independent failure. No blanket all-buttons or
 cross-browser acceptance claim is made. Next action: review the retained source
 and unresolved sidewalk discrepancy; preserve strict GPU/error reporting.
+
+
+## Combined verification follow-up
+
+The temporal suite subsequently aligned its browser backend with startup smoke
+(full Chromium) and passed all six cases in 8.2 seconds, including both real
+canonical World recovery flows with separate empty JavaScript and GPU error
+assertions. Earlier headless-shell failures remain in the linked
+[SHE-990 temporal receipt](SHE-990-temporal-browser-verification.md).
+The combined branch repeats 27 temporal Bun tests / 102 assertions and syntax
+checks for all three retained scripts; all pass. This does not close the
+independently observed sidewalk visibility/interpolation blocker.
