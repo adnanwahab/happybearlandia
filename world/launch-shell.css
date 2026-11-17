@@ -60,3 +60,13 @@ body.launch-world{--bg:#171c24;--panel:#232831f5;--ink:#f2f2ed;--muted:#acb1bc;-
 /* The status lane deliberately retains every screenshot-requested widget. */
 .launch-world #world-status-stack #world-quick-toolbar{display:flex!important}
 .launch-world #world-status-stack #world-playback-facts{display:block!important}
+
+/* Saved-checkpoint exits stay beside the desktop rail and clear of inspectors.
+   Their inline legacy position predates the launch shell and sits behind it. */
+.launch-world .saved-future-navigation{left:210px!important;max-width:min(420px,calc(100vw - 650px))!important;box-sizing:content-box}
+.launch-world .saved-future-navigation a{min-width:0;overflow-wrap:anywhere}
+@media(max-width:700px){
+ .launch-world .saved-future-navigation{top:auto!important;left:8px!important;right:8px;bottom:116px;max-width:none!important;z-index:122!important;box-sizing:border-box}
+ .launch-world:has(.saved-future-navigation) #inspect,.launch-world:has(.saved-future-navigation) #inspect[data-inspector-focused],.launch-world:has(.saved-future-navigation) section.living-person{max-height:calc(100dvh - var(--world-status-bottom,126px) - 196px)!important}
+ .launch-world:has(.saved-future-navigation):has(>.person-commands) #inspect,.launch-world:has(.saved-future-navigation):has(>.person-commands) #inspect[data-inspector-focused],.launch-world:has(.saved-future-navigation):has(>.person-commands) section.living-person{max-height:calc(100dvh - var(--world-status-bottom,126px) - 364px)!important}
+}
