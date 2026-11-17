@@ -10698,3 +10698,33 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+## SHE-670 — selected boundary preview
+
+Audit (2026-11-17): invention has no surveyed parcel authority, parcel mutation
+API, or parcel boundary validator. Blueprint parcel IDs are district policy
+scopes, not geometric parcels. Targeted open-PR search for parcel/SHE-670/extrusion
+returned no matches. Preserve the existing disabled autonomous merge job.
+
+Next integrated slice: add a raised, static SVG footprint preview to Tabletop
+Block using building-proposal.v1 coordinates and its existing placement validator.
+Expose proposed X/Z offsets, exact source units and polygon coordinates; invalid
+or unsupported previews cannot apply. Cancel must not change the current draft
+or confirmed block. Apply changes only the local draft; existing Confirm remains
+the simulation boundary. No parcel or legal-land-use certification is possible.
+
+Tasks: pure preview transaction and regression tests; accessible mobile form and
+raised silhouette; on-demand frame pacing/cleanup instrumentation; focused browser
+journey and module checks. Risks: real parcel acceptance remains blocked on a
+verified boundary source and editor contract; footprint checks must not be called
+legal zoning checks. No simulation rules or ODD mechanisms change.
+
+SHE-670 actual status: local footprint preview integrated through the existing
+invention/Tabletop inspector; exact polygon/units, cloned offsets, overlap/bounds
+rejection, cancel/apply isolation and frame cleanup implemented. Ten focused tests
+(75 assertions), optional DOM interaction check, browser bundle and whitespace
+check pass. Two Playwright cases discover; server startup blocked by Bun listen
+EADDRINUSE on two ports. Typecheck retains existing diagnostics (55 baseline,
+54 current; no new preview diagnostics). Full parcel acceptance and browser/mobile
+visual acceptance remain unresolved. See [review evidence](reviews/SHE-670.md).
+No commit/PR, merge-policy change, deployment or production mutation performed.

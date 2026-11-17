@@ -71,3 +71,33 @@ Checks: `bun test test/block-diorama.test.js` and
 `bunx playwright test --config test/block-diorama.browser.config.mjs`.
 Browser acceptance and before/after screenshots require a host that permits server
 binding and Chromium launch; see `docs/reviews/SHE-567.md`.
+
+## Raised boundary preview (SHE-670)
+
+Tabletop Block's inspector opens a static isometric SVG extrusion of the selected
+`building-proposal.v1` footprint. Proposed X/Z offsets translate that same square
+polygon in meters; the reading retains exact numeric coordinates, sqft, the
+0.09290304 m²/sqft conversion and model building height. Extrusion thickness is a
+visual cue only. `previewBoundary` clones the current drafts and calls `checkDraft`,
+including its pairwise overlap and world-bounds checks. Invalid offsets disable
+Apply, which revalidates before replacing the local draft. Cancel/Escape clears
+the preview and restores focus. Existing Confirm remains the simulation boundary;
+Exit discards unconfirmed offsets. No persisted geometry is read or written.
+
+**Parcel editing is unsupported:** blueprint parcel IDs have no boundary geometry.
+The preview cannot certify legal parcels, zoning or ownership. A verified parcel
+source, identity mapping and parcel-edit validator are prerequisites to full
+SHE-670 acceptance. This local increment introduces no synthetic parcel locations,
+resident actions or location-dependent model effects.
+
+Rendering coalesces input into at most one pending animation frame and performs
+no idle animation. The visible diagnostic reports update count and maximum frame
+wait in milliseconds locally; no analytics are sent. Closing, rerendering or
+pagehide cancels the pending frame and removes SVG nodes. The static text/form
+path is unchanged by reduced-motion preferences and needs no WebGL.
+
+Checks: `bun test test/boundary-preview.test.js test/block-diorama.test.js test/building-proposal.test.js`;
+`bunx playwright test --config test/boundary-preview.browser.config.mjs`.
+Set `BUN_EXECUTABLE` if the package-local Bun shim cannot start the server.
+Optional interaction check:
+`HBL_DOM_MODULE=/path/to/happy-dom/lib/index.js bun scripts/check-boundary-preview-dom.mjs`.

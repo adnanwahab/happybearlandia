@@ -7,3 +7,8 @@
 #constraints { margin:1rem 0; } button { min-height:44px; } [hidden] { display:none!important; }
 @media(max-width:600px) { #board { border-width:6px; } .miniature { font-size:11px; } }
 @media(prefers-reduced-motion:reduce) { * { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+#boundary-preview { border:2px solid #126889; padding:1rem; margin:1rem 0; }
+#boundary-shape { display:block; width:min(100%,360px); height:260px; background:#e4eee6; }
+#boundary-polygon { white-space:pre-wrap; overflow-wrap:anywhere; font-size:.85rem; }
+#boundary-pacing { display:block; margin-top:.5rem; }
+:focus-visible { outline:3px solid #b33719; outline-offset:3px; }
