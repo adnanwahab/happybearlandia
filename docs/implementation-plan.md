@@ -10698,3 +10698,31 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+
+## SHE-673 / HBL-FUN-137 — transit departure board audit (2026-11-17)
+
+Status: prerequisite blocked; analysis-only, no player-facing implementation or
+acceptance claimed. [Audit and next slice](reviews/SHE-673.md) records the source
+and open-PR searches, model/ODD comparison, missing contract and unchanged merge
+policy. Current World cars are decorative; Population bus/rail markers represent
+passengers without shared fleet/stop service identities. Monthly City transport
+is district-level. Neither sampled headways nor planned passenger durations can
+supply recorded stop arrivals.
+
+Next independently verifiable slice: establish a versioned model-owned executed
+service read contract with supplied stop geometry, run/clock provenance and
+stop/route/vehicle/trip/event identities. Then wire normal World stop selection,
+recorded arrival-to-trip navigation and explicit unavailable/error states. Verify
+mobile controls, focus, reduced motion, bounded updates, frame pacing and cleanup.
+The material risk is inventing schedules or cross-authority identity/time mappings.
+No external transit feed is a substitute for the required run records.
+
+Evidence: after resolving dependency setup with
+`TMPDIR=/private/tmp bun install --frozen-lockfile` (no lock changes),
+`bun test test/vehicle-inspector.test.js test/population-trip-display.test.js test/population-model.test.js world/simulation-realism.test.js`
+passed 37 tests, zero failed, 377 assertions.
+`node --test test/auto-merge.test.cjs` passed 79 tests, zero failed.
+No repository-wide typecheck/lint script exists; no executable behavior changed.
+Playwright skipped for documentation-only work; all requested browser acceptance
+remains outstanding. No commit/PR, approval, merge or deployment was created.
