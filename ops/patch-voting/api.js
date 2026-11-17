@@ -143,6 +143,39 @@ export function createPatchVotingStore(options = {}) {
   });
   return {
     list, castVote, suggest,
+    getImpact: id => knownCandidate(id) ? JSON.parse(impactRow.get(id)?.payload || 'null') : null,
+    setImpact: (candidateId, evidence) => {
+      if (!knownCandidate(candidateId)) throw error(404, 'Curated patch not found.');
+      const normalized = validatePatchImpact(evidence, candidateId);
+      const payload = JSON.stringify(normalized);
+      if (Buffer.byteLength(payload) > 20000) throw error(413, 'Impact evidence too large.');
+      db.query('INSERT INTO impact_evidence(candidate_id,payload,updated_at) VALUES(?,?,?) ON CONFLICT(candidate_id) DO UPDATE SET payload=excluded.payload,updated_at=excluded.updated_at').run(candidateId, payload, clock());
+      return normalized;
+    },
+    linkGithub: (candidateId, record) => {
+      if (!knownCandidate(candidateId)) throw error(404, 'Curated patch not found.');
+      if (!Number.isSafeInteger(record?.prNumber) || record.prNumber < 1 ||
+          record.prUrl !== 'https://github.com/adnanwahab/happybearlandia/pull/' + record.prNumber ||
+          !/^[a-f0-9]{40}$/i.test(record.headSha || '') || record.status !== 'draft') throw error(400, 'Invalid GitHub PR publication.');
+      db.query('INSERT INTO github_patch(candidate_id,pr_number,pr_url,head_sha,status,ci_status,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(candidate_id) DO UPDATE SET pr_number=excluded.pr_number,pr_url=excluded.pr_url,head_sha=excluded.head_sha,status=excluded.status,ci_status=excluded.ci_status,updated_at=excluded.updated_at').run(candidateId, record.prNumber, record.prUrl, record.headSha.toLowerCase(), 'draft', 'pending', clock());
+      return githubFor(candidateId);
+    },
+    updateGithub: (prNumber, event) => {
+      if (!Number.isSafeInteger(prNumber) || prNumber < 1 || !event || typeof event !== 'object') return false;
+      const current = db.query('SELECT * FROM github_patch WHERE pr_number=?').get(prNumber);
+      if (!current || current.status === 'merged') return false;
+      if (event.headSha && !/^[a-f0-9]{40}$/i.test(event.headSha)) return false;
+      if (event.type === 'check') {
+        if (!event.headSha || event.headSha.toLowerCase() !== current.head_sha ||
+            !['pending','success','failure'].includes(event.status)) return false;
+        db.query('UPDATE github_patch SET ci_status=?,updated_at=? WHERE pr_number=?').run(event.status,clock(),prNumber);
+      } else if (event.type === 'pull') {
+        if (!['draft','open','closed','merged'].includes(event.status) || !event.headSha) return false;
+        const newSha = event.headSha.toLowerCase();
+        db.query('UPDATE github_patch SET status=?,head_sha=?,ci_status=?,updated_at=? WHERE pr_number=?').run(event.status,newSha,newSha === current.head_sha ? current.ci_status : 'pending',clock(),prNumber);
+      } else return false;
+      return true;
+    },
     mergeIdeas: db.transaction((source, target) => {
       const get = id => db.query('SELECT * FROM suggestion WHERE id=?').get(id);
       const a = get(source), b = get(target);
