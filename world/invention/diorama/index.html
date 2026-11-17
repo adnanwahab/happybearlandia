@@ -14,6 +14,18 @@
 <label>X (meters) <input id="x" type="number" step="5"></label>
 <label>Z (meters) <input id="z" type="number" step="5"></label>
 <button id="rotate">Rotate 45°</button><p id="inspection"></p>
+<button id="preview-boundary">Preview raised boundary and offsets</button>
+<section id="boundary-preview" hidden aria-label="Boundary preview">
+<h3>Raised footprint preview</h3>
+<p>Parcel editing unsupported: no verified parcel boundaries supplied. This is the selected synthetic building footprint. Legal zoning and ownership are unverified. Raised thickness is illustrative, not terrain elevation.</p>
+<label>Proposed X offset (meters) <input id="offset-x" type="number" value="0" step="1"></label>
+<label>Proposed Z offset (meters) <input id="offset-z" type="number" value="0" step="1"></label>
+<svg id="boundary-shape" viewBox="-160 -180 320 320" role="img" aria-label="Raised selected footprint"></svg>
+<p id="boundary-reading" role="status"></p><pre id="boundary-polygon"></pre>
+<button id="apply-boundary">Apply offsets to draft</button>
+<button id="cancel-boundary">Cancel boundary preview</button>
+<output id="boundary-pacing" aria-label="Preview frame pacing"></output>
+</section>
 <p id="cost"></p><div id="constraints"></div>
 <button id="confirm">Confirm block and run 120 months</button>
 </section>
