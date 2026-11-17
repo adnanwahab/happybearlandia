@@ -36,9 +36,11 @@ test('distant buildings batch with hysteresis and selected originals recover',()
  mesh.visible=true;expect(lod.update(camera,'tower')).toBe(0);expect(mesh.visible).toBe(true);lod.dispose();
 });
 test('cutaway and construction use detached visual state and dispose cleanly',()=>{
- const scene=new THREE.Scene(),mesh=new THREE.Mesh(new THREE.BoxGeometry(20,34,20));mesh.geometry.translate(0,17,0);mesh.geometry.computeBoundingBox();
- const cutaway=new BuildingCutaway(scene);cutaway.select({mesh},.8);cutaway.enabled=true;cutaway.update(1000);expect(cutaway.group.userData.floors).toBe(10);expect(mesh.visible).toBe(false);
- const projects=[{id:'one',height:40,phase:'frame',progress:.5}];const original=JSON.stringify(projects),construction=new ConstructionRenderer(scene);construction.update(projects);construction.animate(1000);expect(construction.cranes.length).toBe(1);expect(JSON.stringify(projects)).toBe(original);construction.dispose();cutaway.dispose();expect(scene.children.length).toBe(0);
+ const scene=new THREE.Scene(),parent=new THREE.Group(),mesh=new THREE.Mesh(new THREE.BoxGeometry(20,34,20));mesh.geometry.translate(0,17,0);mesh.geometry.computeBoundingBox();scene.add(parent);parent.add(mesh);
+ const detailGeometry=new THREE.Group();parent.add(detailGeometry);const building={id:'house',kind:'home',mesh,detailGeometry},originalGeometry=mesh.geometry;
+ const cutaway=new BuildingCutaway(scene);cutaway.select(building);expect(cutaway.setEnabled(true)).toBe(true);cutaway.update(1000,1/60,true);
+ expect(cutaway.roof).toBeDefined();expect(mesh.geometry).not.toBe(originalGeometry);expect(detailGeometry.visible).toBe(true);
+ const projects=[{id:'one',height:40,phase:'frame',progress:.5}];const original=JSON.stringify(projects),construction=new ConstructionRenderer(scene);construction.update(projects);construction.animate(1000);expect(construction.cranes.length).toBe(1);expect(JSON.stringify(projects)).toBe(original);construction.dispose();cutaway.dispose();expect(mesh.geometry).toBe(originalGeometry);expect(parent.children).toEqual([mesh,detailGeometry]);expect(scene.children).toEqual([parent]);
 });
 test('benchmark routes are allowlisted and camera path is deterministic',()=>{
  expect(benchmarkScene('/world/bench/rain')).toBe('rain');expect(benchmarkScene('/world/bench/invalid')).toBe(null);
