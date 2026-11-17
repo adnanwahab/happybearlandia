@@ -10,7 +10,7 @@ export default defineConfig({
  testDir:'./e2e',testMatch:['temporal-recovery.e2e.js','temporal-recovery-integration.e2e.js'],
  workers:1,timeout:120000,expect:{timeout:15000},outputDir:join(artifacts,'results'),
  reporter:[['list'],['json',{outputFile:join(artifacts,'results.json')}]],
- use:{baseURL:url.origin,trace:'retain-on-failure',launchOptions:{
+ use:{baseURL:url.origin,channel:'chromium',trace:'retain-on-failure',launchOptions:{
   ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{}),
   args:['--enable-unsafe-webgpu','--enable-unsafe-swiftshader'],
  }},

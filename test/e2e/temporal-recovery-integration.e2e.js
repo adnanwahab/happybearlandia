@@ -6,7 +6,16 @@ const second=feature('w456','Historical recovery fixture B');
 const snapshot=(id='snapshot-A',date='2020-01-01',features=[first])=>({id,date:date+'T00:00:00.000Z',origin:{lat:35.6595,lng:139.7005},radiusM:200,bounds:{west:139.698,east:139.703,south:35.657,north:35.662},features,coverage:{status:'query-complete'},provenance:{historicalGeometry:true,source:'Controlled verification response; not a live public-source observation'}});
 const errors=new WeakMap(),diagnostics=new WeakMap();
 test.beforeEach(async({page})=>{errors.set(page,[]);diagnostics.set(page,[]);page.on('pageerror',error=>{errors.get(page).push(error.message);diagnostics.get(page).push({type:'pageerror',name:error.name,message:error.message,stack:error.stack});});page.on('console',message=>{if(['warning','error'].includes(message.type()))diagnostics.get(page).push({type:message.type(),text:message.text(),location:message.location()});});});
-test.afterEach(async({page},info)=>{const found=errors.get(page);console.log(JSON.stringify({temporalCase:info.title,pageErrors:found,url:page.url()}));await info.attach('javascript-errors',{body:JSON.stringify(found),contentType:'application/json'});await info.attach('runtime-diagnostics',{body:JSON.stringify(diagnostics.get(page),null,2),contentType:'application/json'});expect(found,'uncaught JavaScript errors remain failures').toEqual([]);});
+test.afterEach(async({page},info)=>{
+ const found=errors.get(page),runtime=diagnostics.get(page);
+ const gpu=runtime.filter(entry=>entry.type==='error'&&/webgpu|GPUValidationError|GPUOutOfMemoryError|gpu device.*lost/i.test(entry.text)).map(entry=>entry.text);
+ console.log(JSON.stringify({temporalCase:info.title,pageErrors:found,webgpuErrors:gpu,url:page.url()}));
+ await info.attach('javascript-errors',{body:JSON.stringify(found),contentType:'application/json'});
+ await info.attach('webgpu-errors',{body:JSON.stringify(gpu),contentType:'application/json'});
+ await info.attach('runtime-diagnostics',{body:JSON.stringify(runtime,null,2),contentType:'application/json'});
+ expect(found,'uncaught JavaScript errors remain failures').toEqual([]);
+ expect(gpu,'WebGPU console errors remain failures').toEqual([]);
+});
 async function world(page){
  await page.goto(canonical,{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>Boolean(window.hblTemporalCity&&window.hblWorldStartup?.readyMs),null,{timeout:90000});
