@@ -652,6 +652,10 @@ addEventListener('pagehide',()=>{cityDiffRadarDisposed=true;cityDiffRadar?.destr
 
 
 
+let evidencePath=null,evidencePathDisposed=false;
+if(!embedMode)void import('./evidence-path/panel.js').then(({mountEvidencePath})=>{if(evidencePathDisposed)return;evidencePath=mountEvidencePath({container:document.body,THREE,scene,camera,controls});window.hblEvidencePath=evidencePath;}).catch(error=>console.error('Evidence paths unavailable',error));
+addEventListener('pagehide',()=>{evidencePathDisposed=true;evidencePath?.destroy();delete window.hblEvidencePath;},{once:true});
+
 let temporalCity=null,temporalCityDisposed=false;
 if(!embedMode)void import('./temporal/panel.js').then(({mountTemporalCity})=>{if(temporalCityDisposed)return;temporalCity=mountTemporalCity({container:document.body,origin:{lat:origin.lat,lng:origin.lng}});window.hblTemporalCity=temporalCity;}).catch(error=>console.error('City Time Machine unavailable',error));
 addEventListener('pagehide',()=>{temporalCityDisposed=true;temporalCity?.destroy();},{once:true});
