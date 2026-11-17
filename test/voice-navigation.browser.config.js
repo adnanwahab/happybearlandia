@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'.',testMatch:'voice-navigation.e2e.js',workers:1,timeout:45000,outputDir:'../test-results/voice-navigation',use:{browserName:'chromium',baseURL:'http://127.0.0.1:39873'},webServer:{cwd:process.cwd(),command:'bun run server.js',env:{PORT:'39873',HBL_DB_PATH:'/private/tmp/SHE-783-test.sqlite'},url:'http://127.0.0.1:39873/',reuseExistingServer:false}});
