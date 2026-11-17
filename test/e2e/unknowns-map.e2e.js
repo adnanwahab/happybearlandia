@@ -1,0 +1,24 @@
+import {test,expect} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+const source=readFileSync('world/unknowns/map.js','utf8');
+const fixture=JSON.parse(readFileSync('world/unknowns/fixture.json','utf8'));
+for(const width of [390,1440])test(`coverage terrain ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:844});
+ await page.setContent('<body style="background:#142135"><main></main></body>');
+ await page.addScriptTag({type:'module',content:source+'\nwindow.mountUnknowns=mountUnknowns;'});
+ await page.waitForFunction(()=>window.mountUnknowns);
+ await page.evaluate(f=>{window.panel=window.mountUnknowns({container:document.querySelector('main'),getData:()=>({scope:f.scope,metadata:f,entities:[{id:'building:a'},{id:'building:b'},{id:'building:c'}]})});},fixture);
+ await page.getByText('Map of Unknowns',{exact:true}).click();
+ await page.getByRole('button',{name:'building:a: available',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('no observed dataset');
+ await page.getByRole('combobox').selectOption('computed model effects');
+ await page.getByRole('button',{name:'building:a: missing',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('Versioned model/rules');
+ await page.getByRole('button',{name:'building:c: unknown',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('No matching versioned');
+ await page.screenshot({path:`artifacts/she-750/terrain-${width}.png`});
+ await page.keyboard.press('Escape');await expect(page.locator('details')).not.toHaveAttribute('open','');
+ await expect(page.locator('summary')).toBeFocused();
+ await page.evaluate(()=>window.panel.destroy());await expect(page.locator('[data-unknowns]')).toHaveCount(0);
+ expect(await page.evaluate(()=>window.panel.getState())).toEqual({disposed:true,tiles:0});
+});

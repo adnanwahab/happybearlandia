@@ -388,3 +388,11 @@ restore the prior camera state without issuing a model command. Missing or inval
 route geometry disables the control. The feature does not synthesize stops,
 passengers, service frequency, or real-world travel times; those remain unknown
 unless represented by a separate verified data source.
+
+## Map of Unknowns (SHE-750)
+
+World controls includes a static schematic terrain of loaded building identities
+and four evidence layers. Inspect a tile for missing model/input evidence and the
+required next source. Current World has no versioned availability adapter, so all
+live cells remain explicitly unknown. No coverage percentage or outcome is inferred.
+See [contract and limits](../unknowns/README.md) and [verification](../../docs/reviews/SHE-750.md).
