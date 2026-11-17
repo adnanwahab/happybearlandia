@@ -7,6 +7,11 @@ const FULL_NAME = `${OWNER}/${REPO}`;
 const BASES = new Set(['main', 'sprint/one-city-two-futures-20261111']);
 const CORE = { file: 'core-journeys.yml', job: 'verify' };
 const SUCCESSFUL_CHECKS = new Set(['success', 'neutral', 'skipped']);
+// These are independent evidence/measurement jobs, not merge admission gates.
+// Unknown, security and functional checks remain fail-closed.
+const OBSERVATIONAL_CHECK_NAMES = new Set(['visual-evidence', 'civilization-storm']);
+const observationalCheck = name => OBSERVATIONAL_CHECK_NAMES.has(name) ||
+  /^Performance - (?:aerial-city|downtown|construction|rush-hour|night|rain)$/.test(String(name || ''));
 const MAINTAINERS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
 const params = extra => ({ owner: OWNER, repo: REPO, per_page: 100, ...extra });
 const newest = items => [...items].sort((a, b) =>
@@ -42,6 +47,7 @@ function latestPer(items, key) {
 function checkFailures(checkRuns, statuses) {
   const failures = [];
   for (const check of latestPer(checkRuns, item => `${item.app?.id || item.app?.slug || 'unknown'}:${item.check_suite?.id ?? item.id ?? 'unknown-suite'}:${item.name}`)) {
+    if (observationalCheck(check.name)) continue;
     if (check.status !== 'completed' || !SUCCESSFUL_CHECKS.has(check.conclusion)) {
       failures.push(`check ${check.name || '(unnamed)'} is ${check.conclusion || check.status || 'unknown'}`);
     }
@@ -109,16 +115,17 @@ async function assessPullRequest({ github, number }) {
   const { data: pr } = await github.rest.pulls.get(params({ pull_number: number }));
   const headSha = pr.head?.sha;
   const baseRef = pr.base?.ref;
-  const result = { number, headSha, baseRef, mergeSha: pr.merge_commit_sha, eligible: false };
+  const result = { number, headSha, baseRef, mergeSha: pr.merge_commit_sha, nodeId: pr.node_id, eligible: false };
   const skip = reason => ({ ...result, reason });
   if (pr.state !== 'open' || pr.merged) return skip('PR is not open');
   if (pr.draft) return skip('draft PR');
+  if (pr.auto_merge) return skip('native GitHub auto-merge is already enabled');
   if (pr.head?.repo?.full_name?.toLowerCase() !== FULL_NAME) return skip('fork or missing head repository');
   if (!BASES.has(baseRef)) return skip(`base ${baseRef || '(missing)'} is outside the merge scope`);
   if (!headSha) return skip('missing head SHA');
   if (hasHoldMarker(pr.title) || pr.labels?.some(label => hasHoldMarker(label.name))) return skip('hold marker in title or labels');
   if (pr.requested_reviewers?.length || pr.requested_teams?.length) return skip('a requested person or team review is still pending');
-  if (pr.mergeable !== true || pr.mergeable_state !== 'clean') return skip(`GitHub mergeability is ${pr.mergeable_state || 'unknown'}`);
+  if (pr.mergeable !== true || !['clean', 'unstable'].includes(pr.mergeable_state)) return skip(`GitHub mergeability is ${pr.mergeable_state || 'unknown'}`);
 
   const files = await all(github, github.rest.pulls.listFiles, { pull_number: number });
   if (!files.length) return skip('no changed files');
@@ -182,7 +189,8 @@ async function assessPullRequest({ github, number }) {
 
 async function run({ github, context, core, dryRun = false }) {
   const rows = [];
-  let merged = 0;
+  let merged = 0, enabled = 0;
+  let knownPrs = [];
   const report = (pr, status, detail) => {
     rows.push({ pr, status, detail });
     core.info(`${pr}: ${status} — ${detail}`);
@@ -203,6 +211,7 @@ async function run({ github, context, core, dryRun = false }) {
     }
 
     const prs = await all(github, github.rest.pulls.list, { state: 'open', sort: 'created', direction: 'asc' });
+    knownPrs = prs;
     prs.sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at) || a.number - b.number);
     for (const listed of prs) {
       const first = await assessPullRequest({ github, number: listed.number });
@@ -220,10 +229,26 @@ async function run({ github, context, core, dryRun = false }) {
         github.rest.repos.getBranch(params({ branch: fresh.baseRef })),
       ]);
       if (finalPR.head?.sha !== fresh.headSha || finalPR.base?.ref !== fresh.baseRef || finalBase.commit?.sha !== fresh.baseSha ||
-          finalPR.state !== 'open' || finalPR.draft || finalPR.mergeable !== true || finalPR.mergeable_state !== 'clean' ||
+          finalPR.state !== 'open' || finalPR.draft || finalPR.auto_merge || finalPR.mergeable !== true || !['clean', 'unstable'].includes(finalPR.mergeable_state) ||
           finalPR.requested_reviewers?.length || finalPR.requested_teams?.length ||
           hasHoldMarker(finalPR.title) || finalPR.labels?.some(label => hasHoldMarker(label.name))) {
         report(`#${listed.number}`, 'skipped on final read', 'PR state, head, or target changed'); continue;
+      }
+      if (repository.allow_auto_merge === true) {
+        if (!fresh.nodeId) { report('#' + listed.number, 'skipped', 'missing immutable PR node ID for native auto-merge'); continue; }
+        const method = mergeMethod === 'merge' ? 'MERGE' : 'SQUASH';
+        const response = await github.graphql(`mutation($pullRequestId:ID!,$mergeMethod:PullRequestMergeMethod!) {
+          enablePullRequestAutoMerge(input:{pullRequestId:$pullRequestId,mergeMethod:$mergeMethod}) {
+            pullRequest { id number }
+          }
+        }`, { pullRequestId: fresh.nodeId, mergeMethod: method });
+        if (response.enablePullRequestAutoMerge?.pullRequest?.id !== fresh.nodeId) {
+          throw Error('GitHub did not confirm native auto-merge for PR #' + listed.number);
+        }
+        enabled = 1;
+        report('#' + listed.number, 'auto-merge enabled', method + '; reviewed exact head ' + fresh.headSha);
+        // GitHub owns the eventual merge and will emit its normal push event.
+        break;
       }
       const { data: merge } = await github.rest.pulls.merge(params({ pull_number: listed.number, sha: fresh.headSha, merge_method: mergeMethod }));
       if (!merge.merged) { report(`#${listed.number}`, 'not merged', merge.message || 'GitHub refused the merge'); continue; }
@@ -232,7 +257,9 @@ async function run({ github, context, core, dryRun = false }) {
       if (fresh.baseRef === 'main') {
         // GITHUB_TOKEN merges do not emit a push-triggered CI run. Refresh the baseline explicitly.
         await github.rest.actions.createWorkflowDispatch(params({ workflow_id: CORE.file, ref: 'main' }));
-        report('main', 'CI requested', `Post-merge core verification requested after PR #${listed.number}`);
+        report('main', 'CI requested', `Post-merge fast gate requested after PR #${listed.number}`);
+        await github.rest.actions.createWorkflowDispatch(params({ workflow_id: 'post-merge-observations.yml', ref: 'main' }));
+        report('main', 'CI requested', `Post-merge full integration and observations requested after PR #${listed.number}`);
       }
       break; // One merge per pass; every later candidate gets a fresh next-pass base.
     }
@@ -241,14 +268,20 @@ async function run({ github, context, core, dryRun = false }) {
     report('run', 'error', error.message || String(error));
     core.setFailed(`Auto-merge stopped: ${error.message || error}`);
   } finally {
+    const reported = new Set(rows.map(row => row.pr));
+    for (const pr of knownPrs) {
+      const key = '#' + pr.number;
+      if (!reported.has(key)) report(key, 'deferred',
+        merged || enabled ? 'One PR handled this pass; this PR will be assessed next pass' : 'Pass stopped before full evaluation');
+    }
     await core.summary.addHeading('HappyBearLandia auto-merge')
-      .addRaw(`${dryRun ? 'Read-only dry run' : 'Scheduled/manual merge pass'}. Merged ${merged} PR(s); maximum one per pass.\n\n`)
+      .addRaw(`${dryRun ? 'Read-only dry run' : 'Scheduled/manual merge pass'}. Merged ${merged} PR(s); enabled native auto-merge for ${enabled} PR(s); maximum one action per pass.\n\n`)
       .addTable([
         [{ data: 'PR / target', header: true }, { data: 'Result', header: true }, { data: 'Evidence / reason', header: true }],
         ...rows.map(row => [row.pr, row.status, row.detail]),
       ]).write();
   }
-  return { merged, rows };
+  return { merged, enabled, rows };
 }
 
 module.exports = { run, assessPullRequest, requiredWorkflows, hasHoldMarker, checkFailures };

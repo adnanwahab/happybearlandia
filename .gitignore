@@ -62,3 +62,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Local simulation benchmark score archives
 .hbl-benchmarks/
+
+# Mini Symphony screenshots are private local evidence; GitHub Actions uploads them as artifacts.
+/.mini-symphony-evidence/
