@@ -43,3 +43,8 @@ SHE-558: Tonight pantry cooking remains under World Population / House, using th
 existing recipe economy and relationship authorities. The linked Population
 submodel notes and evening contract describe its authored request selection;
 there is no additional independent model inventory row.
+
+Pop-up Café weekend (`world/cafe/session.js`) orchestrates the existing aggregate
+Business Lab stock/flow and customer-choice engine without adding a social ABM.
+Its [contract](../../world/cafe/README.md) documents the pinned synthetic inputs,
+fixed customer clock, supported decisions, ledger units and replay boundary.
