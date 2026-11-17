@@ -61,3 +61,30 @@ check('Escape closes standalone navigation and restores its toggle',()=>{
   link.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
   expect(toggle.getAttribute('aria-expanded')).toBe('false');expect(doc.activeElement === toggle).toBe(true);nav.dispose();win.close();
 });
+
+check('application-ready recovers detached boot heading once, preserving user focus',()=>{
+  for(const moved of [false,true]) {
+    const {win,doc,show}=setup();show();
+    const boot=doc.activeElement;
+    if(moved)doc.querySelector('a[href="/world"]').focus();
+    boot.remove();
+    if(moved)doc.activeElement.remove();
+    const replacement=doc.createElement('h1');replacement.textContent='Loaded application';doc.body.append(replacement);
+    win.dispatchEvent(new win.Event('hbl:document-ready'));
+    expect(doc.activeElement === replacement).toBe(!moved);
+    const link=doc.querySelector('a[href="/world"]');link.focus();
+    win.dispatchEvent(new win.Event('hbl:document-ready'));
+    expect(doc.activeElement === link).toBe(true);win.close();
+  }
+});
+check('application-ready does not steal focus from an active input',()=>{
+  const {win,doc,show}=setup();show();const heading=doc.activeElement;heading.remove();
+  const input=doc.createElement('input');doc.body.append(input);input.focus();
+  win.dispatchEvent(new win.Event('hbl:document-ready'));expect(doc.activeElement === input).toBe(true);win.close();
+});
+check('Back restores unique portal opener when runtime parameters changed its href',()=>{
+  const {win,doc,show}=setup({back:true});
+  const link=doc.querySelector('a[href="/world"]');link.dataset.portalId='world';
+  win.history.replaceState({hblNavigationFocus:{href:'http://hbl.local/world?demo=1',index:0,portalId:'world'}},'');
+  show();expect(doc.activeElement === link).toBe(true);expect(link.dataset.navigationFocus).toBe('restored');win.close();
+});

@@ -31,9 +31,8 @@
   // Disable even root animation for both OS and the existing local motion override.
   if (reduced()) {
     document.documentElement.classList.add('portal-reduced');
-    const style = document.createElement('style');
-    style.textContent = '@view-transition { navigation: none; }';
-    document.head.append(style);
+    // Keep opt-in stable until native lifecycle events expose the transition.
+    // portal.css removes animation; pagereveal skips reduced-motion capture.
   }
   document.addEventListener('click', event => {
     const link = event.target.closest('a[data-portal-id]');

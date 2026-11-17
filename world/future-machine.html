@@ -25,6 +25,7 @@ import('/world/future-machine/main.js').catch(()=>{
   message.textContent='Unable to load Future Machine. Refresh to retry.';
   app.replaceChildren(message);
   mountDiagnosticReport(app).show({errorType:'boot-failure'});
+  window.dispatchEvent(new Event('hbl:document-ready'));
 });
 </script>
 </body>

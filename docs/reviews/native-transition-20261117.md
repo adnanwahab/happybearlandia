@@ -94,3 +94,39 @@ instrumentation was removed; no production diagnostic hooks were added.
 Published for review as [PR #503](https://github.com/adnanwahab/happybearlandia/pull/503),
 stacked on #445. PR explicitly retains the focus acceptance blocker; no merge or
 deployment performed.
+
+## Follow-up: complete navigation lifecycle repair
+
+The earlier blocker above is now implemented, retaining the failed attempts as
+evidence. `navigation-accessibility.js` records the heading it focused, observes
+subsequent focus changes, and accepts one explicit `hbl:document-ready` handoff.
+It refocuses only when that original heading is detached, BODY is active, and no
+other focus target intervened. There is no MutationObserver or polling loop.
+Future Machine dispatches the handoff immediately after mounting its real UI;
+its visible import-failure UI dispatches the same handoff. Active inputs and
+subsequent user focus are preserved. Back also retains a unique portal ID as a
+fallback when reconstructed links no longer have the runtime query parameters.
+
+A separate native promise-identity diagnostic reproduced the opt-in error even
+with early listeners: on reduced-motion Back, home `pagereveal` exposes no native
+transition at 269.4ms, then rejects at 278.1ms. The rejection matches none of the
+exposed `ready`, `finished` or `updateCallbackDone` promises. The portal's own
+head-time `navigation:none` injection aborted incoming capture before the event
+could expose it. Keeping opt-in stable and using existing CSS animation suppression
+plus `skipTransition()` removes the error in the identical diagnostic (1 pass).
+No error/rejection handler calls preventDefault and no global catch was added.
+Failed diagnostic: `/private/tmp/hbl-native-promise-identity-20261117/run-SEHLZ9/summary.json`.
+Fixed diagnostic: `/private/tmp/hbl-native-promise-fixed-20261117/run-Bo9ZOc/summary.json`.
+Temporary diagnostic instrumentation was removed.
+
+The original portal URL assertion exposed irrelevant context-key reordering.
+It now checks exact origin, pathname and hash, plus every query key/value using
+stable key sorting: duplicate values retain their order, extra/missing entries
+still fail. Product URL serialization is unchanged. Focus, error-free navigation,
+reduced motion, exact query values and Back assertions remain required.
+
+New real-browser regression delays the actual application module, focuses a user
+input during the boot screen, then confirms the input stays focused when the real
+UI mounts. It also forces an actual module failure and requires visible error UI
+and recovered heading focus. Unit/navigation contracts: **13 passed, 60 assertions**
+with happy-dom explicitly enabled; no optional DOM tests skipped.
