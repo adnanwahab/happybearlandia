@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Housing ribbon fixture — synthetic</title><style>body{font:16px system-ui;max-width:950px;margin:24px auto;padding:12px}td,th{padding:8px;text-align:left;overflow-wrap:anywhere}table{width:100%;table-layout:fixed}button{padding:12px}</style><main id="preview"></main><script type="module">
+import {renderHousingRibbons} from '/world/decision/housing-ribbons.js';
+const fixture=await fetch('./crossing.json').then(r=>r.json());
+renderHousingRibbons(document.querySelector('main'),fixture.experiment,fixture.run,'./crossing.json');
+</script></html>
