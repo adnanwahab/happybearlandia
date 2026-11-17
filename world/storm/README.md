@@ -111,3 +111,36 @@ text receipts require no animation, graphics, or pointer input.
 
 Checks: `bun test test/storm-rescue.test.js` and
 `bunx playwright test --config test/storm-rescue.browser.config.mjs`.
+
+### Recorded drainage ribbons (SHE-736)
+
+Open **Flood and drainage fields → Drainage ribbons**. The normal solver has no
+recorded underground edges, edge outflow or edge overflow; it therefore displays
+unavailable and draws no pipes. Cell removal capacity must never be mapped to an
+edge rate. This slice does not change the solver or introduce a social mechanism.
+
+`drainage.js` accepts `frame = {arm, step, drainage}`. The optional record contract
+is `drainage-edges.v1`: `runId`, `source`, `kind` (`observed`, `synthetic`, or
+`modeled`), exact `arm` and integer `step`, `units` (`m³/s` or
+`m³ per model step`) and `edges`. Each edge requires unique `id`, `source`, and
+`points` (at least two normalized [x,y] pairs in [0,1], ordered in the positive
+flow direction). These are recorded schematic coordinates, with no inferred
+connections, street alignment, pipe diameter, elevation or underground depth.
+`flow` and `overflow` are separate nonnegative finite source values; absent or
+invalid readings are unknown, never zero. Overflow is numeric only. Unsupported
+versions, units, mismatched arm/step and invalid geometry produce no ribbons.
+No real-duration conversion, hydraulic inference or probability is calculated.
+
+The deterministic JSON at `test/fixtures/storm/drainage.json` is authored synthetic
+input with flowing/overflow, dry and unknown edges. It is not storm-model output
+or a real infrastructure observation. Its run identifier records fixture version
+and seed 0; it makes no random calls. The normal page only passes optional
+`water.drainage[step]` from the selected run, never this fixture. A future producer
+must preserve run identity and provide recorded geometry and measurements.
+
+Transparent moving dashes mark positive flow. Their constant speed is purely
+decorative and has no velocity meaning. Reduced motion disables animation;
+closed details stop animation. The renderer uses DOM/SVG, no GPU resources,
+assets, timers or requestAnimationFrame loop. Destroy removes its listener and
+all owned nodes and releases its frame; it is idempotent. Visual browser and
+physical consumer-device performance acceptance remain pending (see review).

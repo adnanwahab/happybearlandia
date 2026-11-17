@@ -1,0 +1,31 @@
+import { test, expect } from '@playwright/test';
+import fixture from '../fixtures/storm/drainage.json' with { type: 'json' };
+test('normal entry missing evidence, representative ribbons, reduced motion and disposal', async ({page}) => {
+  await page.goto('/world/storm/');
+  await expect(page.locator('#run-status')).toContainText('Matched storms ready');
+  const view = page.locator('.storm-drainage');
+  await view.locator('summary').click();
+  await expect(view).toContainText('No pipes drawn');
+  await expect(view.locator('path')).toHaveCount(0);
+  await page.evaluate(async record => {
+    const {mountDrainage} = await import('/world/storm/drainage.js');
+    const host = document.createElement('section'); host.id='drainage-fixture';document.body.append(host);
+    window.drainageFixture=mountDrainage(host);
+    host.querySelector('details').open=true;
+    window.drainageFixture.render({arm:'baseline',step:1,drainage:record});
+  },fixture);
+  const host=page.locator('#drainage-fixture');
+  await expect(host.locator('path')).toHaveCount(3);
+  await expect(host).toContainText('flow 2 m³ per model step');
+  await expect(host).toContainText('overflow 0.5 m³ per model step');
+  await expect(host).toContainText('(dry)');
+  await expect(host).toContainText('flow unknown');
+  expect(await host.locator('.flowing').evaluate(e=>getComputedStyle(e).animationName)).toBe('drainage-ribbon');
+  await page.emulateMedia({reducedMotion:'reduce'});
+  expect(await host.locator('.flowing').evaluate(e=>getComputedStyle(e).animationName)).toBe('none');
+  await host.screenshot({path:'/private/tmp/SHE-736-drainage.png'});
+  await page.evaluate(()=>window.drainageFixture.render({arm:'adjusted',step:1}));
+  await expect(host.locator('path')).toHaveCount(0);
+  await page.evaluate(()=>{window.drainageFixture.destroy();window.drainageFixture.destroy();dispatchEvent(new Event('pagehide'));});
+  await expect(page.locator('.storm-drainage')).toHaveCount(0);
+});
