@@ -1,3 +1,8 @@
+import { createServerLogs } from './ops/server-logs/api.js';
+// Redacted request, error and warning logs, published at /api/server-logs.
+// Start capturing before other handlers initialize. See ops/server-logs/README.md.
+const serverLogs = createServerLogs(process.env);
+serverLogs.captureConsole();
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
@@ -461,7 +466,7 @@ const server = serve({
   port: PORT,
   hostname: process.env.HBL_BIND_HOST || undefined,
 
-  async fetch(request, server) {
+  fetch: serverLogs.instrument(async function routeRequest(request, server) {
     const releaseResponse=handleReleaseExperiment(request);
     if(releaseResponse)return releaseResponse;
     const { pathname } = new URL(request.url);
@@ -471,6 +476,7 @@ const server = serve({
     if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');
     if (pathname === '/mini-symphony/style.css') return serveFile('./tools/mini-symphony-dashboard/style.css');
     if (pathname === "/api/operations-observatory") return handleOperationsObservatory(request);
+    if (pathname === "/api/server-logs" || pathname === "/api/server-logs/") return serverLogs.handle(request);
     if (pathname === "/tools/operations-observatory") return Response.redirect(new URL("/tools/operations-observatory/",request.url),302);
     const admission=admitSimulation(request,server.requestIP(request)?.address);
     if(admission)return admission;
@@ -626,7 +632,7 @@ const server = serve({
     if (under(pathname, "/blog")) return serveStatic("/blog", "./blog/dist", pathname);
 
     return notFound();
-  },
+  }),
 
   websocket: {
     pong(ws){if(ws.data?.roomId)actNormalService.websocket.pong(ws);},
@@ -666,3 +672,4 @@ console.log(`  /blog   http://localhost:${server.port}/blog (after building blog
 console.log(`  ws      ws://localhost:${server.port}/ws`);
 console.log(`  overpass ${OVERPASS_ENDPOINTS.map(endpoint => publicProviderOrigin(endpoint) ?? "invalid provider endpoint").join(" | ")} (timeout ${OVERPASS_TIMEOUT_MS}ms)`);
 console.log(`  dear-congress proxy origin ${DEAR_CONGRESS_ORIGIN}`);
+serverLogs.started();
