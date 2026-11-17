@@ -30,3 +30,48 @@ test('keyboard draft, constraints, confirmation and camera restoration without W
   await page.getByRole('button', { name: 'Enter tabletop mode' }).click();
   await expect(page.getByLabel('Z (meters)')).toHaveValue('0');
 });
+
+test('smart handles resist invalid moves, expose pacing and clean up cancellation on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/world/invention/');
+  await page.getByRole('link', { name: 'Tabletop Block' }).click();
+  await page.getByRole('button', { name: 'Enter tabletop mode' }).click();
+  const handle = page.getByRole('button', { name: 'Miniature 1 drag handle' });
+  await handle.press('ArrowRight');
+  await expect(handle).toBeFocused();
+  await expect(page.locator('#snap-feedback')).toContainText('Snap: -45, 0');
+  await page.getByLabel('X (meters)').fill('-100');
+  await handle.focus(); await handle.press('ArrowLeft');
+  await expect(page.getByLabel('X (meters)')).toHaveValue('-100');
+  await expect(page.locator('#snap-feedback')).toContainText('resisted');
+  await page.getByLabel('X (meters)').fill('-50');
+  const box = await handle.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + 20, box.y + box.height / 2, { steps: 4 });
+  await expect.poll(() => page.locator('#board').evaluate(el => JSON.parse(el.dataset.pacing).frames)).toBeGreaterThan(0);
+  await page.keyboard.press('Escape'); await page.mouse.up();
+  const frames = await page.locator('#board').evaluate(el => JSON.parse(el.dataset.pacing).frames);
+  await page.waitForTimeout(100);
+  expect(await page.locator('#board').evaluate(el => JSON.parse(el.dataset.pacing).frames)).toBe(frames);
+});
+
+test('vibration unavailable is explicit; opt-in failures and reduced motion preserve editing', async ({ page }) => {
+  await page.addInitScript(() => { Object.defineProperty(navigator, 'vibrate', { configurable: true, value: undefined }); });
+  await page.goto('/world/invention/diorama/');
+  await expect(page.getByLabel('Optional vibration')).toBeDisabled();
+  await expect(page.locator('#haptic-support')).toContainText('unavailable');
+  await page.addInitScript(() => {
+    window.vibrationCalls = 0;
+    Object.defineProperty(navigator, 'vibrate', { configurable: true, value: () => { window.vibrationCalls++; throw Error('blocked'); } });
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Enter tabletop mode' }).click();
+  const handle = page.getByRole('button', { name: 'Miniature 1 drag handle' });
+  await handle.press('ArrowRight'); expect(await page.evaluate(() => window.vibrationCalls)).toBe(0);
+  await page.getByLabel('Optional vibration').check();
+  await handle.press('ArrowRight');
+  await expect(page.getByLabel('X (meters)')).toHaveValue('-40');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const before = await page.evaluate(() => window.vibrationCalls);
+  await handle.press('ArrowRight'); expect(await page.evaluate(() => window.vibrationCalls)).toBe(before);
+});

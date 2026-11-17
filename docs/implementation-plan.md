@@ -10698,3 +10698,23 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+## SHE-669 — smart snap and optional haptics
+
+Slice: existing invention → Tabletop Block handles; reuse building-proposal.v1
+bounds/overlap validation. Add deterministic nearest-valid 5 m grid anchors within
+6 m (ties X then Z), invalid move resistance, optional guarded vibration and
+bounded event/update pacing diagnostics. Exact numeric drafts and final approval
+validation remain available. No model rule or location-effect change.
+Acceptance: unit geometry/tie/failure tests and focused browser keyboard, pointer,
+mobile, focus, reduced-motion and unavailable vibration checks. Hardware vibration
+requires external device verification. No deployment or governance changes.
+
+Delivered local slice: snap.js and handle integration, opt-in haptics, bounded
+frame/update diagnostics with cleanup, UI assumptions and browser failure-state
+cases. Evidence: 11 focused tests / 86 assertions pass; JavaScript syntax and diff
+checks pass. No global typecheck/lint script. Browser execution remains blocked
+at server bind (EADDRINUSE on 54397) after resolving package/Bun-shim setup.
+Hardware vibration, actual touch/focus rendering and representative frame timings
+remain external acceptance gates. Review: docs/reviews/SHE-669.md. Existing merge
+hold and advisory vote thresholds preserved; no publish/merge/deploy performed.

@@ -1,8 +1,34 @@
 import { BLOCK, initialMiniatures, checkDraft, confirmBlock } from './model.js';
+import { resolveSnap, createHaptics } from './snap.js';
 import { SQFT_TO_SQM } from '../../buildings/proposal.js';
 const $ = id => document.getElementById(id);
 let committed = initialMiniatures(), drafts = structuredClone(committed), selected = 0, active = false;
 let priorTransform = '', pointer = null;
+const pulse = createHaptics(navigator);
+const pacing = { updates: 0, maxUpdateMs: 0, maxEventGapMs: 0, frames: 0, maxFrameGapMs: 0 };
+let lastMove = null, frame = null, lastFrame = null;
+function stopFrames() {
+  if (frame !== null) cancelAnimationFrame(frame);
+  frame = null; lastFrame = null;
+}
+function trackFrame(now) {
+  if (!pointer || !active) { stopFrames(); return; }
+  if (lastFrame !== null) pacing.maxFrameGapMs = Math.max(pacing.maxFrameGapMs, now - lastFrame);
+  lastFrame = now; pacing.frames++;
+  $('board').dataset.pacing = JSON.stringify(pacing);
+  frame = requestAnimationFrame(trackFrame);
+}
+function move(index, location, event) {
+  const start = performance.now();
+  const next = resolveSnap(drafts, index, location);
+  const previous = drafts[index].location;
+  const changed = next && (next.x !== previous.x || next.z !== previous.z);
+  if (next) drafts[index].location = next;
+  $('snap-feedback').textContent = next ? `Snap: ${next.x}, ${next.z} meters.` : 'Placement resisted: no valid nearby anchor.';
+  if (changed || !next) pulse({ enabled: $('haptics').checked, initiated: event.isTrusted && navigator.userActivation?.isActive === true, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches, now: start });
+  pacing.updates++; pacing.maxUpdateMs = Math.max(pacing.maxUpdateMs, performance.now() - start);
+  $('board').dataset.pacing = JSON.stringify(pacing);
+}
 const money = value => value.toLocaleString('en-US');
 function render() {
   $('board').replaceChildren();
@@ -20,28 +46,34 @@ function render() {
       const delta = { ArrowLeft: [-5, 0], ArrowRight: [5, 0], ArrowUp: [0, -5], ArrowDown: [0, 5] }[event.key];
       if (!delta) return;
       event.preventDefault(); selected = index;
-      draft.location.x += delta[0]; draft.location.z += delta[1];
+      move(index, { ...draft.location, x: draft.location.x + delta[0], z: draft.location.z + delta[1] }, event);
       render(); $('board').children[index].focus();
     };
     button.onpointerdown = event => {
       if (event.button !== 0) return;
-      selected = index;
+      selected = index; lastMove = null;
       pointer = { id: event.pointerId, index, x: event.clientX, y: event.clientY, location: { ...draft.location } };
       button.setPointerCapture(event.pointerId);
+      stopFrames(); frame = requestAnimationFrame(trackFrame);
     };
     button.onpointermove = event => {
       if (!pointer || pointer.id !== event.pointerId) return;
       const rect = $('board').getBoundingClientRect();
-      draft.location.x = Math.round(pointer.location.x + (event.clientX - pointer.x) * 200 / rect.width);
-      draft.location.z = Math.round(pointer.location.z + (event.clientY - pointer.y) * 200 / rect.height);
+      const now = performance.now();
+      if (lastMove !== null) pacing.maxEventGapMs = Math.max(pacing.maxEventGapMs, now - lastMove);
+      lastMove = now;
+      move(index, { ...pointer.location, x: pointer.location.x + (event.clientX - pointer.x) * 200 / rect.width, z: pointer.location.z + (event.clientY - pointer.y) * 200 / rect.height }, event);
       button.style.left = `${(draft.location.x + 100) / 2}%`;
       button.style.top = `${(draft.location.z + 100) / 2}%`;
       inspect();
     };
-    button.onpointerup = () => { pointer = null; render(); $('board').children[index].focus(); };
+    button.onpointerup = () => { pointer = null; stopFrames(); render(); $('board').children[index].focus(); };
+    button.onlostpointercapture = () => {
+      if (pointer?.index === index) { Object.assign(draft.location, pointer.location); pointer = null; stopFrames(); render(); }
+    };
     button.onpointercancel = () => {
       if (pointer) Object.assign(draft.location, pointer.location);
-      pointer = null; render();
+      pointer = null; stopFrames(); render();
     };
     $('board').append(button);
   });
@@ -67,7 +99,7 @@ $('enter').onclick = () => {
 };
 function exit() {
   if (!active) return;
-  active = false; pointer = null; drafts = structuredClone(committed);
+  active = false; pointer = null; stopFrames(); drafts = structuredClone(committed);
   $('board').classList.remove('tabletop'); $('board').style.transform = priorTransform;
   $('editor').hidden = true; $('exit').hidden = true; $('enter').hidden = false;
   $('view-state').textContent = 'World view · local schematic camera'; render(); $('enter').focus();
@@ -93,3 +125,6 @@ $('confirm').onclick = () => {
   $('result').textContent = `${result.run.projectMetrics.completedUnits} project homes completed; $${money(Math.round(result.run.projectMetrics.publicCost))} modeled public project spending. Each project retains its proposal ID, monthly states, seeded uncertainty and approval events. This is a modeled result, not a forecast.`;
 };
 render();
+
+window.addEventListener('pagehide', () => { pointer = null; stopFrames(); lastMove = null; });
+if (typeof navigator.vibrate !== 'function') { $('haptics').disabled = true; $('haptic-support').textContent = 'Vibration unavailable in this browser.'; }
