@@ -279,7 +279,9 @@ async function runTask(task: Task) {
       await logLine(log,'AUTO-DEBUG: one port-conflict repair pass; original transcript/result preserved.');
       await telemetry?.event('auto_debug_started','Port conflict detected; starting one bounded repair and validation pass.',{pass:1},task.id);
     }
-    const bin = process.env.CODEX_BIN ?? 'codex', args = ['--ask-for-approval', 'never', 'exec', '--sandbox', 'workspace-write', '--output-last-message', resultFile, pass === 0 ? task.prompt : autoDebugPrompt(task.prompt, evidence)];
+    const browserPolicy = existsSync(path.join(workspace,'scripts/run-symphony-browser-tests.mjs')) ? '\n\nFor browser verification use bun scripts/run-symphony-browser-tests.mjs --config <suite-config>. Routine engine is bundled Playwright Chromium. Use --engines chromium,installed-chrome,firefox,webkit --devices desktop,mobile for the separately reported release matrix. This launcher bounds shared browser jobs, isolates evidence and retries startup only. Do not retry failed assertions or call missing/unrun coverage passing. Custom server suites need an explicit isolated adapter; report unsupported suites as incomplete.' : '';
+    const workerPrompt = task.prompt + browserPolicy;
+    const bin = process.env.CODEX_BIN ?? 'codex', args = ['--ask-for-approval', 'never', 'exec', '--sandbox', 'workspace-write', '--output-last-message', resultFile, pass === 0 ? workerPrompt : autoDebugPrompt(workerPrompt, evidence)];
     await logLine(log, `Launching Codex CLI: ${bin} exec --sandbox workspace-write`);
     await logLine(log, `Prompt: ${task.prompt.split('\n')[0]}`);
     console.log(`[${task.id}] launching Codex; output -> ${path.relative(root, log)}`);

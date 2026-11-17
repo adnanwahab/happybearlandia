@@ -1,0 +1,50 @@
+name: Symphony browser reliability
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'tools/symphony/mini-bun/browser-runtime*'
+      - 'tools/symphony/mini-bun/project.ts'
+      - 'tools/symphony/mini-bun/run.ts'
+      - 'scripts/support/browser-job-result.mjs'
+      - 'test/symphony-browser-result.test.js'
+      - 'test/symphony-browser-config.test.js'
+      - 'tools/symphony/mini-bun/screenshots*'
+      - 'scripts/*symphony-browser*'
+      - 'test/e2e/symphony-browser-runtime.e2e.js'
+      - 'test/symphony-browser-runtime.config.js'
+      - '.github/workflows/symphony-browser-reliability.yml'
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        engine: [chromium, installed-chrome, firefox, webkit]
+        device: [desktop, mobile]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium chrome firefox webkit
+      - name: Regression tests
+        env:
+          HBL_BROWSER_RUNTIME_REAL: '1'
+        run: bun test tools/symphony/mini-bun/browser-runtime.test.ts test/symphony-browser-result.test.js test/symphony-browser-config.test.js
+      - name: Browser acceptance
+        env:
+          HBL_BROWSER_JOB_LIMIT: '3'
+        run: bun scripts/run-symphony-browser-tests.mjs --config test/symphony-browser-runtime.config.js --engines ${{ matrix.engine }} --devices ${{ matrix.device }} --artifacts test-results/symphony-browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: symphony-browser-${{ matrix.engine }}-${{ matrix.device }}-${{ github.run_id }}
+          path: test-results/symphony-browser
+          if-no-files-found: error

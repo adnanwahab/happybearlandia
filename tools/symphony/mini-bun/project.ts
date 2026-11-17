@@ -37,6 +37,6 @@ export function validateBinding(binding: any, project: Project) {
 
 // Project workers need CLI/runtime authentication, not the app's database/bot keys.
 export function workerEnvironment(env: NodeJS.ProcessEnv = process.env) {
-  const names = ['PATH','HOME','USER','LOGNAME','SHELL','TMPDIR','TMP','TEMP','LANG','LC_ALL','TERM','COLORTERM','CODEX_HOME','OPENAI_API_KEY','OPENAI_BASE_URL','HTTP_PROXY','HTTPS_PROXY','NO_PROXY','SSL_CERT_FILE','NODE_EXTRA_CA_CERTS'];
+  const names = ['PATH','HOME','USER','LOGNAME','SHELL','TMPDIR','TMP','TEMP','LANG','LC_ALL','TERM','COLORTERM','CODEX_HOME','OPENAI_API_KEY','OPENAI_BASE_URL','HTTP_PROXY','HTTPS_PROXY','NO_PROXY','SSL_CERT_FILE','NODE_EXTRA_CA_CERTS','HBL_BROWSER_JOB_LIMIT','HBL_BROWSER_MIN_FREE_BYTES','HBL_BROWSER_JOB_DIRECTORY'];
   return Object.fromEntries(names.filter(name => env[name] !== undefined).map(name => [name,env[name]!])) as NodeJS.ProcessEnv;
 }

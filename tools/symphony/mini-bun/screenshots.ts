@@ -1,3 +1,4 @@
+import {acquireBrowserJob,launchReliableBrowser} from './browser-runtime';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
@@ -8,7 +9,7 @@ export type ScreenshotConfig={command:string[];paths:string[];modulePath?:string
 export function validateScreenshotConfig(config:ScreenshotConfig) {
  if(!config||!Array.isArray(config.command)||!config.command.length||config.command.some(x=>typeof x!=='string'||!x)||!Array.isArray(config.paths)||!config.paths.length||config.paths.length>2||config.paths.some(p=>typeof p!=='string'||!p.startsWith('/')||p.startsWith('//')||p.includes('\\')||/[\r\n#]/.test(p))||config.timeoutMs!==undefined&&(!Number.isInteger(config.timeoutMs)||config.timeoutMs<1000||config.timeoutMs>120000))throw Error('Invalid screenshot configuration');
 }
-export type ScreenshotEvidence={stage?:'before'|'after';files:{path:string;route:string;viewport:string;sha256?:string}[];capturedAt:string;sourceCommit?:string;workingDiffSha256?:string;artifactURL?:string};
+export type ScreenshotEvidence={stage?:'before'|'after';files:{path:string;route:string;viewport:string;sha256?:string}[];capturedAt:string;sourceCommit?:string;workingDiffSha256?:string;artifactURL?:string;artifactDirectory?:string};
 export function screenshotMarkdown(repo:string,head:string,evidence:ScreenshotEvidence) {
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||! /^[a-f0-9]{40}$/.test(head))throw Error('Invalid screenshot source identity');
  if(evidence.artifactURL&&!new RegExp('^https://github\\.com/'+repo.replace('/','\\/')+'/actions/runs/[0-9]+/artifacts/[0-9]+$').test(evidence.artifactURL))throw Error('Invalid immutable artifact URL');
@@ -22,14 +23,22 @@ export async function captureScreenshots(workspace:string,config:ScreenshotConfi
  if(taskId&&!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(taskId))throw Error('Invalid screenshot task identity');
  const prefix=taskId?taskId+'-':'';
  const timeout=config.timeoutMs??60000,deadline=Date.now()+timeout;
+ const timeoutController=new AbortController();
+ const lifetimeTimer=setTimeout(()=>timeoutController.abort(),timeout);
+ signal=AbortSignal.any([...(signal?[signal]:[]),timeoutController.signal]);
  const sandbox=await mkdtemp(path.join(tmpdir(),'mini-screenshots-'));
  const output=outputDirectory??path.join(workspace,'.mini-symphony-evidence');
  let child:ReturnType<typeof spawn>|undefined,browser:any;
+ let lease:Awaited<ReturnType<typeof acquireBrowserJob>>|undefined,launched:Awaited<ReturnType<typeof launchReliableBrowser>>|undefined;
+ let captureOutput=output;
+ const tracingContexts:{context:any;trace:string}[]=[];
  const stop=()=>{if(child?.pid){try{process.kill(-child.pid,'SIGTERM');}catch{try{child.kill('SIGTERM');}catch{}}}};
  const abort=()=>{stop();void browser?.close().catch(()=>{});};signal?.addEventListener('abort',abort,{once:true});
  let timer:ReturnType<typeof setTimeout>|undefined;
  try {
   if(signal?.aborted)throw Error('Screenshot capture interrupted');
+  lease=await acquireBrowserJob({artifactDirectory:output,signal});
+  captureOutput=lease.directory;
   const module=config.modulePath??Bun.resolveSync('@playwright/test',import.meta.dir);
   const {chromium}=await import(module);
   const env={...Object.fromEntries(['PATH','HOME','USER','TMPDIR','TMP','TEMP','LANG'].filter(k=>process.env[k]!==undefined).map(k=>[k,process.env[k]])),PORT:'0',NODE_ENV:'production',DB_PATH:path.join(sandbox,'db.json'),HBL_DB_PATH:path.join(sandbox,'hbl.sqlite'),HBL_WORLD_DB_PATH:':memory:',HBL_BIND_HOST:'127.0.0.1',HBL_CITY_DATA_DIR:path.join(sandbox,'city'),HBL_REALITY_SHARE_DB_PATH:path.join(sandbox,'shares.sqlite'),HBL_TEMPORAL_DB_PATH:path.join(sandbox,'history.sqlite'),HBL_PLAYER_FEEDBACK_DIR:path.join(sandbox,'player-feedback'),HBL_PATCH_VOTE_DB_PATH:path.join(sandbox,'patch-votes.sqlite'),HBL_DETECTIVE_ROOT:path.join(sandbox,'detective'),DECISION_STORE_DIR:path.join(sandbox,'decision'),HBL_JOURNAL_ROOT:path.join(sandbox,'journals'),HBL_SINGLE_WRITER:'1',HBL_KILL_SWITCH:'1',HBL_MERGE_ENABLED:'0',ANON_COOKIE_SECRET:crypto.randomUUID()+crypto.randomUUID(),OUTCOMES_MODE:'off'};
@@ -54,14 +63,17 @@ export async function captureScreenshots(workspace:string,config:ScreenshotConfi
    timer=setTimeout(()=>reject(Error('Screenshot server startup timed out')),Math.max(1,deadline-Date.now()));
    signal?.addEventListener('abort',()=>reject(Error('Screenshot capture interrupted')),{once:true});
   });
-  browser=await chromium.launch({headless:true,timeout:Math.max(1,deadline-Date.now())});
+  launched=await launchReliableBrowser(chromium,{artifactDirectory:captureOutput,signal,lease,launchOptions:{headless:true,channel:'chromium',timeout:Math.max(1,deadline-Date.now())}});
+  browser=launched.browser;
   timer=setTimeout(()=>{abort();},Math.max(1,deadline-Date.now()));
   await mkdir(output,{recursive:true});
   const git=(args:string[])=>Bun.spawnSync(['git',...args],{cwd:workspace,stdout:'pipe',stderr:'ignore'});
   const revision=git(['rev-parse','HEAD']),diff=git(['diff','HEAD','--binary']);
-  const evidence:ScreenshotEvidence={stage,capturedAt:new Date().toISOString(),files:[],...(revision.exitCode===0?{sourceCommit:revision.stdout.toString().trim()}:{}),...(diff.exitCode===0?{workingDiffSha256:createHash('sha256').update(diff.stdout).digest('hex')}:{} )};
+  const evidence:ScreenshotEvidence={stage,capturedAt:new Date().toISOString(),files:[],artifactDirectory:captureOutput,...(revision.exitCode===0?{sourceCommit:revision.stdout.toString().trim()}:{}),...(diff.exitCode===0?{workingDiffSha256:createHash('sha256').update(diff.stdout).digest('hex')}:{} )};
   for(const [width,height,name] of [[1440,1000,'desktop'],[390,844,'mobile']] as const){
    const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'});
+   await context.tracing.start({screenshots:true,snapshots:true,sources:true});
+   tracingContexts.push({context,trace:path.join(captureOutput,`${stage}-${name}-trace.zip`)});
    // Never load production APIs or remote images while creating PR evidence.
    await context.route('**/*',route=>{const url=new URL(route.request().url());return url.origin===base||['data:','blob:'].includes(url.protocol)?route.continue():route.abort();});
    const page=await context.newPage();
@@ -73,15 +85,22 @@ export async function captureScreenshots(workspace:string,config:ScreenshotConfi
     await page.waitForTimeout(500);
     const png=await page.screenshot({fullPage:false,timeout:Math.max(1,deadline-Date.now())});
     const sha256=createHash('sha256').update(png).digest('hex'),filename=`${prefix}${stage}-${name}-${n+1}-${sha256}.png`;
+    await writeFile(path.join(captureOutput,filename),png);
+    // Stable legacy manifest consumers retain their existing hash-addressed path.
     await writeFile(path.join(output,filename),png);
     evidence.files.push({path:'.mini-symphony-evidence/'+filename,route,viewport:`${name} ${width}×${height}`,sha256});
    }
+   await context.tracing.stop({path:path.join(captureOutput,`${stage}-${name}-trace.zip`)});
+   tracingContexts.pop();
    await context.close();
   }
   await writeFile(path.join(output,prefix+stage+'.json'),JSON.stringify(evidence,null,2)+'\n');return evidence;
  }finally{
-  clearTimeout(timer);signal?.removeEventListener('abort',abort);await browser?.close().catch(()=>{});stop();
+  clearTimeout(lifetimeTimer);clearTimeout(timer);signal?.removeEventListener('abort',abort);
+  for(const {context,trace} of tracingContexts)await context.tracing.stop({path:trace}).catch(()=>{});
+  await launched?.close().catch(()=>{});stop();
   if(child&&child.exitCode===null){await Promise.race([new Promise(resolve=>child!.once('close',resolve)),new Promise(resolve=>setTimeout(resolve,1000))]);if(child.exitCode===null&&child.pid){try{process.kill(-child.pid,'SIGKILL');}catch{}}}
+  await lease?.release();
   await rm(sandbox,{recursive:true,force:true});
  }
 }
