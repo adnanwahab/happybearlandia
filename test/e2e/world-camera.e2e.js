@@ -51,7 +51,7 @@ for(const mobile of [false,true])test(`cinematic presets preserve selection and 
  await page.emulateMedia({reducedMotion:'no-preference'});
  const followButton=picker.getByRole('button',{name:'Follow',exact:true});
  await followButton.focus();await page.keyboard.press('Enter');await expect(picker.getByRole('status')).toContainText('Following selected');
- if(mobile)await page.locator('canvas').first().dispatchEvent('pointerdown',{pointerId:9,pointerType:'touch',clientX:350,clientY:500});else await page.keyboard.press('Escape');
+ if(mobile)await page.locator('canvas').first().dispatchEvent('pointerdown',{pointerId:9,pointerType:'touch',clientX:350,clientY:500});else await page.keyboard.press('ArrowLeft');
  await expect(picker.getByRole('status')).toContainText('interrupted');
  await page.screenshot({path:`.mini-symphony-evidence/SHE-474-after-${mobile?'mobile':'desktop'}-camera.png`});
 });
