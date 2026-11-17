@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {spawn} from 'node:child_process';
 import {EventEmitter} from 'node:events';
 import {createSimulationAdmission} from '../ops/security/simulation-admission.js';
-import {acquireShe63Admission,retryAfterDeadline,installShe63Admission} from './support/she63-admission.js';
+import {acquireShe63Admission,retryAfterDeadline,installShe63Admission,paceShe63Fork} from './support/she63-admission.js';
 const directory=()=>mkdtemp(join(tmpdir(),'she63-admission-test-'));
 test('case entry waits a full unchanged production window after the last actual response',async()=>{
  const root=await directory();let time=1000;const waits=[],options={now:()=>time,delay:async ms=>{waits.push(ms);time+=ms;}};
@@ -23,6 +23,14 @@ test('public Retry-After is retained and can extend, never shorten, the producti
  try{const lease=await acquireShe63Admission(root,options);lease.observe({phase:'response',method:'POST',url:'http://local/api/city-experiments/one/replay',status:429,retryAfter:'120'});await lease.release();const next=await acquireShe63Admission(root,options);expect(waits).toEqual([120000]);await next.release();expect(await readFile(join(root,'admission.jsonl'),'utf8')).toContain('"retryAfter":"120"');}
  finally{await rm(root,{recursive:true,force:true});}
  expect(retryAfterDeadline('Wed, 21 Oct 2015 07:28:00 GMT',0)).toBe(1445412480000);expect(retryAfterDeadline('bad',0)).toBeNull();expect(retryAfterDeadline(null,0)).toBeNull();
+});
+test('a second normal fork can pace within one case without changing six-per-minute quota',async()=>{
+ const root=await directory();let time=1000;const waits=[],options={now:()=>time,delay:async ms=>{waits.push(ms);time+=ms;}};
+ try{const admit=createSimulationAdmission({now:()=>time}),request=new Request('http://local/api/city-experiments',{method:'POST'}),lease=await acquireShe63Admission(root,options);
+  for(let i=0;i<6;i++){expect(admit(request,'loopback')).toBeNull();lease.observe({phase:'response',method:'POST',url:request.url,status:202});}
+  expect(admit(request,'loopback').status).toBe(429);await lease.waitForWindow();expect(waits).toEqual([61000]);expect(admit(request,'loopback')).toBeNull();lease.observe({phase:'response',method:'POST',url:request.url,status:202});await lease.release();
+  await paceShe63Fork({}); // Canonical suites without run hooks remain unchanged.
+ }finally{await rm(root,{recursive:true,force:true});}
 });
 test('queued cancellation releases no other lease and stale dead workers can recover',async()=>{
  const root=await directory();try{

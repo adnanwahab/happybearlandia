@@ -1,4 +1,4 @@
-import {installShe63Admission} from '../support/she63-admission.js';
+import {installShe63Admission,paceShe63Fork} from '../support/she63-admission.js';
 import {test,expect} from '@playwright/test';
 installShe63Admission(test);
 import {writeFile} from 'node:fs/promises';
@@ -6,7 +6,7 @@ import {writeFile} from 'node:fs/promises';
 const route='/world/future-machine.html';
 const ready=page=>expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
 async function seek(page,month){const slider=page.getByTestId('future-machine-timeline');await slider.fill(String(month));await slider.dispatchEvent('change');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);}
-async function fork(page){await page.goto(route);await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);}
+async function fork(page){await paceShe63Fork(page);await page.goto(route);await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);}
 async function evidence(page,testInfo,name){
  const record=await page.evaluate(async()=>{const {firstDivergence,compareHistory}=await import('/world/future-machine/diff/index.js');const api=window.futureMachine,h=api.history,s=api.state,m=s.month;return {schemaVersion:'two-futures-browser-evidence.v1',selectedMonth:m,seed:h.seed,modelVersion:h.modelVersion,experimentId:h.experimentId,initialHash:h.initialHash,recipe:h.recipe,scenario:h.recipe,firstDivergence:(()=>{const stop=firstDivergence(h,compareHistory(h));return stop?{month:stop.month,...stop.entity}:null;})(),metrics:Object.entries(s.diff.metrics).map(([metricId,row])=>({metricId,...row})),evidenceRecords:h.plan.slice(0,m+1).flatMap(snapshot=>snapshot.events.filter(event=>event.eventType==='PROJECT_COMPLETE').map(event=>({arm:'plan',...event}))),provenance:h.provenance,baseline:h.baseline[m],plan:h.plan[m],diff:s.diff,scene:api.stats.scene,camera:api.stats.scene?.camera??null};});
  await writeFile(testInfo.outputPath(`${name}.json`),JSON.stringify(record,null,2));await page.screenshot({path:testInfo.outputPath(`${name}.png`),fullPage:true});return record;
