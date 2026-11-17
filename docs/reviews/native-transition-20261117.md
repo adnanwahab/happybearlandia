@@ -58,3 +58,15 @@ These expected negative-control failures are retained as failures, not acceptanc
 Real iOS Safari and Android hardware remain untested; WebKit and mobile emulation
 are not substitutes. No merge or deployment in this slice. Existing portal suite
 results and final publication reference follow below.
+
+Existing portal suite (Chromium desktop/mobile): **4 passed, 6 failed**, zero skips
+or flaky tests. Both delayed-style launch/Back cases pass on both profiles. Three
+cases per profile fail waiting for Future Machine's heading-focus marker after
+navigation; the page renders, but the marker is not the active element. These are
+real acceptance failures, retained without assertion changes. Artifacts:
+`/private/tmp/hbl-native-portal-20261117/run-IsE3lU/summary.json`.
+
+After the matrix, merged current #445 `dee3a44d` into this branch as `799309ab`;
+that base adds startup wiring in World and integration evidence, with no portal
+or Future Machine navigation changes. Combined latest-base verification belongs
+to the coordinating agent. No claim that all release acceptance passes.
