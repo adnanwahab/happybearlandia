@@ -1,3 +1,5 @@
+// Historical pre-fix capture receipt; deliberately never reports acceptance.
+// Current regression: bunx playwright test --config test/sidewalk-sync.browser.config.js
 // Known visibility blocker reproduction: captures an actual mapped-sidewalk trip.
 // Nonzero exit deliberately keeps visual acceptance open; matrix presence is insufficient.
 import{chromium,expect}from'@playwright/test';import{writeFile,mkdir}from'node:fs/promises';import{join}from'node:path';

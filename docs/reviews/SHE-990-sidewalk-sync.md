@@ -88,3 +88,45 @@ selection and after repause/camera movement are retained with coordinate JSON.
 Artifacts: `test-results/sidewalk-sync` under the isolated checkout. Earlier
 passing reduced assertions are superseded by this final result. Mobile is
 Chromium device emulation (390x844, DPR1, touch), not physical-device validation.
+
+Retained canonical controls/social rerun on final PR470 candidate981f7d8d:
+`HBL_BROWSER_BASE_URL=http://127.0.0.1:43195 HBL_BROWSER_ARTIFACT_DIR=/private/tmp/she990-final-controls/evidence bun --no-env-file test/she990-controls.browser-smoke.mjs`
+and the same command for `test/she990-social.browser-smoke.mjs`: controls19/19
+passed; Social→Talk passed (actor/target ledger, outcome and need delta). Both
+pageerror/GPU arrays empty. Owned server stopped after checks.
+
+The previous `she990-sidewalk-visibility-repro.mjs` is retained and explicitly
+labeled historical: it unconditionally reports non-acceptance and is not the
+current regression. Earlier failed observations have not been deleted.
+
+## Composed integration acceptance and review
+
+The fix was replayed onto PR470 without conflict:981f7d8d, preserving all four
+existing verification commits and actual `origin/main`c3ec93c5 ancestry. PR474
+already descends that same current remote base; its rebase would be a no-op.
+Never use the source checkout's unrelated local main/sprint as this base.
+
+Disposable composition `/private/tmp/hbl-she990-pr-review` adds PR474 commits
+8f5da6d2/1e259283/fbf4a2aa by conflict-free cherry-pick; candidate
+`1adcb31d7f9042f4a86d3b88967117f03d144d48`. No changes to PR474 or its worktree.
+
+- Focused combined unit command: `bun test test/simulation-playback.test.js test/human-renderer.test.js test/legacy-activity-history.test.js test/frame-work.test.js test/pedestrian-performance.test.js test/temporal*.test.js test/future-machine-neighborhood.test.js test/future-machine-resources.test.js test/future-machine-scrub-preview.test.js test/future-machine-scrub-identity.test.js test/future-machine-effects.test.js test/future-machine-scene.test.js test/first-interaction-budgets.test.js`
+  **87 passed,1 existing opt-in skip,0 failed,9804 assertions,16files,5.82s.**
+- `HBL_STARTUP_SMOKE_PORT=43189 ./node_modules/.bin/playwright test --config=test/startup-smoke.config.js --workers=1`: **6 passed,0 failed,3.4s**.
+  Startup pageerror arrays empty; this suite does not collect GPU console errors.
+- `bun --no-env-file scripts/verify-temporal-recovery.mjs`: **6 passed,0 failed,9.7s**.
+  Four integration cases assert empty JS/GPU arrays; includes canonical recovery.
+- `HBL_STARTUP_SMOKE_PORT=43189 ./node_modules/.bin/playwright test --config=test/sidewalk-sync.browser.config.js --workers=1`:
+  **2 passed,0 failed,0 skipped,30.0s**, desktop15.7s/mobile13.4s. JS/GPU arrays empty.
+  Seed3458994576; desktop walker547 paused error~0.000003m, running0.002536m,
+  Follow0.2251m; mobile931 paused~0.0000063m, running0.002995m, Follow0.2762m.
+  Both unselected BEFORE screenshots visually reviewed: body actually visible on
+  sidewalk. Final root desktop/mobile AFTER screenshots also visually reviewed.
+- Diff/whitespace checks passed. Independent review found the pause fix sound;
+  its requested running/Follow coverage was added and passed in both profiles.
+
+Artifacts live under each isolated checkout's `test-results/sidewalk-sync`,
+startup and temporal output paths. No reliability/physical-device claim.
+SHE-990's retained sidewalk blocker is resolved for these acceptance cases.
+PR474's strict performance targets still fail (see its own receipt); focused
+checks do not override that gate. Neither PR was merged or deployed.

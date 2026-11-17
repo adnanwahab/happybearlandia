@@ -1,3 +1,7 @@
+> Historical pre-fix receipt on main c3ec93c5. The retained blocker below is
+> superseded by the [sidewalk synchronization fix and acceptance](SHE-990-sidewalk-sync.md).
+> Preserve its failed observations; use the new Playwright regression for current acceptance.
+
 # SHE-990 real World verification — November 17
 
 Source: fresh `origin/main` c3ec93c5, isolated checkout. Canonical route:
