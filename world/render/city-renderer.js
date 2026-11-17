@@ -1,3 +1,4 @@
+import {mountShadowAtlas} from './shadow-atlas/panel.js';
 import {createStyleBridge,supportsStyleBridge} from './style-bridge.js';
 import {mountSeasonControls} from './environment/season-controls.js';
 import {simulationBudget,formatSimulationBudget} from './renderer/dual-budget.js';
@@ -46,6 +47,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   styleInput.disabled=!supportsStyleBridge(facades);
   styleInput.title=styleInput.disabled?'Style unavailable: no supported building materials':'Materials only; policy facts and geometry stay identical';
   styleInput.oninput=()=>api.setStyle(Number(styleInput.value));styleLabel.append(styleInput);panel.append(styleLabel);
+  const shadowAtlas=mountShadowAtlas(panel,town,hour=>api.setTimeOfDay(hour));
   const seasonControls=mountSeasonControls(panel,value=>{state.season=value;});
   panel.style.maxWidth='calc(100vw - 52px)';
   const select=panel.querySelector('[aria-label="Render quality"]');
@@ -110,7 +112,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     leaveCity(){active=false;renderer.domElement.style.visibility='hidden';},
     setPhotoMode(enabled){if(enabled&&!photoPreset){photoPreset=quality.preset;api.setQuality('ULTRA');}else if(!enabled&&photoPreset){const previous=photoPreset;photoPreset=null;api.setQuality(previous);}},
     beforeFrame(now,dt,daylight,selected,visuals={},motion={now,dt}){
-      if(disposed)return;applyQuality();
+      if(disposed)return;applyQuality();shadowAtlas.update(state.lighting);
       if(focus){const alpha=matchMedia('(prefers-reduced-motion: reduce)').matches?1:1-Math.exp(-dt*5);camera.position.lerp(focus.position,alpha);controls.target.lerp(focus.target,alpha);camera.lookAt(controls.target);if(camera.position.distanceTo(focus.position)<.1)focus=null;}
       if(benchmarkStart!=null){const seconds=(now-benchmarkStart)/1000;scriptedCamera(camera,controls,seconds);camera.lookAt(controls.target);if(seconds>=24)api.setTimeOfDay(22);if(seconds>=30)benchmarkStart=null;}
       construction.animate(motion.now,features.construction);
@@ -155,7 +157,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
         }
       }
     },
-    destroy(){if(disposed)return;disposed=true;seasonControls.destroy();gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();stormEffects.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
+    destroy(){if(disposed)return;disposed=true;shadowAtlas.destroy();seasonControls.destroy();gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();stormEffects.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
   };
   applyQuality();return api;
 }
