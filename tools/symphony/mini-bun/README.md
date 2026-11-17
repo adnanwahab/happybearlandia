@@ -23,7 +23,13 @@ Ctrl-C stops the current worker and records an interrupted attempt. Timeout defa
 Run `bun test tools/symphony/mini-bun/recovery.test.ts` from the repository root.
 Publication now resumes after commit, push, PR creation, or an interrupted
 `publishing` state. It checks for an existing matching PR before creation and
-holds closed PRs or divergent local work for review. Disabled and terminal
+holds closed PRs or divergent local work for review. A recovered open draft is
+made ready only when the same repository, branch, base, clean local tree and exact
+local/origin/PR head agree, then a fresh PR identity check still agrees. Failed
+ready calls remain publication failures and retry idempotently. This applies only
+to the specific task being published; it does not bulk-convert older drafts or
+enable GitHub auto-merge. CI, required reviews and branch protections still gate
+actual merging. Disabled and terminal
 Linear tasks are excluded from publication recovery and dispatch. `retry: true`
 can explicitly retry `no_changes` once per session. Final Codex responses are
 retained in `logs/<ID>.result.md`, including report-only outcomes and blockers.

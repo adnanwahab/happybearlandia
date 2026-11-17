@@ -1,6 +1,7 @@
 export type Command = (bin: string, args: string[], cwd: string) => { code: number; stdout: string; stderr: string };
 
 // Each step can be repeated after a crash without requiring a dirty worktree.
+// Historical export name retained: new PRs are regular, never created as drafts.
 export function publishDraft(command: Command, workspace: string, id: string, base: string, title: string, body: string | ((head:string)=>string), onResult?: (result: {url: string; reused: boolean}) => void) {
   const run = (bin: string, args: string[]) => {
     const result = command(bin, args, workspace);
@@ -12,18 +13,29 @@ export function publishDraft(command: Command, workspace: string, id: string, ba
   const branch = `mini/${id}`;
   if (run('git', ['branch', '--show-current']) !== branch) throw Error(`Expected branch ${branch}`);
   run('gh', ['auth', 'status', '-h', 'github.com']);
-  const existing = JSON.parse(run('gh', ['pr', 'list', '--state', 'all', '--head', branch, '--base', base, '--json', 'url,state,headRefName,baseRefName']));
+  const existing = JSON.parse(run('gh', ['pr', 'list', '--state', 'all', '--head', branch, '--base', base, '--json', 'url,state,headRefName,baseRefName,isDraft,headRefOid,isCrossRepository']));
   if (!Array.isArray(existing) || existing.length > 1) throw Error('Ambiguous existing pull requests');
   if (existing.length) {
     const pr = existing[0];
     if (pr.headRefName !== branch || pr.baseRefName !== base || !/^https:\/\/github\.com\//.test(pr.url)) throw Error('Invalid existing pull request');
     if (pr.state === 'CLOSED') throw Error('Existing pull request was closed without merging; review before retry');
     if (!['OPEN', 'MERGED'].includes(pr.state)) throw Error('Unknown pull request state');
+    if (pr.isCrossRepository !== false) throw Error('Existing PR is not a verified same-repository delivery');
     if (sourceStatus()) throw Error('Existing PR has additional local edits; review before publication');
     const remote = run('git', ['ls-remote', 'origin', `refs/heads/${branch}`]).split(/\s/)[0];
     const local = run('git', ['rev-parse', 'HEAD']);
     // A merged branch may have been deleted; its PR remains authoritative delivery evidence.
-    if (pr.state === 'OPEN' && remote !== local) throw Error('Existing PR head differs from local commit; review before publication');
+    if (pr.state === 'OPEN' && (remote !== local || pr.headRefOid !== local)) throw Error('Existing PR head differs from local commit; review before publication');
+    if (pr.state === 'OPEN') {
+      if (typeof pr.isDraft !== 'boolean') throw Error('Existing PR draft status is unavailable; retry before publication');
+      // Recovery may encounter a draft created by an older runner or a lost
+      // response. Only this exact clean branch/base/head has passed the guards.
+      if (pr.isDraft) {
+        const fresh = JSON.parse(run('gh', ['pr', 'view', pr.url, '--json', 'state,isDraft,headRefName,baseRefName,headRefOid,isCrossRepository']));
+        if (fresh.state !== 'OPEN' || fresh.headRefName !== branch || fresh.baseRefName !== base || fresh.isCrossRepository !== false || fresh.headRefOid !== local || typeof fresh.isDraft !== 'boolean') throw Error('Existing draft identity or head changed before ready; review before publication');
+        if (fresh.isDraft) run('gh', ['pr', 'ready', pr.url]);
+      }
+    }
     onResult?.({url: pr.url, reused: true});
     return pr.url as string;
   }
