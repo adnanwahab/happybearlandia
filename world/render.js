@@ -1,3 +1,4 @@
+import {mountDistrictTitle} from './district-title.js';
 import {mountInfrastructureScanner} from './infrastructure-scanner.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
@@ -552,6 +553,8 @@ cityRenderer.setSimulationSource(()=>livingWorld?.active?livingWorld.getSnapshot
 window.hblLivingWorld=livingWorld;
 const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
 addEventListener('pagehide',()=>neighborhoodWhatIf?.destroy(),{once:true});
+const districtTitle = !embedMode ? mountDistrictTitle({container:document.body,getPoint:()=>controls.target,getFrame:()=>livingWorld?.active&&!window.hblWorldTileViewActive&&livingWorld.getContext()?.buildings?.length?{context:livingWorld.getContext(),minute:livingWorld.getClockMinute()}:null}) : null;
+addEventListener('pagehide',()=>districtTitle?.destroy(),{once:true});
 window.hblWorldActivity={
  getSnapshot(){const snapshot=livingWorld?.active?livingWorld.getSnapshot():null;return livingWorld?.active?(snapshot?{...snapshot,mode:'living',peopleCount:snapshot.metrics?.syntheticPopulation??snapshot.population,people:snapshot.visibleAgents,runId:`${snapshot.runtime?.id}:${snapshot.runtime?.revision}`}:{mode:'living',peopleCount:null,minute:null,historyAvailable:false,runId:'living:resetting'}):world.getActivitySnapshot();},
  async getHistory(query={}){const source=window.hblWorldActivity.getSnapshot(),identity=source.runId;if(livingWorld?.active){const runtime=livingWorld.getRuntime();if(!runtime?.getActivityHistory)throw Error('Living history is not ready.');const history=await runtime.getActivityHistory(query);if(!livingWorld?.active||window.hblWorldActivity.getSnapshot().runId!==identity)throw Error('Activity source changed while history was loading; refresh the current run.');return {...history,runId:identity};}if(query.actorId)world.trackActivityPerson(query.actorId);const history=world.getActivityHistory(query);if(livingWorld?.active)throw Error('Activity source changed while history was loading.');return {...history,runId:identity};},
@@ -2467,7 +2470,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);cinematicCamera?.update(now);controls.update();
+  updateArrival(now);cinematicCamera?.update(now);controls.update();districtTitle?.update(now);
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
