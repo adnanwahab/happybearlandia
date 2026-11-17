@@ -16,13 +16,14 @@
     title.textContent=experience.title;description.textContent=experience.description;header.append(title,description);frame.setAttribute('src',experience.route);frame.dataset.previewSrc=experience.preview;frame.title=experience.title;section.append(header,frame);return section;
   });
   const countHeading = document.getElementById('experience-count');
-  if (countHeading) countHeading.textContent = `${sources.length} Interactive Worlds & Experiments`;
+  if (countHeading) { const count = countHeading.querySelector("#gallery-count"); if (count) count.textContent = String(sources.length); else countHeading.textContent = `${sources.length} Interactive Worlds & Experiments`; }
   let active = 0, queued = false, visible = true;
   const cards = sources.map((section, index) => {
     const source = section.querySelector('iframe');
     const title = section.querySelector('h2')?.textContent || source.title;
     const card = document.createElement('article');
     card.className = 'gallery-card';
+    card.dataset.experienceId = EXPERIENCES[index].id;
     card.dataset.category = section.dataset.carousel;
     card.setAttribute('role', 'group');
     card.setAttribute('aria-roledescription', 'slide');
@@ -32,10 +33,10 @@
     heading.textContent = title;
     const link = document.createElement('a');
     link.href = source.getAttribute('src');
-    link.target = '_blank';
+    if (['world', 'living-city', 'future-machine'].includes(EXPERIENCES[index].id)) link.dataset.portalId = EXPERIENCES[index].id;
     link.rel = 'noopener';
-    link.textContent = 'Open full page ↗';
-    link.setAttribute('aria-label', `Open ${title} in a new tab`);
+    link.textContent = 'Enter world →';
+    link.setAttribute('aria-label', `Enter ${title}`);
     header.append(heading, link);
     const viewport = document.createElement('div');
     viewport.className = 'gallery-viewport';

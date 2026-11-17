@@ -1,3 +1,4 @@
+import {LAYOUT_VERSION} from '../world/future-machine/scene/mapping.js';
 import {test,expect} from 'bun:test';
 import {createSpatialMapping} from '../world/future-machine/scene/mapping.js';
 import {createCanvasStage,canvasRows,canvasPoint,canvasViewports,hitTestCanvas,fitCanvasCamera} from '../world/future-machine/scene/canvas-stage.js';
@@ -33,7 +34,7 @@ test('fit handles empty data and sourced footprints, mode is bounded',()=>{
  expect(hitTestCanvas([row],209,209,{x:0,z:0,zoom:1},{x:0,width:400,height:400})).toBe(null);
 });
 test('stage preserves camera across time/mode and synchronously draws with no motion loop',()=>{
- const f=fixture(),stage=createCanvasStage(f.container);stage.update(projection(),diff);expect(f.fills).toBeGreaterThan(0);
+ const f=fixture(),stage=createCanvasStage(f.container);stage.update(projection(),diff);expect(stage.getStats().layoutVersion).toBe(LAYOUT_VERSION);expect(f.fills).toBeGreaterThan(0);
  stage.setCamera({x:10,z:20,zoom:2});stage.setMode('difference');stage.setGhosts(false);
  const p=projection();p.month=120;stage.update(p,diff);expect(stage.getCamera()).toEqual({x:10,z:20,zoom:2});expect(stage.getStats().month).toBe(120);expect(stage.getStats().animationFrames).toBe(0);expect(stage.getStats().objects).toBe(1);
  expect(()=>stage.setCamera({x:0,z:NaN,zoom:1})).toThrow();expect(()=>stage.setMode('bad')).toThrow();
@@ -67,4 +68,67 @@ test('context and initial draw exceptions release every owned node and listener'
  for(const getContext of [()=>null,()=>{throw Error('context denied');},()=>({setTransform(){throw Error('draw denied');}})]){
   const f=fixture();f.canvas.getContext=getContext;expect(()=>createCanvasStage(f.container)).toThrow();expect(f.removed).toBe(true);expect(f.handlers.size).toBe(0);
  }
+});
+
+test('cross-scale focus widens then closes around the same exact shared entity',()=>{
+ const f=fixture(),stage=createCanvasStage(f.container);stage.update(projection(),diff);
+ const entity={collection:'buildings',id:'b'};
+ expect(stage.focus(entity,{scale:'neighborhood'})).toBe(true);const wide=stage.getCamera();
+ expect(stage.focus(entity,{scale:'building'})).toBe(true);const close=stage.getCamera();
+ expect(close.x).toBe(wide.x);expect(close.z).toBe(wide.z);expect(close.zoom).toBeGreaterThan(wide.zoom);
+ expect(stage.focus({collection:'buildings',id:'missing'},{scale:'building'})).toBe(false);expect(stage.getCamera()).toEqual(close);stage.dispose();
+});
+
+test('resolution preset reverses backing cost without changing inventory, camera or inputs',()=>{
+ const f=fixture(),stage=createCanvasStage(f.container),p=projection();
+ stage.update(p,diff);stage.setCamera({x:10,z:20,zoom:2});stage.setPixelRatio(1.5);
+ const before={camera:stage.getCamera(),stats:stage.getStats(),input:JSON.stringify({p,diff})};
+ expect(f.canvas.width).toBe(1200);
+ stage.setPixelRatio(.75);expect(f.canvas.width).toBe(600);expect(f.canvas.height).toBe(300);
+ expect({camera:stage.getCamera(),stats:stage.getStats(),input:JSON.stringify({p,diff})}).toEqual(before);
+ stage.setPixelRatio(1.5);expect(f.canvas.width).toBe(1200);
+ expect({camera:stage.getCamera(),stats:stage.getStats(),input:JSON.stringify({p,diff})}).toEqual(before);
+ for(const value of [0,-1,NaN,Infinity,3])expect(()=>stage.setPixelRatio(value)).toThrow();
+ stage.dispose();stage.setPixelRatio(.75);expect(f.canvas.width).toBe(0);
+});
+
+
+test('only user camera gestures trigger manual takeover, never programmatic framing',()=>{
+ const f=fixture();let interactions=0;const stage=createCanvasStage(f.container,{onCameraInteraction:()=>interactions++});
+ stage.update(projection(),diff);stage.focus({collection:'buildings',id:'b'},{scale:'neighborhood'});stage.setCamera({x:0,z:0,zoom:2});stage.setMode('split');
+ expect(interactions).toBe(0);
+ f.emit('wheel',{deltaY:-20});f.emit('keydown',{key:'ArrowRight'});f.emit('pointerdown',{pointerId:1,clientX:200,clientY:200});
+ expect(interactions).toBe(3);f.emit('keydown',{key:'PageUp'});f.emit('wheel',{deltaY:NaN});expect(interactions).toBe(3);
+ stage.dispose();f.emit('wheel',{deltaY:-20});expect(interactions).toBe(3);
+});
+
+test('curtain uses a common full-width projection and routes picks only to the revealed arm',()=>{
+ const f=fixture(),p=projection(),selected=[],stage=createCanvasStage(f.container,{onSelect:e=>selected.push(e)});
+ stage.update(p,diff);stage.setGhosts(false);stage.setCamera({x:0,z:0,zoom:2});const before=JSON.stringify(p),camera=stage.getCamera();
+ stage.setCurtain(.75);f.emit('pointerdown',{pointerId:1,clientX:400,clientY:200});f.emit('pointerup',{pointerId:1,clientX:400,clientY:200});
+ expect(selected.at(-1)).toEqual({collection:'buildings',id:'a',arm:'baseline'});
+ stage.setCurtain(.25);f.emit('pointerdown',{pointerId:2,clientX:400,clientY:200});f.emit('pointerup',{pointerId:2,clientX:400,clientY:200});
+ expect(selected.at(-1)).toEqual({collection:'buildings',id:'a',arm:'plan'});
+ expect(stage.getCamera()).toEqual(camera);expect(JSON.stringify(p)).toBe(before);stage.setCurtain(null);stage.dispose();
+});
+
+test('painted Canvas targets remain selectable after pan, mode changes and partial viewport clipping',()=>{
+ const f=fixture(),selections=[],stage=createCanvasStage(f.container,{onSelect:row=>selections.push(row)}),p=projection(),before=JSON.stringify(p);
+ stage.update(p,diff);stage.setCamera({x:-18,z:0,zoom:5}); // b center is outside the plan half; its left edge is painted.
+ stage.setMode('difference');stage.setMode('split');
+ const target=stage.getStats().targets.find(row=>row.id==='b'&&row.arm==='plan');
+ expect(target).toBeTruthy();expect(target.x).toBeGreaterThan(400);expect(target.x).toBeLessThan(800);expect(target.y).toBeLessThan(356);
+ f.emit('pointerdown',{pointerId:9,clientX:target.x,clientY:target.y});f.emit('pointerup',{pointerId:9,clientX:target.x,clientY:target.y});
+ expect(selections).toEqual([{collection:'buildings',id:'b',arm:'plan'}]);
+ expect(stage.getStats().targets.some(row=>row.id==='b'&&row.arm==='baseline')).toBe(false);
+ expect(stage.getCamera()).toEqual({x:-18,z:0,zoom:5});expect(JSON.stringify(p)).toBe(before);
+ stage.setCamera({x:-10000,z:0,zoom:5});expect(stage.getStats().targets).toEqual([]);
+ stage.update(null,null);expect(stage.getStats().targets).toEqual([]);stage.dispose();expect(stage.getStats().targets).toEqual([]);
+});
+test('Canvas targets use painted polygon interiors and honor curtain clipping',()=>{
+ const f=fixture(),selections=[],stage=createCanvasStage(f.container,{onSelect:row=>selections.push(row)});
+ const row={id:'triangle',collection:'buildings',x:5,z:5,polygon:[[0,0],[10,0],[0,10]]};stage.update({month:1,a:[],b:[row]},null);stage.setCamera({x:-65,z:0,zoom:3});
+ stage.setCurtain(.75);const target=stage.getStats().targets.find(row=>row.arm==='plan');expect(target).toBeTruthy();expect(target.x).toBeGreaterThanOrEqual(600);
+ f.emit('pointerdown',{pointerId:2,clientX:target.x,clientY:target.y});f.emit('pointerup',{pointerId:2,clientX:target.x,clientY:target.y});
+ expect(selections).toEqual([{collection:'buildings',id:'triangle',arm:'plan'}]);stage.dispose();
 });

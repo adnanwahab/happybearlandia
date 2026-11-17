@@ -1,3 +1,4 @@
+import {renderSocialNetwork} from './network-ui.js';
 import {renderCityTraditions} from './city-traditions-ui.js';
 import {SOCIAL_ACTIONS} from './model.js';
 const time=minute=>`day ${Math.floor(minute/1440)+1} at ${String(Math.floor(minute%1440/60)).padStart(2,'0')}:${String(Math.floor(minute%60)).padStart(2,'0')}`;
@@ -7,6 +8,7 @@ export function renderRelationships(container,social,{onInteract,onSelect,onRefr
  const add=(tag,text,parent=container)=>{const el=doc.createElement(tag);el.textContent=text;parent.append(el);return el;};
  const status=add('p','');status.setAttribute('role','status');status.setAttribute('aria-live','polite');let pending=false;
  async function act(target,action){if(pending)return;pending=true;const buttons=[...container.querySelectorAll('button')];for(const b of buttons)b.disabled=true;try{const result=await onInteract(target,action);renderRelationships(container,result.social,{onInteract,onSelect,onRefresh});container.querySelector('[role="status"]').textContent=result.text;}catch(error){status.textContent=error.message;}finally{pending=false;for(const b of buttons)b.disabled=false;}}
+ if(social.network)renderSocialNetwork(add('section',''),social.network,{onSelect});
  add('h3','Personal goals');
  for(const goal of social.goals??[]){const row=add('div','');add('p',`${goal.completed?'✓ Completed: ':''}${goal.title}`,row);if(!goal.completed){add('small',goal.help,row);if(social.adult){const button=add('button','Arrange park meetup',row);button.type='button';button.disabled=!social.meetingAvailable;button.onclick=()=>act(goal.targetId,'promise');}}}
  if(!social.goals?.length)add('p','Meet someone nearby to start a shared story.');

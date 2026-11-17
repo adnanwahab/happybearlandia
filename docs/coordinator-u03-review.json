@@ -1,0 +1,8 @@
+{
+  "reviewedBy": "continuous-coordinator",
+  "notes": "Reviewed ef1339b two-file scoped candidate; independent three actual browser runs pass Canvas2D, WebGL and Metal WebGPU. Stable object counts across two stage generations and repeated scrub/focus; zero disposed canvas listeners/canvases/objects. Native before-dispose PNG visually inspected. No product change. Candidate approved for pipeline checks, not marked VERIFIED.",
+  "modelChecks": "Matched Month0 at seed42, same initialHash across generations, Month120 +24 homes, same metrics through repeated scrubs. No City engine changes. No unbounded memory or FPS claim.",
+  "screenshots": [
+    "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--87a98-posal-resource-measurements/preferred-before-dispose.png"
+  ]
+}

@@ -1,0 +1,38 @@
+import {test,expect} from '@playwright/test';
+
+test('preview copies the displayed run and opens exact inputs, month and camera in a fresh page',async({page,context},info)=>{
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(()=>{window.copiedLinks=[];Object.defineProperty(navigator,'clipboard',{value:{writeText:async url=>window.copiedLinks.push(url)}});});
+  await page.goto('/world/future-machine.html?renderer=canvas');
+  await page.getByTestId('future-machine-seed').fill('0');
+  await page.getByTestId('future-machine-seed').dispatchEvent('change');
+  await page.getByRole('button',{name:'Fork City',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.status),{timeout:90000}).toBe('ready');
+  await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('canvas2d');
+  await page.getByTestId('future-machine-timeline').fill('73');
+  await page.getByTestId('future-machine-timeline').dispatchEvent('input');
+  await page.getByRole('button',{name:'Difference-only',exact:true}).click();
+  await page.getByRole('button',{name:/building-d1 · schematic/}).first().click();
+  const before=await page.evaluate(()=>({recipe:futureMachine.history.recipe,camera:futureMachine.stats.scene.camera,month:futureMachine.state.month}));
+  await page.getByTestId('future-machine-seed').fill('999');
+  await page.getByTestId('future-machine-seed').dispatchEvent('change');
+  await page.getByRole('button',{name:'Preview comparison link',exact:true}).click();
+  const preview=page.getByRole('region',{name:'Comparison permalink preview'});
+  await expect(preview).toBeVisible();await expect(preview).toContainText('Seed 0 · Month 73');
+  expect(await page.evaluate(()=>copiedLinks)).toEqual([]);
+  const href=await preview.getByRole('link',{name:'Open previewed comparison'}).getAttribute('href');
+  await preview.getByRole('button',{name:'Copy previewed link'}).click();
+  expect(await page.evaluate(()=>copiedLinks)).toEqual([href]);
+  await page.evaluate(()=>{navigator.clipboard.writeText=async()=>{throw new Error('Clipboard denied');};});
+  await preview.getByRole('button',{name:'Copy previewed link'}).click();
+  await expect(page.locator('.fm-status')).toContainText('Copy unavailable');
+  await expect(preview.getByRole('link')).toHaveAttribute('href',href);
+  const target=await context.newPage();target.on('pageerror',error=>errors.push(error.message));await target.goto(href);
+  await expect.poll(()=>target.evaluate(()=>window.futureMachine.state.status),{timeout:90000}).toBe('ready');
+  await expect.poll(()=>target.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('canvas2d');
+  expect(await target.evaluate(()=>({recipe:futureMachine.history.recipe,camera:futureMachine.stats.scene.camera,month:futureMachine.state.month}))).toEqual(before);
+  expect(await target.evaluate(()=>futureMachine.state.mode)).toBe('difference');
+  expect(await target.evaluate(()=>futureMachine.state.playing)).toBe(false);
+  expect(errors).toEqual([]);
+  await page.screenshot({path:info.outputPath('preview.png'),fullPage:true});
+});

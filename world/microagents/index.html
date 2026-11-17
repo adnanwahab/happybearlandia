@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Architecture A microagent spike</title>
+<h1>Flat WebGPU microagent spike</h1>
+<p>Synthetic integer contact model. Fixed positions; up to eight directed contacts in the same cell per tick. No cognition, rendering, long-range graph or calibrated city rules. Runs 10k, 100k and 1M rows for three ticks. Results include readback overhead separately from GPU timestamps.</p>
+<button id="run">Run benchmark</button> <button id="save" disabled>Download JSON</button><pre id="output">Ready</pre>
+<script type="module">
+import { benchmark } from './benchmark.js';
+let report;
+run.onclick=async()=>{run.disabled=true;output.textContent='Running…';try {report=await benchmark();output.textContent=JSON.stringify(report,null,2);save.disabled=false;}catch(e){output.textContent=String(e);}finally{run.disabled=false;}};
+save.onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='architecture-a.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+</script></html>

@@ -1,5 +1,5 @@
 /** All coefficients are illustrative assumptions, not calibrated city forecasts. */
-export const VERSION = 'city-systems.1.0.0';
+export const VERSION = 'city-systems.1.1.0';
 export const CONTRACTS = Object.freeze(Object.fromEntries(['CityState','SystemState','MarketProposal','MarketResolution','CapacityConstraint','ResourceFlow','CityObservation','SystemEvent'].map(id => [id, `${id}.v1`])));
 export const housingProjectBuildingId = projectId => `building-${projectId}`;
 export const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
@@ -75,5 +75,14 @@ export function validateState(s) {
   }
   for(const w of s.workers) if(w.jobId && !s.jobs.some(j=>j.id===w.jobId && j.workerId===w.id)) throw new Error('Worker job invariant');
   if (s.households.some(h=>h.size<1) || s.finance.debt<0 || !Number.isFinite(s.finance.balance)) throw new Error('City stability invariant');
+  if(s.residents!==undefined){
+    if(!Array.isArray(s.residents)||new Set(s.residents.map(r=>r.id)).size!==s.residents.length)throw new Error('Invalid resident identity');
+    for(const r of s.residents){
+      if(typeof r.id!=='string'||!r.id||!['active','departed'].includes(r.status)||!Number.isInteger(r.sinceMonth)||r.sinceMonth<0||r.sinceMonth>s.month||!Array.isArray(r.memories)||!Array.isArray(r.relationships)||!Array.isArray(r.goals)||r.goals.length!==2||!r.needs||['housing','livelihood','social'].some(k=>!Number.isFinite(r.needs[k])||r.needs[k]<0||r.needs[k]>100))throw new Error('Invalid resident state');
+      if(r.status==='active'&&(!households.has(r.householdId)||!workers.has(r.workerId)))throw new Error('Unknown resident household/worker');
+      for(const tie of r.relationships)if(!s.residents.some(other=>other.id===tie.residentId)||!Number.isFinite(tie.strength)||tie.strength<0||tie.strength>100)throw new Error('Invalid resident relationship');
+      for(const memory of r.memories)if(!Number.isInteger(memory.month)||memory.month<r.sinceMonth||memory.month>s.month||typeof memory.eventId!=='string'||typeof memory.ruleId!=='string')throw new Error('Invalid resident memory');
+    }
+  }
   return true;
 }

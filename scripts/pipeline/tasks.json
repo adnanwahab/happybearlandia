@@ -53,21 +53,25 @@
       ]
     },
     "U02": {
-      "kind": "verification",
+      "kind": "feature",
       "dependencies": [
         "R01"
       ],
       "files": [
         "test/e2e/pipeline-resize.e2e.js",
-        "test/pipeline-resize.browser.config.js"
+        "test/pipeline-resize.browser.config.js",
+        "world/future-machine/scene/canvas-stage.js"
       ],
-      "interfaces": [],
-      "userFacing": false,
+      "interfaces": [
+        "canvas-label-layout"
+      ],
+      "userFacing": true,
       "tests": [
         [
           "bun",
           "test",
-          "test/future-machine-scene.test.js"
+          "test/future-machine-scene.test.js",
+          "test/future-machine-canvas.test.js"
         ]
       ],
       "browserTests": [

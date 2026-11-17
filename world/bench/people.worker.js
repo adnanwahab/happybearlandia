@@ -1,3 +1,4 @@
+import {peopleBenchmarkContext} from './people-context.js';
 import {createPopulationModel,stepPopulation,snapshotPopulation} from '../population/model.js';
 const send=(type,data={})=>postMessage({type,protocol:'hbl-worker.v1',...data});
 send('WORKER_READY');
@@ -12,7 +13,7 @@ onmessage=({data})=>{
  if(!Number.isInteger(days)||days<1||days>31){send('TASK_ERROR',{taskId,error:'Days must be 1–31.'});return;}
  try{
   send('TASK_START',{taskId,kind:'measured-population-benchmark'});
-  const start=performance.now(),worldContext={id:'explicit-synthetic-benchmark',districts:[{id:'home',label:'Synthetic home district',x:0,z:0,transit:.6,services:.7},{id:'jobs',label:'Synthetic employment district',x:1800,z:0,transit:.8,services:.8}],provenance:{type:'synthetic-benchmark',calibrated:false}},model=createPopulationModel(config,worldContext),generated=performance.now(),durations=[];
+  const start=performance.now(),worldContext=peopleBenchmarkContext(),model=createPopulationModel(config,worldContext),generated=performance.now(),durations=[];
   const initial=snapshotPopulation(model,{visibleLimit:0}),loopStart=performance.now();
   for(let tick=1;tick<=days*24;tick++){const at=performance.now();stepPopulation(model,{tick,minutes:60});durations.push(performance.now()-at);if(tick%6===0)send('TASK_PROGRESS',{taskId,progress:tick/(days*24)});}
   const stepped=performance.now(),snapshot=snapshotPopulation(model,{visibleLimit:100}),snapshotted=performance.now();

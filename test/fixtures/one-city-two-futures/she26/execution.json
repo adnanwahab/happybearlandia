@@ -1,0 +1,63 @@
+{
+  "issue": "SHE-26",
+  "sourceCommit": "b963dd353538294cb0fbf5d34d5283fad6e10e68",
+  "branch": "mini/SHE-26",
+  "status": "blocked-before-browser-start",
+  "scenario": {
+    "seed": 42,
+    "households": 30,
+    "months": 120,
+    "intervention": {
+      "type": "housing",
+      "districtId": "d1",
+      "amount": 24,
+      "cost": 1000000,
+      "delay": 0,
+      "compliance": 1
+    },
+    "note": "Configured expectations only; no model outcomes measured in this session."
+  },
+  "checks": {
+    "playwrightDiscovery": {
+      "passed": true,
+      "tests": 5
+    },
+    "nodeSyntax": {
+      "passed": true,
+      "files": [
+        "test/e2e/one-city-two-futures.e2e.js",
+        "scripts/record-one-city-two-futures.mjs"
+      ]
+    },
+    "diffWhitespace": {
+      "passed": true
+    },
+    "browserCommand": {
+      "exitCode": 1,
+      "testsExecuted": 0,
+      "log": "browser-startup.log"
+    },
+    "recordingCommand": {
+      "exitCode": 1,
+      "log": "recording-startup.log"
+    },
+    "socketProbe": {
+      "exitCode": 1,
+      "error": "PermissionError: [Errno 1] Operation not permitted",
+      "log": "socket-probe.log"
+    }
+  },
+  "measuredMetrics": null,
+  "screenshots": [],
+  "videos": [],
+  "traces": [],
+  "consoleErrors": null,
+  "commit": null,
+  "publication": null,
+  "blockers": [
+    "Local socket binding denied by sandbox; Bun reports EADDRINUSE even on alternate ports.",
+    "git add denied creating shared worktree index.lock; no commit or requested branch change possible.",
+    "Requested existing world-first-run.e2e.js absent."
+  ],
+  "nextAction": "On trusted host, review the diff, commit on the intended worker branch, run the named acceptance and recording commands, visually inspect screenshots and video, and report actual failures to coordinator before PR."
+}

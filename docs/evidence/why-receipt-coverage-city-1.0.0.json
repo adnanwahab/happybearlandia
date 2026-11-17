@@ -1,0 +1,6595 @@
+{
+  "schemaVersion": "why-receipt-coverage.v1",
+  "protocol": "docs/why-receipt-coverage.md",
+  "evidence": "Local deterministic synthetic recomputation; receipt presence is not causal completeness.",
+  "sourceDigestEncoding": "SHA-256 of canonical JSON string of UTF-8 source text",
+  "sources": {
+    "scripts/why-receipt-coverage.js": "2cb1288104889715199b0f39daa3d88c92e8b90156ed0b9ba0e5ce8bfcd50d21",
+    "docs/why-receipt-coverage.md": "4327a9441bafb5059d5aef7e32b3e4f3ca0102d705488ba77fb161a8c78473ee",
+    "world/city/engine.js": "503dd883295b6f123cf63e14e31fca28d439b202941e8d872fd40efc82d7893a",
+    "world/city/systems.js": "56419b92a95d8b828c16e1ce53694cb38d02adcc013f722c0d1ee3afdf60fdab",
+    "world/city/contracts.js": "9a90cec8995f323f9654ca5435fc122a69d3c8e501b5c20648264bea23b2787a",
+    "world/city/seed.js": "cfdf7f11804c626cb84296d574cf0135691857a0400a6f982a40d138b4fb94c7",
+    "world/future-machine/contracts.js": "6d9a1dc5996e82178685e8cda49ef05691c5f37cbe75c9bc73b55b3516ce189c",
+    "world/future-machine/data/index.js": "313bd3687c10304dd17d24df6e2299ba914e2c52f3f8b8791c9795fa635d13ce",
+    "world/future-machine/diff/core.js": "a953f8775e637a49301130d958e947d25017cb0a14b2e58fd79fdbff95d4d321",
+    "world/future-machine/story/index.js": "29c151e3c24810228a1f30b6abd35b6f34c5eac28b69af14ffc83febe5c81e39",
+    "world/future-machine/evidence.js": "ddf5e8b8c58e9cabc15d3f974285597346f30b5050870c25041e661cbd932086"
+  },
+  "runs": [
+    {
+      "seed": 42,
+      "arm": "baseline",
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 42,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "modelVersion": "city-systems.1.0.0",
+      "manifest": [
+        {
+          "id": "environment",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": []
+        },
+        {
+          "id": "governance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "environment"
+          ]
+        },
+        {
+          "id": "utilities",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "governance"
+          ]
+        },
+        {
+          "id": "development",
+          "version": "city-systems.1.0.0",
+          "cadence": 3,
+          "dependencies": [
+            "utilities"
+          ]
+        },
+        {
+          "id": "construction",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "development"
+          ]
+        },
+        {
+          "id": "transport",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "construction"
+          ]
+        },
+        {
+          "id": "businesses",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "transport"
+          ]
+        },
+        {
+          "id": "jobs",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "businesses"
+          ]
+        },
+        {
+          "id": "housing",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "jobs"
+          ]
+        },
+        {
+          "id": "services",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "housing"
+          ]
+        },
+        {
+          "id": "demographics",
+          "version": "city-systems.1.0.0",
+          "cadence": 12,
+          "dependencies": [
+            "services"
+          ]
+        },
+        {
+          "id": "finance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "demographics"
+          ]
+        }
+      ],
+      "provenance": {
+        "type": "synthetic-assumption",
+        "datasetVersion": "future-machine-synthetic.v1",
+        "populationSnapshot": "synthetic-42-30",
+        "worldRevision": "seed.v1",
+        "confidence": "low",
+        "assumptions": [
+          "Synthetic City inventory; no geographic coordinates.",
+          "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+          "Illustrative monthly equations, not an empirical forecast."
+        ]
+      },
+      "initialHash": "e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe",
+      "terminalHash": "01a6dd803a136222d6afae2f8ec0d24e079c1a3acc6d5234bffdf13ee558b732",
+      "ledgerHash": "20f1f48775168648f7c5009b83b82e450078cc4e3c18efd840e81856baf333b4",
+      "changedEntities": 345,
+      "coveredEntities": 91,
+      "entityCoverage": 0.263768115942029,
+      "transitions": 7798,
+      "coveredTransitions": 2237,
+      "transitionCoverage": 0.2868684278020005,
+      "byChangeType": [
+        {
+          "collection": "districts",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "modified",
+          "changedEntities": 3,
+          "coveredEntities": 3,
+          "entityCoverage": 1,
+          "transitions": 316,
+          "coveredTransitions": 316,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "modified",
+          "changedEntities": 36,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 874,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 874,
+          "uncoveredFields": [
+            "daysVacant",
+            "householdId",
+            "rent",
+            "status"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-0",
+              "kind": "modified",
+              "fields": [
+                "daysVacant",
+                "householdId",
+                "rent",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-10",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-11",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "households",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 26,
+          "entityCoverage": 0.8666666666666667,
+          "transitions": 3600,
+          "coveredTransitions": 1737,
+          "transitionCoverage": 0.4825,
+          "uncoveredTransitions": 1863,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "housingBurden",
+            "income",
+            "leaseUntil",
+            "savings",
+            "unitId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-0",
+              "kind": "modified",
+              "fields": [
+                "districtId",
+                "housingBurden",
+                "income",
+                "leaseUntil",
+                "savings",
+                "unitId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-10",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-11",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "workers",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 582,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 582,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "jobId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-0",
+              "kind": "modified",
+              "fields": [
+                "districtId",
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-10",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-11",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "businesses",
+          "kind": "added",
+          "changedEntities": 45,
+          "coveredEntities": 45,
+          "entityCoverage": 1,
+          "transitions": 45,
+          "coveredTransitions": 45,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "modified",
+          "changedEntities": 48,
+          "coveredEntities": 45,
+          "entityCoverage": 0.9375,
+          "transitions": 360,
+          "coveredTransitions": 45,
+          "transitionCoverage": 0.125,
+          "uncoveredTransitions": 315,
+          "uncoveredFields": [
+            "badMonths",
+            "cost",
+            "demand",
+            "employees",
+            "viability"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d0",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d1",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d2",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "added",
+          "changedEntities": 135,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 135,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 135,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-0",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-1",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-2",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "removed",
+          "changedEntities": 150,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 150,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 150,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "modified",
+          "changedEntities": 159,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 1065,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 1065,
+          "uncoveredFields": [
+            "wage",
+            "workerId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "links",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 109,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 109,
+          "uncoveredFields": [
+            "closed",
+            "flow",
+            "travelTime"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d1",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d2",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d1-d0",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "facilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "modified",
+          "changedEntities": 15,
+          "coveredEntities": 14,
+          "entityCoverage": 0.9333333333333333,
+          "transitions": 294,
+          "coveredTransitions": 94,
+          "transitionCoverage": 0.3197278911564626,
+          "uncoveredTransitions": 200,
+          "uncoveredFields": [
+            "accessibility",
+            "demand",
+            "utilization"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "healthcare-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "library-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "utilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 268,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 268,
+          "uncoveredFields": [
+            "demand",
+            "effectiveCapacity",
+            "reserve"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d0",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d1",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d2",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "projects",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        }
+      ],
+      "constructionExample": null
+    },
+    {
+      "seed": 42,
+      "arm": "plan",
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 42,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "modelVersion": "city-systems.1.0.0",
+      "manifest": [
+        {
+          "id": "environment",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": []
+        },
+        {
+          "id": "governance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "environment"
+          ]
+        },
+        {
+          "id": "utilities",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "governance"
+          ]
+        },
+        {
+          "id": "development",
+          "version": "city-systems.1.0.0",
+          "cadence": 3,
+          "dependencies": [
+            "utilities"
+          ]
+        },
+        {
+          "id": "construction",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "development"
+          ]
+        },
+        {
+          "id": "transport",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "construction"
+          ]
+        },
+        {
+          "id": "businesses",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "transport"
+          ]
+        },
+        {
+          "id": "jobs",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "businesses"
+          ]
+        },
+        {
+          "id": "housing",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "jobs"
+          ]
+        },
+        {
+          "id": "services",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "housing"
+          ]
+        },
+        {
+          "id": "demographics",
+          "version": "city-systems.1.0.0",
+          "cadence": 12,
+          "dependencies": [
+            "services"
+          ]
+        },
+        {
+          "id": "finance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "demographics"
+          ]
+        }
+      ],
+      "provenance": {
+        "type": "synthetic-assumption",
+        "datasetVersion": "future-machine-synthetic.v1",
+        "populationSnapshot": "synthetic-42-30",
+        "worldRevision": "revision-1",
+        "confidence": "low",
+        "assumptions": [
+          "Synthetic City inventory; no geographic coordinates.",
+          "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+          "Illustrative monthly equations, not an empirical forecast."
+        ]
+      },
+      "initialHash": "bd0a2bd3f9979c530f9679439403983500cf21db4f510bc2eca18a2f68ece807",
+      "terminalHash": "42b1803ae6610646394412c354519e594594ab0fd7310ca47962b55ce1eee742",
+      "ledgerHash": "8bf77a2c3cbffec50ba712746a1feacc033bcae99254f24fe6a32618c43821a8",
+      "changedEntities": 416,
+      "coveredEntities": 99,
+      "entityCoverage": 0.23798076923076922,
+      "transitions": 10643,
+      "coveredTransitions": 1083,
+      "transitionCoverage": 0.10175702339565912,
+      "byChangeType": [
+        {
+          "collection": "districts",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "modified",
+          "changedEntities": 3,
+          "coveredEntities": 3,
+          "entityCoverage": 1,
+          "transitions": 290,
+          "coveredTransitions": 252,
+          "transitionCoverage": 0.8689655172413793,
+          "uncoveredTransitions": 38,
+          "uncoveredFields": [
+            "footTraffic",
+            "housingPressure"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 70,
+              "collection": "districts",
+              "id": "d0",
+              "kind": "modified",
+              "fields": [
+                "footTraffic",
+                "housingPressure"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 71,
+              "collection": "districts",
+              "id": "d0",
+              "kind": "modified",
+              "fields": [
+                "footTraffic",
+                "housingPressure"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 72,
+              "collection": "districts",
+              "id": "d0",
+              "kind": "modified",
+              "fields": [
+                "housingPressure"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "parcels",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "added",
+          "changedEntities": 1,
+          "coveredEntities": 1,
+          "entityCoverage": 1,
+          "transitions": 1,
+          "coveredTransitions": 1,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "added",
+          "changedEntities": 24,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 24,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 24,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 16,
+              "collection": "units",
+              "id": "project-policy-1-0-unit-0",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 16,
+              "collection": "units",
+              "id": "project-policy-1-0-unit-1",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 16,
+              "collection": "units",
+              "id": "project-policy-1-0-unit-10",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "units",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "modified",
+          "changedEntities": 60,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 3475,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 3475,
+          "uncoveredFields": [
+            "daysVacant",
+            "householdId",
+            "rent",
+            "status"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-0",
+              "kind": "modified",
+              "fields": [
+                "daysVacant",
+                "householdId",
+                "rent",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-10",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-11",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "households",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 25,
+          "entityCoverage": 0.8333333333333334,
+          "transitions": 3600,
+          "coveredTransitions": 651,
+          "transitionCoverage": 0.18083333333333335,
+          "uncoveredTransitions": 2949,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "housingBurden",
+            "income",
+            "leaseUntil",
+            "savings",
+            "unitId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-0",
+              "kind": "modified",
+              "fields": [
+                "districtId",
+                "housingBurden",
+                "income",
+                "leaseUntil",
+                "savings",
+                "unitId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-10",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-11",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "workers",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 643,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 643,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "jobId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-0",
+              "kind": "modified",
+              "fields": [
+                "districtId",
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-10",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-11",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "businesses",
+          "kind": "added",
+          "changedEntities": 56,
+          "coveredEntities": 56,
+          "entityCoverage": 1,
+          "transitions": 56,
+          "coveredTransitions": 56,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "modified",
+          "changedEntities": 59,
+          "coveredEntities": 55,
+          "entityCoverage": 0.9322033898305084,
+          "transitions": 447,
+          "coveredTransitions": 55,
+          "transitionCoverage": 0.12304250559284116,
+          "uncoveredTransitions": 392,
+          "uncoveredFields": [
+            "badMonths",
+            "cost",
+            "demand",
+            "employees",
+            "viability"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d0",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d1",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d2",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "added",
+          "changedEntities": 168,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 168,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 168,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-0",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-1",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-2",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "removed",
+          "changedEntities": 180,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 180,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 180,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "modified",
+          "changedEntities": 192,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 1296,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 1296,
+          "uncoveredFields": [
+            "wage",
+            "workerId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "links",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 98,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 98,
+          "uncoveredFields": [
+            "closed",
+            "flow",
+            "travelTime"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d1",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d2",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d1-d0",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "facilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "modified",
+          "changedEntities": 15,
+          "coveredEntities": 10,
+          "entityCoverage": 0.6666666666666666,
+          "transitions": 179,
+          "coveredTransitions": 64,
+          "transitionCoverage": 0.3575418994413408,
+          "uncoveredTransitions": 115,
+          "uncoveredFields": [
+            "accessibility",
+            "demand",
+            "utilization"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "healthcare-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "library-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "utilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 168,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 168,
+          "uncoveredFields": [
+            "demand",
+            "effectiveCapacity",
+            "reserve"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d0",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d1",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d2",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "projects",
+          "kind": "added",
+          "changedEntities": 1,
+          "coveredEntities": 1,
+          "entityCoverage": 1,
+          "transitions": 1,
+          "coveredTransitions": 1,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "modified",
+          "changedEntities": 1,
+          "coveredEntities": 1,
+          "entityCoverage": 1,
+          "transitions": 13,
+          "coveredTransitions": 3,
+          "transitionCoverage": 0.23076923076923078,
+          "uncoveredTransitions": 10,
+          "uncoveredFields": [
+            "progress"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 5,
+              "collection": "projects",
+              "id": "project-policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "progress"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 6,
+              "collection": "projects",
+              "id": "project-policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "progress"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 7,
+              "collection": "projects",
+              "id": "project-policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "progress"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "policies",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "modified",
+          "changedEntities": 1,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 4,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 4,
+          "uncoveredFields": [
+            "adoption",
+            "stage"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "policies",
+              "id": "policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "stage"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 2,
+              "collection": "policies",
+              "id": "policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "stage"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 3,
+              "collection": "policies",
+              "id": "policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "stage"
+              ],
+              "receipts": []
+            }
+          ]
+        }
+      ],
+      "constructionExample": {
+        "month": 16,
+        "collection": "buildings",
+        "id": "building-project-policy-1-0",
+        "kind": "added",
+        "fields": [],
+        "receipts": [
+          "16-0"
+        ]
+      }
+    },
+    {
+      "seed": 7,
+      "arm": "baseline",
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 7,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "modelVersion": "city-systems.1.0.0",
+      "manifest": [
+        {
+          "id": "environment",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": []
+        },
+        {
+          "id": "governance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "environment"
+          ]
+        },
+        {
+          "id": "utilities",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "governance"
+          ]
+        },
+        {
+          "id": "development",
+          "version": "city-systems.1.0.0",
+          "cadence": 3,
+          "dependencies": [
+            "utilities"
+          ]
+        },
+        {
+          "id": "construction",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "development"
+          ]
+        },
+        {
+          "id": "transport",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "construction"
+          ]
+        },
+        {
+          "id": "businesses",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "transport"
+          ]
+        },
+        {
+          "id": "jobs",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "businesses"
+          ]
+        },
+        {
+          "id": "housing",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "jobs"
+          ]
+        },
+        {
+          "id": "services",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "housing"
+          ]
+        },
+        {
+          "id": "demographics",
+          "version": "city-systems.1.0.0",
+          "cadence": 12,
+          "dependencies": [
+            "services"
+          ]
+        },
+        {
+          "id": "finance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "demographics"
+          ]
+        }
+      ],
+      "provenance": {
+        "type": "synthetic-assumption",
+        "datasetVersion": "future-machine-synthetic.v1",
+        "populationSnapshot": "synthetic-7-30",
+        "worldRevision": "seed.v1",
+        "confidence": "low",
+        "assumptions": [
+          "Synthetic City inventory; no geographic coordinates.",
+          "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+          "Illustrative monthly equations, not an empirical forecast."
+        ]
+      },
+      "initialHash": "2b5285afcd34a95999401d90f0e120d1b36682c8249f9a503123dd2ca5987e3e",
+      "terminalHash": "d0a3d2c691a46a9b099f0958eb50b27322fe3593611562bcc184ea6f3b7944f1",
+      "ledgerHash": "ff4b3aaae20654626664c43a9bbd9eac1131e1f0a50267f6707cd655343169cb",
+      "changedEntities": 297,
+      "coveredEntities": 71,
+      "entityCoverage": 0.23905723905723905,
+      "transitions": 7656,
+      "coveredTransitions": 1660,
+      "transitionCoverage": 0.2168234064785789,
+      "byChangeType": [
+        {
+          "collection": "districts",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "modified",
+          "changedEntities": 3,
+          "coveredEntities": 3,
+          "entityCoverage": 1,
+          "transitions": 313,
+          "coveredTransitions": 304,
+          "transitionCoverage": 0.9712460063897763,
+          "uncoveredTransitions": 9,
+          "uncoveredFields": [
+            "commercialVacancy",
+            "footTraffic",
+            "housingPressure",
+            "reachableJobs"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "districts",
+              "id": "d1",
+              "kind": "modified",
+              "fields": [
+                "footTraffic",
+                "housingPressure",
+                "reachableJobs"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 2,
+              "collection": "districts",
+              "id": "d1",
+              "kind": "modified",
+              "fields": [
+                "housingPressure"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 3,
+              "collection": "districts",
+              "id": "d1",
+              "kind": "modified",
+              "fields": [
+                "commercialVacancy",
+                "footTraffic",
+                "housingPressure"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "parcels",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "modified",
+          "changedEntities": 36,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 867,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 867,
+          "uncoveredFields": [
+            "daysVacant",
+            "householdId",
+            "rent",
+            "status"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-0",
+              "kind": "modified",
+              "fields": [
+                "daysVacant",
+                "householdId",
+                "rent",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-10",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-11",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "households",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 19,
+          "entityCoverage": 0.6333333333333333,
+          "transitions": 3600,
+          "coveredTransitions": 1209,
+          "transitionCoverage": 0.3358333333333333,
+          "uncoveredTransitions": 2391,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "housingBurden",
+            "income",
+            "leaseUntil",
+            "savings",
+            "unitId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-0",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "leaseUntil",
+                "savings",
+                "unitId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-1",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-10",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "workers",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 519,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 519,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "jobId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-0",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-1",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-10",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "businesses",
+          "kind": "added",
+          "changedEntities": 33,
+          "coveredEntities": 33,
+          "entityCoverage": 1,
+          "transitions": 33,
+          "coveredTransitions": 33,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "modified",
+          "changedEntities": 36,
+          "coveredEntities": 32,
+          "entityCoverage": 0.8888888888888888,
+          "transitions": 375,
+          "coveredTransitions": 32,
+          "transitionCoverage": 0.08533333333333333,
+          "uncoveredTransitions": 343,
+          "uncoveredFields": [
+            "badMonths",
+            "cost",
+            "demand",
+            "employees",
+            "viability"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d0",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d1",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d2",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "added",
+          "changedEntities": 99,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 99,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 99,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-0",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-1",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-2",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "removed",
+          "changedEntities": 111,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 111,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 111,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "modified",
+          "changedEntities": 123,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 1149,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 1149,
+          "uncoveredFields": [
+            "wage",
+            "workerId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "links",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 91,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 91,
+          "uncoveredFields": [
+            "closed",
+            "flow",
+            "travelTime"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d1",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d2",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d1-d0",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "facilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "modified",
+          "changedEntities": 15,
+          "coveredEntities": 13,
+          "entityCoverage": 0.8666666666666667,
+          "transitions": 251,
+          "coveredTransitions": 82,
+          "transitionCoverage": 0.32669322709163345,
+          "uncoveredTransitions": 169,
+          "uncoveredFields": [
+            "accessibility",
+            "demand",
+            "utilization"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d1",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "healthcare-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "utilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 248,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 248,
+          "uncoveredFields": [
+            "demand",
+            "effectiveCapacity",
+            "reserve"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d0",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d1",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d2",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "projects",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        }
+      ],
+      "constructionExample": null
+    },
+    {
+      "seed": 7,
+      "arm": "plan",
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 7,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "modelVersion": "city-systems.1.0.0",
+      "manifest": [
+        {
+          "id": "environment",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": []
+        },
+        {
+          "id": "governance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "environment"
+          ]
+        },
+        {
+          "id": "utilities",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "governance"
+          ]
+        },
+        {
+          "id": "development",
+          "version": "city-systems.1.0.0",
+          "cadence": 3,
+          "dependencies": [
+            "utilities"
+          ]
+        },
+        {
+          "id": "construction",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "development"
+          ]
+        },
+        {
+          "id": "transport",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "construction"
+          ]
+        },
+        {
+          "id": "businesses",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "transport"
+          ]
+        },
+        {
+          "id": "jobs",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "businesses"
+          ]
+        },
+        {
+          "id": "housing",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "jobs"
+          ]
+        },
+        {
+          "id": "services",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "housing"
+          ]
+        },
+        {
+          "id": "demographics",
+          "version": "city-systems.1.0.0",
+          "cadence": 12,
+          "dependencies": [
+            "services"
+          ]
+        },
+        {
+          "id": "finance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "demographics"
+          ]
+        }
+      ],
+      "provenance": {
+        "type": "synthetic-assumption",
+        "datasetVersion": "future-machine-synthetic.v1",
+        "populationSnapshot": "synthetic-7-30",
+        "worldRevision": "revision-1",
+        "confidence": "low",
+        "assumptions": [
+          "Synthetic City inventory; no geographic coordinates.",
+          "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+          "Illustrative monthly equations, not an empirical forecast."
+        ]
+      },
+      "initialHash": "06e007911379ae8888323574a1ebccd9f8b1627968c39213c9f9a5977a1a402b",
+      "terminalHash": "f8794628e23e7fcdcbaa7612ed22c7b321980a2aae7bc6f07a73a170b9e35323",
+      "ledgerHash": "0e17bc6e1c87d918cb4090bdea81832b8f0436150db8aafe4c99e5ed4242385e",
+      "changedEntities": 384,
+      "coveredEntities": 83,
+      "entityCoverage": 0.21614583333333334,
+      "transitions": 10780,
+      "coveredTransitions": 770,
+      "transitionCoverage": 0.07142857142857142,
+      "byChangeType": [
+        {
+          "collection": "districts",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "modified",
+          "changedEntities": 3,
+          "coveredEntities": 3,
+          "entityCoverage": 1,
+          "transitions": 280,
+          "coveredTransitions": 221,
+          "transitionCoverage": 0.7892857142857143,
+          "uncoveredTransitions": 59,
+          "uncoveredFields": [
+            "footTraffic",
+            "housingPressure",
+            "reachableJobs"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "districts",
+              "id": "d1",
+              "kind": "modified",
+              "fields": [
+                "footTraffic",
+                "housingPressure",
+                "reachableJobs"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 2,
+              "collection": "districts",
+              "id": "d1",
+              "kind": "modified",
+              "fields": [
+                "housingPressure"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 5,
+              "collection": "districts",
+              "id": "d1",
+              "kind": "modified",
+              "fields": [
+                "footTraffic",
+                "housingPressure"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "parcels",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "added",
+          "changedEntities": 1,
+          "coveredEntities": 1,
+          "entityCoverage": 1,
+          "transitions": 1,
+          "coveredTransitions": 1,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "added",
+          "changedEntities": 24,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 24,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 24,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 16,
+              "collection": "units",
+              "id": "project-policy-1-0-unit-0",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 16,
+              "collection": "units",
+              "id": "project-policy-1-0-unit-1",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 16,
+              "collection": "units",
+              "id": "project-policy-1-0-unit-10",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "units",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "modified",
+          "changedEntities": 60,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 3482,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 3482,
+          "uncoveredFields": [
+            "daysVacant",
+            "householdId",
+            "rent",
+            "status"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-0",
+              "kind": "modified",
+              "fields": [
+                "daysVacant",
+                "householdId",
+                "rent",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-10",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-11",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "households",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 17,
+          "entityCoverage": 0.5666666666666667,
+          "transitions": 3600,
+          "coveredTransitions": 362,
+          "transitionCoverage": 0.10055555555555555,
+          "uncoveredTransitions": 3238,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "housingBurden",
+            "income",
+            "leaseUntil",
+            "savings",
+            "unitId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-0",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "leaseUntil",
+                "savings",
+                "unitId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-1",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-10",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "workers",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 591,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 591,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "jobId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-0",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-1",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-10",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "businesses",
+          "kind": "added",
+          "changedEntities": 48,
+          "coveredEntities": 48,
+          "entityCoverage": 1,
+          "transitions": 48,
+          "coveredTransitions": 48,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "modified",
+          "changedEntities": 50,
+          "coveredEntities": 46,
+          "entityCoverage": 0.92,
+          "transitions": 492,
+          "coveredTransitions": 46,
+          "transitionCoverage": 0.09349593495934959,
+          "uncoveredTransitions": 446,
+          "uncoveredFields": [
+            "badMonths",
+            "cost",
+            "demand",
+            "employees",
+            "viability"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d0",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d1",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d2",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "added",
+          "changedEntities": 144,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 144,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 144,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-0",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-1",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-2",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "removed",
+          "changedEntities": 153,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 153,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 153,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "modified",
+          "changedEntities": 165,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 1458,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 1458,
+          "uncoveredFields": [
+            "wage",
+            "workerId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "links",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 84,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 84,
+          "uncoveredFields": [
+            "closed",
+            "flow",
+            "travelTime"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d1",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d2",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d1-d0",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "facilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "modified",
+          "changedEntities": 15,
+          "coveredEntities": 10,
+          "entityCoverage": 0.6666666666666666,
+          "transitions": 209,
+          "coveredTransitions": 88,
+          "transitionCoverage": 0.42105263157894735,
+          "uncoveredTransitions": 121,
+          "uncoveredFields": [
+            "accessibility",
+            "demand",
+            "utilization"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d1",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "healthcare-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "utilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 196,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 196,
+          "uncoveredFields": [
+            "demand",
+            "effectiveCapacity",
+            "reserve"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d0",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d1",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d2",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "projects",
+          "kind": "added",
+          "changedEntities": 1,
+          "coveredEntities": 1,
+          "entityCoverage": 1,
+          "transitions": 1,
+          "coveredTransitions": 1,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "modified",
+          "changedEntities": 1,
+          "coveredEntities": 1,
+          "entityCoverage": 1,
+          "transitions": 13,
+          "coveredTransitions": 3,
+          "transitionCoverage": 0.23076923076923078,
+          "uncoveredTransitions": 10,
+          "uncoveredFields": [
+            "progress"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 5,
+              "collection": "projects",
+              "id": "project-policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "progress"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 6,
+              "collection": "projects",
+              "id": "project-policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "progress"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 7,
+              "collection": "projects",
+              "id": "project-policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "progress"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "policies",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "modified",
+          "changedEntities": 1,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 4,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 4,
+          "uncoveredFields": [
+            "adoption",
+            "stage"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "policies",
+              "id": "policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "stage"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 2,
+              "collection": "policies",
+              "id": "policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "stage"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 3,
+              "collection": "policies",
+              "id": "policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "stage"
+              ],
+              "receipts": []
+            }
+          ]
+        }
+      ],
+      "constructionExample": {
+        "month": 16,
+        "collection": "buildings",
+        "id": "building-project-policy-1-0",
+        "kind": "added",
+        "fields": [],
+        "receipts": [
+          "16-0"
+        ]
+      }
+    },
+    {
+      "seed": 2911,
+      "arm": "baseline",
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 2911,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "modelVersion": "city-systems.1.0.0",
+      "manifest": [
+        {
+          "id": "environment",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": []
+        },
+        {
+          "id": "governance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "environment"
+          ]
+        },
+        {
+          "id": "utilities",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "governance"
+          ]
+        },
+        {
+          "id": "development",
+          "version": "city-systems.1.0.0",
+          "cadence": 3,
+          "dependencies": [
+            "utilities"
+          ]
+        },
+        {
+          "id": "construction",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "development"
+          ]
+        },
+        {
+          "id": "transport",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "construction"
+          ]
+        },
+        {
+          "id": "businesses",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "transport"
+          ]
+        },
+        {
+          "id": "jobs",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "businesses"
+          ]
+        },
+        {
+          "id": "housing",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "jobs"
+          ]
+        },
+        {
+          "id": "services",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "housing"
+          ]
+        },
+        {
+          "id": "demographics",
+          "version": "city-systems.1.0.0",
+          "cadence": 12,
+          "dependencies": [
+            "services"
+          ]
+        },
+        {
+          "id": "finance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "demographics"
+          ]
+        }
+      ],
+      "provenance": {
+        "type": "synthetic-assumption",
+        "datasetVersion": "future-machine-synthetic.v1",
+        "populationSnapshot": "synthetic-2911-30",
+        "worldRevision": "seed.v1",
+        "confidence": "low",
+        "assumptions": [
+          "Synthetic City inventory; no geographic coordinates.",
+          "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+          "Illustrative monthly equations, not an empirical forecast."
+        ]
+      },
+      "initialHash": "094c204edf79664fac6ea35ca294fcd07a00370c6cda927f18ed1188d4556a3e",
+      "terminalHash": "dc20057987f58c55d5a6d17cb94db6bfb9ea376176b7e4435f9306347ab84c71",
+      "ledgerHash": "09cc81f6b9c3f911bda049cd4322f7b6feed089eba485b8cb777995c807ab3c3",
+      "changedEntities": 349,
+      "coveredEntities": 87,
+      "entityCoverage": 0.2492836676217765,
+      "transitions": 7804,
+      "coveredTransitions": 2010,
+      "transitionCoverage": 0.2575602255253716,
+      "byChangeType": [
+        {
+          "collection": "districts",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "modified",
+          "changedEntities": 3,
+          "coveredEntities": 3,
+          "entityCoverage": 1,
+          "transitions": 316,
+          "coveredTransitions": 316,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "modified",
+          "changedEntities": 36,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 874,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 874,
+          "uncoveredFields": [
+            "daysVacant",
+            "householdId",
+            "rent",
+            "status"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-10",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-11",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-4",
+              "kind": "modified",
+              "fields": [
+                "daysVacant",
+                "householdId",
+                "rent",
+                "status"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "households",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 22,
+          "entityCoverage": 0.7333333333333333,
+          "transitions": 3600,
+          "coveredTransitions": 1474,
+          "transitionCoverage": 0.40944444444444444,
+          "uncoveredTransitions": 2126,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "housingBurden",
+            "income",
+            "leaseUntil",
+            "savings",
+            "unitId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-0",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "leaseUntil",
+                "savings"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-10",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-11",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "workers",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 568,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 568,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "jobId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-10",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-11",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-12",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "businesses",
+          "kind": "added",
+          "changedEntities": 46,
+          "coveredEntities": 46,
+          "entityCoverage": 1,
+          "transitions": 46,
+          "coveredTransitions": 46,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "modified",
+          "changedEntities": 47,
+          "coveredEntities": 46,
+          "entityCoverage": 0.9787234042553191,
+          "transitions": 366,
+          "coveredTransitions": 46,
+          "transitionCoverage": 0.12568306010928962,
+          "uncoveredTransitions": 320,
+          "uncoveredFields": [
+            "badMonths",
+            "cost",
+            "demand",
+            "employees",
+            "viability"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d0",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d1",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d2",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "added",
+          "changedEntities": 138,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 138,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 138,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-0",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-1",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-2",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "removed",
+          "changedEntities": 153,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 153,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 153,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "modified",
+          "changedEntities": 156,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 1080,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 1080,
+          "uncoveredFields": [
+            "wage",
+            "workerId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "links",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 110,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 110,
+          "uncoveredFields": [
+            "closed",
+            "flow",
+            "travelTime"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d1",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d2",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d1-d0",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "facilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "modified",
+          "changedEntities": 15,
+          "coveredEntities": 13,
+          "entityCoverage": 0.8666666666666667,
+          "transitions": 289,
+          "coveredTransitions": 128,
+          "transitionCoverage": 0.4429065743944637,
+          "uncoveredTransitions": 161,
+          "uncoveredFields": [
+            "accessibility",
+            "demand",
+            "utilization"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d1",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "healthcare-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "utilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 264,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 264,
+          "uncoveredFields": [
+            "demand",
+            "effectiveCapacity",
+            "reserve"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d0",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d1",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d2",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "projects",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        }
+      ],
+      "constructionExample": null
+    },
+    {
+      "seed": 2911,
+      "arm": "plan",
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 2911,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "modelVersion": "city-systems.1.0.0",
+      "manifest": [
+        {
+          "id": "environment",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": []
+        },
+        {
+          "id": "governance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "environment"
+          ]
+        },
+        {
+          "id": "utilities",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "governance"
+          ]
+        },
+        {
+          "id": "development",
+          "version": "city-systems.1.0.0",
+          "cadence": 3,
+          "dependencies": [
+            "utilities"
+          ]
+        },
+        {
+          "id": "construction",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "development"
+          ]
+        },
+        {
+          "id": "transport",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "construction"
+          ]
+        },
+        {
+          "id": "businesses",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "transport"
+          ]
+        },
+        {
+          "id": "jobs",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "businesses"
+          ]
+        },
+        {
+          "id": "housing",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "jobs"
+          ]
+        },
+        {
+          "id": "services",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "housing"
+          ]
+        },
+        {
+          "id": "demographics",
+          "version": "city-systems.1.0.0",
+          "cadence": 12,
+          "dependencies": [
+            "services"
+          ]
+        },
+        {
+          "id": "finance",
+          "version": "city-systems.1.0.0",
+          "cadence": 1,
+          "dependencies": [
+            "demographics"
+          ]
+        }
+      ],
+      "provenance": {
+        "type": "synthetic-assumption",
+        "datasetVersion": "future-machine-synthetic.v1",
+        "populationSnapshot": "synthetic-2911-30",
+        "worldRevision": "revision-1",
+        "confidence": "low",
+        "assumptions": [
+          "Synthetic City inventory; no geographic coordinates.",
+          "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+          "Illustrative monthly equations, not an empirical forecast."
+        ]
+      },
+      "initialHash": "7756cbe9ab5c97dacd40368cccc6510f948abf814fd682da2f5e8197dd28b65c",
+      "terminalHash": "eb133f0a1b68982de4e02ef6af326d0c662badd2be6a64d9882800920b172384",
+      "ledgerHash": "8bf639e2d82b09d5834a2af7dfb259544167c430fbe4a4b3503b3976a134f2af",
+      "changedEntities": 400,
+      "coveredEntities": 92,
+      "entityCoverage": 0.23,
+      "transitions": 10526,
+      "coveredTransitions": 918,
+      "transitionCoverage": 0.08721261637849136,
+      "byChangeType": [
+        {
+          "collection": "districts",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "districts",
+          "kind": "modified",
+          "changedEntities": 3,
+          "coveredEntities": 3,
+          "entityCoverage": 1,
+          "transitions": 253,
+          "coveredTransitions": 204,
+          "transitionCoverage": 0.8063241106719368,
+          "uncoveredTransitions": 49,
+          "uncoveredFields": [
+            "footTraffic",
+            "housingPressure"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 55,
+              "collection": "districts",
+              "id": "d0",
+              "kind": "modified",
+              "fields": [
+                "housingPressure"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 56,
+              "collection": "districts",
+              "id": "d0",
+              "kind": "modified",
+              "fields": [
+                "footTraffic",
+                "housingPressure"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 58,
+              "collection": "districts",
+              "id": "d2",
+              "kind": "modified",
+              "fields": [
+                "housingPressure"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "parcels",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "parcels",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "added",
+          "changedEntities": 1,
+          "coveredEntities": 1,
+          "entityCoverage": 1,
+          "transitions": 1,
+          "coveredTransitions": 1,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "buildings",
+          "kind": "modified",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "added",
+          "changedEntities": 24,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 24,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 24,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 16,
+              "collection": "units",
+              "id": "project-policy-1-0-unit-0",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 16,
+              "collection": "units",
+              "id": "project-policy-1-0-unit-1",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 16,
+              "collection": "units",
+              "id": "project-policy-1-0-unit-10",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "units",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "units",
+          "kind": "modified",
+          "changedEntities": 60,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 3476,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 3476,
+          "uncoveredFields": [
+            "daysVacant",
+            "householdId",
+            "rent",
+            "status"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-10",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-11",
+              "kind": "modified",
+              "fields": [
+                "householdId",
+                "status"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "units",
+              "id": "unit-d0-4",
+              "kind": "modified",
+              "fields": [
+                "daysVacant",
+                "householdId",
+                "rent",
+                "status"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "households",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "households",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 22,
+          "entityCoverage": 0.7333333333333333,
+          "transitions": 3600,
+          "coveredTransitions": 527,
+          "transitionCoverage": 0.1463888888888889,
+          "uncoveredTransitions": 3073,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "housingBurden",
+            "income",
+            "leaseUntil",
+            "savings",
+            "unitId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-0",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "leaseUntil",
+                "savings"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-10",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "households",
+              "id": "household-11",
+              "kind": "modified",
+              "fields": [
+                "housingBurden",
+                "income",
+                "savings"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "workers",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "workers",
+          "kind": "modified",
+          "changedEntities": 30,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 620,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 620,
+          "uncoveredFields": [
+            "age",
+            "districtId",
+            "jobId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-10",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-11",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "workers",
+              "id": "worker-12",
+              "kind": "modified",
+              "fields": [
+                "jobId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "businesses",
+          "kind": "added",
+          "changedEntities": 52,
+          "coveredEntities": 52,
+          "entityCoverage": 1,
+          "transitions": 52,
+          "coveredTransitions": 52,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "businesses",
+          "kind": "modified",
+          "changedEntities": 55,
+          "coveredEntities": 51,
+          "entityCoverage": 0.9272727272727272,
+          "transitions": 447,
+          "coveredTransitions": 51,
+          "transitionCoverage": 0.11409395973154363,
+          "uncoveredTransitions": 396,
+          "uncoveredFields": [
+            "badMonths",
+            "cost",
+            "demand",
+            "employees",
+            "viability"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d0",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d1",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "businesses",
+              "id": "business-d2",
+              "kind": "modified",
+              "fields": [
+                "cost",
+                "demand",
+                "employees",
+                "viability"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "added",
+          "changedEntities": 156,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 156,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 156,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-0",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-1",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-business-d0-9-2",
+              "kind": "added",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "removed",
+          "changedEntities": 168,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 168,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 168,
+          "uncoveredFields": [],
+          "uncoveredExamples": [
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            },
+            {
+              "month": 9,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "removed",
+              "fields": [],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "jobs",
+          "kind": "modified",
+          "changedEntities": 180,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 1308,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 1308,
+          "uncoveredFields": [
+            "wage",
+            "workerId"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-0",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-1",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "jobs",
+              "id": "job-d0-2",
+              "kind": "modified",
+              "fields": [
+                "wage",
+                "workerId"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "links",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "links",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 82,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 82,
+          "uncoveredFields": [
+            "closed",
+            "flow",
+            "travelTime"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d1",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d0-d2",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "links",
+              "id": "road-d1-d0",
+              "kind": "modified",
+              "fields": [
+                "closed"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "facilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "facilities",
+          "kind": "modified",
+          "changedEntities": 15,
+          "coveredEntities": 10,
+          "entityCoverage": 0.6666666666666666,
+          "transitions": 169,
+          "coveredTransitions": 79,
+          "transitionCoverage": 0.46745562130177515,
+          "uncoveredTransitions": 90,
+          "uncoveredFields": [
+            "accessibility",
+            "demand",
+            "utilization"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "emergency-d1",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "facilities",
+              "id": "healthcare-d0",
+              "kind": "modified",
+              "fields": [
+                "accessibility",
+                "demand",
+                "utilization"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "utilities",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "utilities",
+          "kind": "modified",
+          "changedEntities": 12,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 152,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 152,
+          "uncoveredFields": [
+            "demand",
+            "effectiveCapacity",
+            "reserve"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d0",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d1",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 1,
+              "collection": "utilities",
+              "id": "electric-d2",
+              "kind": "modified",
+              "fields": [
+                "demand",
+                "effectiveCapacity",
+                "reserve"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "projects",
+          "kind": "added",
+          "changedEntities": 1,
+          "coveredEntities": 1,
+          "entityCoverage": 1,
+          "transitions": 1,
+          "coveredTransitions": 1,
+          "transitionCoverage": 1,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "projects",
+          "kind": "modified",
+          "changedEntities": 1,
+          "coveredEntities": 1,
+          "entityCoverage": 1,
+          "transitions": 13,
+          "coveredTransitions": 3,
+          "transitionCoverage": 0.23076923076923078,
+          "uncoveredTransitions": 10,
+          "uncoveredFields": [
+            "progress"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 5,
+              "collection": "projects",
+              "id": "project-policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "progress"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 6,
+              "collection": "projects",
+              "id": "project-policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "progress"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 7,
+              "collection": "projects",
+              "id": "project-policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "progress"
+              ],
+              "receipts": []
+            }
+          ]
+        },
+        {
+          "collection": "policies",
+          "kind": "added",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "removed",
+          "changedEntities": 0,
+          "coveredEntities": 0,
+          "entityCoverage": null,
+          "transitions": 0,
+          "coveredTransitions": 0,
+          "transitionCoverage": null,
+          "uncoveredTransitions": 0,
+          "uncoveredFields": [],
+          "uncoveredExamples": []
+        },
+        {
+          "collection": "policies",
+          "kind": "modified",
+          "changedEntities": 1,
+          "coveredEntities": 0,
+          "entityCoverage": 0,
+          "transitions": 4,
+          "coveredTransitions": 0,
+          "transitionCoverage": 0,
+          "uncoveredTransitions": 4,
+          "uncoveredFields": [
+            "adoption",
+            "stage"
+          ],
+          "uncoveredExamples": [
+            {
+              "month": 1,
+              "collection": "policies",
+              "id": "policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "stage"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 2,
+              "collection": "policies",
+              "id": "policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "stage"
+              ],
+              "receipts": []
+            },
+            {
+              "month": 3,
+              "collection": "policies",
+              "id": "policy-1-0",
+              "kind": "modified",
+              "fields": [
+                "stage"
+              ],
+              "receipts": []
+            }
+          ]
+        }
+      ],
+      "constructionExample": {
+        "month": 16,
+        "collection": "buildings",
+        "id": "building-project-policy-1-0",
+        "kind": "added",
+        "fields": [],
+        "receipts": [
+          "16-0"
+        ]
+      }
+    }
+  ]
+}

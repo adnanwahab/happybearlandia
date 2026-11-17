@@ -14,15 +14,24 @@ export function previewPaths(geometry,project) {
   return [];
 }
 export function featureChangeMap(diff) {return new Map((diff?.events||[]).map(e=>[e.featureId,e.type]));}
+/** Explain unavailable geometry inside the preview instead of leaving a blank panel. */
+export function drawTemporalPlaceholder(svg,title='Load a date to explore this neighborhood',detail='Choose a date above, then select Load date.') {
+  const doc=svg.ownerDocument,ns='http://www.w3.org/2000/svg';
+  svg.replaceChildren();svg.setAttribute('viewBox','0 0 620 420');svg.setAttribute('role','img');svg.setAttribute('aria-label',`${title}. ${detail}`);
+  for(const [tag,attrs,text] of [['rect',{width:620,height:420,fill:'#112c32'},null],['text',{x:310,y:190,'text-anchor':'middle',fill:'#edf6ef','font-size':19},title],['text',{x:310,y:225,'text-anchor':'middle',fill:'#b8cfc7','font-size':14},detail]]){
+    const node=doc.createElementNS(ns,tag);for(const [key,value]of Object.entries(attrs))node.setAttribute(key,value);if(text)node.textContent=text;svg.append(node);
+  }
+}
 export function drawTemporalPreview(svg,snapshot,{diff=null,onSelect=()=>{},selectedId=null}={}) {
   const doc=svg.ownerDocument,ns='http://www.w3.org/2000/svg',project=previewProjection(snapshot.bounds),changes=featureChangeMap(diff);
-  svg.replaceChildren();svg.setAttribute('viewBox','0 0 620 420');svg.setAttribute('aria-label',`Historical mapped geometry for ${snapshot.date.slice(0,10)}. Select an object for its evidence.`);
+  svg.replaceChildren();svg.removeAttribute('role');svg.setAttribute('viewBox','0 0 620 420');svg.setAttribute('aria-label',`Historical mapped geometry for ${snapshot.date.slice(0,10)}. Select an object for its evidence.`);
   const make=(tag,attrs)=>{const node=doc.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))node.setAttribute(k,v);return node;};
   svg.append(make('rect',{width:620,height:420,fill:'#112c32'}));
   const features=[...snapshot.features];
   const present=new Set(features.map(f=>f.id));
   for(const event of diff?.events||[]){const counterpart=event.after||event.before;if(counterpart&&!present.has(counterpart.id)){features.push(counterpart);present.add(counterpart.id);}}
   features.sort((a,b)=>Number(a.geometry?.type==='Point')-Number(b.geometry?.type==='Point'));
+  if(!features.some(feature=>feature.geometry)){drawTemporalPlaceholder(svg,'No mapped geometry for this date',snapshot.features.length?'These objects have no supported geometry. Try another date.':'Try another date or a larger radius; coverage is unknown.');return;}
   for(const feature of features) {
     if(!feature.geometry)continue;
     const change=changes.get(feature.id),color=change==='mapping-added'?'#65e6b0':change==='mapping-removed'?'#fb8594':change==='mapping-changed'?'#ffc66b':feature.kind==='road'?'#82a4ae':feature.kind==='park'?'#477e59':feature.kind==='building'?'#adc3bd':'#d7b9ef';

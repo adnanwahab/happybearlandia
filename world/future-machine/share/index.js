@@ -59,9 +59,27 @@ function experimentId(value) {
   if (typeof value !== 'string' || !/^city_[\w-]{1,96}$/.test(value)) fail('INVALID_EXPERIMENT','Invalid saved City experiment identity.');
   return value;
 }
-export function createShareURL({recipe,experimentId: id,month},baseURL = globalThis.location?.href) {
+/** Optional v1 landing context; old recipe links remain valid. */
+export function validateLanding(value) {
+  exactKeys(value,['version','mode','ghosts','camera']);
+  if(value.version!==1 || !['split','baseline','plan','difference'].includes(value.mode) || typeof value.ghosts!=='boolean') fail('INVALID_LANDING','Unsupported comparison landing context.');
+  const c=value.camera;
+  if(c!==null){
+    if(object(c) && Object.hasOwn(c,'position')){
+      exactKeys(c,['position','target']);
+      if(![c.position,c.target].every(v=>Array.isArray(v)&&v.length===3&&v.every(n=>number(n,-1000000,1000000))) || c.position.every((n,i)=>n===c.target[i])) fail('INVALID_CAMERA','Invalid perspective camera.');
+    }else{
+      exactKeys(c,['x','z','zoom']);
+      if(!number(c.x,-1000000,1000000)||!number(c.z,-1000000,1000000)||!number(c.zoom,.02,32)) fail('INVALID_CAMERA','Invalid schematic camera.');
+    }
+  }
+  return structuredClone(value);
+}
+export function createShareURL({recipe,experimentId: id,month,landing},baseURL = globalThis.location?.href) {
   const url = new URL(baseURL);
   if (!['http:','https:'].includes(url.protocol)) fail('INVALID_URL','Share links require an HTTP or HTTPS URL.');
+  url.searchParams.delete('landing');
+  if(landing!==undefined)url.searchParams.set('landing',JSON.stringify(validateLanding(landing)));
   url.searchParams.set('fm',encodeRecipe(recipe));
   url.searchParams.set('month',String(selectedMonth(month)));
   const saved = experimentId(id);
@@ -72,13 +90,19 @@ export function createShareURL({recipe,experimentId: id,month},baseURL = globalT
 export function parseShareURL(input) {
   let url; try { url = new URL(input); } catch { fail('INVALID_URL','Invalid Future Machine URL.'); }
   const params = url.searchParams;
-  if (!['fm','experiment','month'].some(key => params.has(key))) return null;
+  if (!['fm','experiment','month','landing'].some(key => params.has(key))) return null;
   if (!['http:','https:'].includes(url.protocol)) fail('INVALID_URL','Share links require an HTTP or HTTPS URL.');
-  if (['fm','experiment','month'].some(key => params.getAll(key).length > 1)) fail('INVALID_URL','Duplicate Future Machine parameters.');
+  if (['fm','experiment','month','landing'].some(key => params.getAll(key).length > 1)) fail('INVALID_URL','Duplicate Future Machine parameters.');
   if (!params.has('fm') || !params.has('month')) fail('MISSING_PARAMETER','A shared future requires its recipe and selected month.');
   const text = params.get('month');
   if (!/^(0|[1-9][0-9]{0,2})$/.test(text)) fail('INVALID_MONTH','Invalid selected month.');
-  return {recipe:decodeRecipe(params.get('fm')),experimentId:experimentId(params.has('experiment') ? params.get('experiment') : null),month:selectedMonth(Number(text))};
+  let landing;
+  if(params.has('landing')){
+    const text=params.get('landing');
+    if(text.length>1024)fail('INVALID_LANDING','Landing context is too large.');
+    try{landing=validateLanding(JSON.parse(text));}catch(error){if(error instanceof ShareError)throw error;fail('INVALID_LANDING','Malformed landing context.');}
+  }
+  return {...(landing?{landing}:{}),recipe:decodeRecipe(params.get('fm')),experimentId:experimentId(params.has('experiment') ? params.get('experiment') : null),month:selectedMonth(Number(text))};
 }
 /** Call after saved-record load, before displaying it as the linked run. */
 export function assertHistoryIdentity(history, context) {

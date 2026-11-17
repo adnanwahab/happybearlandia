@@ -1,0 +1,10 @@
+{
+  "schemaVersion":"activity-history.v1", "runId":"synthetic-heartbeat-seed-733",
+  "bucketMinutes":60, "coverage":{"queryAvailable":true},
+  "provenance":{"kind":"authored synthetic aggregate fixture","seed":733,"rules":"fixture.v1","assumption":"two retained periods separated by one missing hour; no observed city data"},
+  "buckets":[
+    {"startMinute":360,"endMinute":420,"completedTrips":2,"agentMinutes":120},
+    {"startMinute":420,"endMinute":480,"completedTrips":8,"agentMinutes":180},
+    {"startMinute":540,"endMinute":600,"completedTrips":0,"agentMinutes":60}
+  ]
+}

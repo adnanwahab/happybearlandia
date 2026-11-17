@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./e2e',testMatch:'private-checkpoint-notes.e2e.js',workers:1,timeout:60000,projects:[{name:'desktop',use:{viewport:{width:1440,height:1000}}},{name:'mobile',use:{viewport:{width:390,height:844},reducedMotion:'reduce'}}],use:{baseURL:'http://127.0.0.1:3581',channel:'chromium'},webServer:{cwd:process.cwd(),command:'bun --no-env-file server.js',url:'http://127.0.0.1:3581/api/health',env:{PORT:'3581',HBL_WORLD_DB_PATH:'/private/tmp/she581-browser.sqlite'},reuseExistingServer:false}});

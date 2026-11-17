@@ -1,0 +1,11 @@
+html,body{height:auto!important;overflow:auto!important}
+#text-adventure{box-sizing:border-box;max-width:54rem;margin:auto;padding:24px;font:1rem/1.6 system-ui;color:var(--ink);overflow-wrap:anywhere}
+#text-adventure nav{display:flex;flex-wrap:wrap;gap:8px}
+#text-adventure button,#text-adventure summary{min-height:44px;padding:8px;cursor:pointer}
+#text-adventure li{margin-block:8px}
+#text-adventure pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem}
+#text-adventure :focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+#text-adventure h1{font-size:1.7rem}
+:root{--ink:#1d1d1b;--accent:#175ac1;background:#f4f1ea;color:var(--ink)}
+body{margin:0}
+#text-adventure button{font:inherit;color:inherit;background:#fff;border:1px solid #777;border-radius:6px}

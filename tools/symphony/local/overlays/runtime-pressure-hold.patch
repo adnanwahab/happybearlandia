@@ -1,0 +1,47 @@
+--- a/tools/symphony/elixir/WORKFLOW.md
++++ b/tools/symphony/elixir/WORKFLOW.md
+@@ -4,7 +4,7 @@
+   provider:
+     api_key: $LINEAR_API_KEY
+     project_slug: "hbl-1m-player-launch-week-1-da57f913e8aa"
+-  required_labels: ["symphony-pilot"]
++  required_labels: ["symphony-pilot", "symphony-pressure-release"]
+   active_states: [Todo, In Progress, Rework]
+   terminal_states: [Closed, Cancelled, Canceled, Duplicate, Done]
+ polling:
+@@ -23,7 +23,7 @@
+     /usr/bin/python3 /Users/wahabma/happybearlandia/tools/symphony/local/workpad.py after || exit 1
+     exec /usr/bin/python3 /Users/wahabma/happybearlandia/tools/symphony/local/publish.py
+ agent:
+-  max_concurrent_agents: 4
++  max_concurrent_agents: 1
+   max_turns: 1
+   max_retry_backoff_ms: 300000
+ codex:
+--- a/tools/symphony/elixir/test/symphony_elixir/core_test.exs
++++ b/tools/symphony/elixir/test/symphony_elixir/core_test.exs
+@@ -124,7 +124,12 @@
+     assert is_map(hooks)
+     assert Map.get(hooks, "after_create") =~ "isolated-checkout.sh"
+     assert Map.get(hooks, "before_run") =~ "check-isolation.sh"
+-    assert tracker["required_labels"] == ["symphony-pilot"]
++
++    assert tracker["required_labels"] in [
++             ["symphony-pilot"],
++             ["symphony-pilot", "symphony-pressure-release"]
++           ]
++
+     assert tracker["active_states"] == ["Todo", "In Progress", "Rework"]
+     assert config["agent"]["max_concurrent_agents"] == 1
+     assert config["codex"]["thread_sandbox"] == "workspace-write"
+--- a/tools/symphony/local/test_publish.py
++++ b/tools/symphony/local/test_publish.py
+@@ -168,7 +168,7 @@
+     def test_workflow_host_handoff(self):
+         workflow = Path(__file__).parent.parent / 'elixir/WORKFLOW.md'
+         text = workflow.read_text()
+-        self.assertIn('required_labels: ["symphony-pilot"]', text)
++        self.assertRegex(text, r'required_labels: \["symphony-pilot"(?:, "symphony-pressure-release")?\]')
+         self.assertIn('max_turns: 1', text)
+         self.assertIn('after_run: |', text)
+         self.assertIn('/local/publish.py', text)

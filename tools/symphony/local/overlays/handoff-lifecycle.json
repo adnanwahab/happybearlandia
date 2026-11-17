@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "files": {
+    "lib/symphony_elixir/agent_runner.ex": {
+      "before": "4b4ab877427c76e5778034c7c89a41e9ec884fb1b142f3c6754550f3ba25be39",
+      "after": "0e56577d986b25a341be2e4e0217f64a268c309ad6b065d4881e9eea56132ccf"
+    },
+    "lib/symphony_elixir/workspace.ex": {
+      "before": "b72132293f572fa0c7caa38adda941452072e8639f2c39b4c8a569d69084c6e5",
+      "after": "46791ba38e03b475ed7632b586b89cb72762c183619fe6ee5d9e7a4856f74c1a"
+    },
+    "lib/symphony_elixir/orchestrator.ex": {
+      "before": "3d874754c074491fbef67cb14a173f307a9c42b12c469dde642e610a79ecb051",
+      "after": "c17444346cd23756b4bdce70402b8ca52b459e5b529909c4a20b4f250766e305"
+    },
+    "lib/symphony_elixir_web/factory_throughput.ex": {
+      "before": "3445229ea8a4995fd24be1dadb48a6f5f0cb8e13458827ca00f29487cae6cb0e",
+      "after": "5274bc6d77d7886568ba34f7dd132da191e3723ad0b2b92dc5abd54b68c27e40"
+    },
+    "test/symphony_elixir/factory_throughput_test.exs": {
+      "before": "0df2bbc57af79e0d378163a686fd6b63693b59139a819c7fc4685b6ad884736c",
+      "after": "78ebd2686c0c252c6a6b534f2635cde78f2a997fbac10df8a9fe82a883232f78"
+    },
+    "test/symphony_elixir/core_test.exs": {
+      "before": "90434354ff3f6e392ff65801e90c96ffaef8e50887ef3ed7d77f9c93cb8761c6",
+      "after": "a00b38d4a71c91479fb82f8e90068fb9b5eb4fdae7b9570548e172c1c31bb6a0"
+    },
+    "lib/symphony_elixir/config/schema.ex": {
+      "before": "e1c2719de7eba6b6a5166d8b937c719c0dfdd2d5ecbbe0bcd482900adf65361c",
+      "after": "3474056154d19e0d9e5951ad9e014f8a6305cdba555eb69abb057aafdbc849fd"
+    },
+    "test/symphony_elixir/workspace_and_config_test.exs": {
+      "before": "56a147f76c13c36f378768f5d26ed2164abc795a933f9e57db56ca762cdfa06e",
+      "after": "492bd68b046e04d1ae5a237b0e28d9acea5e7e288872b68ba6cf9ef0e6c5885f"
+    },
+    "README.md": {
+      "before": "f6b9c02da6336399b27ab53ae98f94a00d28be37955d669fb5b64742ccd1648d",
+      "after": "d71dd4a16ba8bb72cae50eca7d5d48952786fff59e2901c0f97d64527609dc3c"
+    }
+  }
+}

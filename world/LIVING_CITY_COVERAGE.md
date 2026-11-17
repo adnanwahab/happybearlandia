@@ -85,7 +85,7 @@ Four daily need meters (food, energy, fun, connection) are distinct from civic p
 | 56 | Temporary Events | Implemented (bounded) | Implemented in the connected population model, runtime or inspector; see module/test references below. |
 | 57 | Behavioral Response to Events | Implemented (bounded) | Implemented in the connected population model, runtime or inspector; see module/test references below. |
 | 58 | Recovery Curves | Implemented (bounded) | Implemented in the connected population model, runtime or inspector; see module/test references below. |
-| 59 | Local Information Sharing | Partial | Bounded awareness diffusion; no explicit local peer network. |
+| 59 | Local Information Sharing | Partial | Bounded awareness diffusion; headless local idea v0 adds a synthetic radius peer graph, parent-linked hops and matched no-sharing control (civilization/ideas/README.md). Live Population peer sharing remains absent. |
 | 60 | Adoption Curves | Partial | Gradual awareness, experience and habit; full unaware/tried/adopted/abandoned state machine absent. |
 | 61 | Neighborhood Preference Feedback | Partial | No complete bounded neighborhood-preference feedback model beyond existing service/access utility. |
 | 62 | Central Worker Registry | Implemented (bounded) | Real registered browser workers, bounded telemetry and preserved legacy adapters; inventory is per browser page. |

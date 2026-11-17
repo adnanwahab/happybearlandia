@@ -1,0 +1,413 @@
+{
+  "schemaVersion": "parameter-diff-evidence.v1",
+  "source": "Synthetic controlled fixture; test/parameter-diff.test.js",
+  "modelId": "housing.v1",
+  "modelVersion": "1.2.0",
+  "input": {
+    "seed": 87,
+    "runs": 1,
+    "years": 1,
+    "scenarios": [
+      {
+        "id": "baseline",
+        "name": "Baseline",
+        "kind": "baseline",
+        "parameters": {}
+      },
+      {
+        "id": "treatment",
+        "name": "Intervention",
+        "kind": "alternative",
+        "parameters": {
+          "permitting_months": 6
+        }
+      }
+    ]
+  },
+  "diff": {
+    "seedOverrides": [],
+    "baseline": "Baseline",
+    "selected": "Intervention",
+    "seed": 87,
+    "runs": 1,
+    "years": 1,
+    "rows": [
+      {
+        "id": "initial_housing",
+        "label": "Initial housing stock",
+        "unit": "homes",
+        "default": 1000000,
+        "before": {
+          "value": 1000000,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 1000000,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "initial_households",
+        "label": "Initial households",
+        "unit": "households",
+        "default": 960000,
+        "before": {
+          "value": 960000,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 960000,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "initial_rent",
+        "label": "Initial median monthly rent",
+        "unit": "USD/month",
+        "default": 1800,
+        "before": {
+          "value": 1800,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 1800,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "initial_income",
+        "label": "Initial household income",
+        "unit": "USD/year",
+        "default": 72000,
+        "before": {
+          "value": 72000,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 72000,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "population_growth",
+        "label": "Household formation / population growth",
+        "unit": "fraction/year",
+        "default": 0.011,
+        "before": {
+          "value": 0.011,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.011,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "migration",
+        "label": "Net migration",
+        "unit": "fraction/year",
+        "default": 0.006,
+        "before": {
+          "value": 0.006,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.006,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "wage_growth",
+        "label": "Real wage growth",
+        "unit": "fraction/year",
+        "default": 0.012,
+        "before": {
+          "value": 0.012,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.012,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "economic_growth",
+        "label": "Real economic growth",
+        "unit": "fraction/year",
+        "default": 0.02,
+        "before": {
+          "value": 0.02,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.02,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "unemployment",
+        "label": "Unemployment rate",
+        "unit": "fraction",
+        "default": 0.05,
+        "before": {
+          "value": 0.05,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.05,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "interest_rate",
+        "label": "Financing interest rate",
+        "unit": "fraction/year",
+        "default": 0.045,
+        "before": {
+          "value": 0.045,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.045,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "construction_cost",
+        "label": "Construction cost per home",
+        "unit": "USD/home",
+        "default": 300000,
+        "before": {
+          "value": 300000,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 300000,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "inflation",
+        "label": "Cost inflation",
+        "unit": "fraction/year",
+        "default": 0.025,
+        "before": {
+          "value": 0.025,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.025,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "construction_capacity",
+        "label": "Annual construction capacity",
+        "unit": "homes/year",
+        "default": 72000,
+        "before": {
+          "value": 72000,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 72000,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "construction_months",
+        "label": "Construction duration",
+        "unit": "months",
+        "default": 18,
+        "before": {
+          "value": 18,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 18,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "permitting_months",
+        "label": "Permitting delay",
+        "unit": "months",
+        "default": 18,
+        "before": {
+          "value": 18,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 6,
+          "uncertainty": null
+        },
+        "changed": true
+      },
+      {
+        "id": "zoning_density",
+        "label": "Allowed density multiplier",
+        "unit": "multiplier",
+        "default": 1,
+        "before": {
+          "value": 1,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 1,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "subsidy_amount",
+        "label": "Affordable construction appropriation",
+        "unit": "USD/year",
+        "default": 0,
+        "before": {
+          "value": 0,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "voucher_funding",
+        "label": "Housing voucher appropriation",
+        "unit": "USD/year",
+        "default": 0,
+        "before": {
+          "value": 0,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "adoption",
+        "label": "Policy adoption / compliance",
+        "unit": "fraction",
+        "default": 0.8,
+        "before": {
+          "value": 0.8,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.8,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "implementation_delay",
+        "label": "Policy implementation delay",
+        "unit": "months",
+        "default": 4,
+        "before": {
+          "value": 4,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 4,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "resistance",
+        "label": "Administrative resistance",
+        "unit": "fraction",
+        "default": 0.15,
+        "before": {
+          "value": 0.15,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.15,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "funding_delivery",
+        "label": "Budget delivered",
+        "unit": "fraction",
+        "default": 1,
+        "before": {
+          "value": 1,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 1,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "demolition_rate",
+        "label": "Annual housing loss",
+        "unit": "fraction/year",
+        "default": 0.004,
+        "before": {
+          "value": 0.004,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.004,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "rent_response",
+        "label": "Rent response to vacancy gap",
+        "unit": "index",
+        "default": 0.8,
+        "before": {
+          "value": 0.8,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.8,
+          "uncertainty": null
+        },
+        "changed": false
+      },
+      {
+        "id": "transit_share",
+        "label": "New homes near transit",
+        "unit": "fraction",
+        "default": 0.25,
+        "before": {
+          "value": 0.25,
+          "uncertainty": null
+        },
+        "after": {
+          "value": 0.25,
+          "uncertainty": null
+        },
+        "changed": false
+      }
+    ],
+    "settings": []
+  }
+}

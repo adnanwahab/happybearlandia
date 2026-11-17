@@ -62,7 +62,8 @@ export function createPopulationStudioRunner(runtime,onRunExperiment){
   if(token!==generation)throw new Error('Experiment superseded by newer settings.');
   const result=onRunExperiment?onRunExperiment(request):runPopulationStudioExperiment(runtime,request);
   const job=result?.ready?result:{ready:Promise.resolve(result)};active=job;
-  try{return await job.ready;}finally{if(active===job)active=null;}
+  // An injected runner may finish successfully even after its cancel() was called.
+  try{const value=await job.ready;if(token!==generation)throw new Error('Experiment superseded by newer settings.');return value;}finally{if(active===job)active=null;}
  }};
 }
 export function populationComparisonSeries(result){

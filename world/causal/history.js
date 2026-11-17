@@ -2,6 +2,7 @@ import { housingProjectBuildingId } from '../city/contracts.js';
 import { cityEntityId } from './demo.js';
 
 const collections = {
+  districts: 'district',
   buildings: 'building',
   households: 'household',
   workers: 'person',
@@ -20,6 +21,7 @@ export function cityInventory(state, worldId) {
   }
   const district = id => names.get(id) ?? id ?? 'Unassigned';
   const describe = {
+    districts: row => `Modeled district · ${row.name ?? row.id}`,
     buildings: row => {
       const counts = units.get(row.id) ?? { total: 0, occupied: 0 };
       return `${district(row.districtId)} · ${row.floors} floors · ${counts.occupied}/${counts.total} units occupied`;
@@ -78,4 +80,18 @@ export function indexConstructionEvidence(events, worldId) {
     buildings.set(key(month, building), trace);
   }
   return (month, buildingId) => buildings.get(key(month, buildingId));
+}
+
+// Removed rows remain inspectable at the transition month that records them.
+export function hasInventoryEntity(rows, entityId) {
+  return Object.values(rows).some(items => items.some(row => row.id === entityId));
+}
+
+// Event membership is evidence of a recorded association, never a new edge.
+export function entityMonthEvents(events, context, month, entityId) {
+  const scoped = events.filter(event => event.context.runId === context.runId &&
+    event.context.worldId === context.worldId && event.context.tick === month);
+  const constructionId = indexConstructionEvidence(scoped, context.worldId)(month, entityId);
+  return scoped.filter(event => event.entityIds.includes(entityId) || event.id === constructionId)
+    .sort((a, b) => a.sequence - b.sequence);
 }

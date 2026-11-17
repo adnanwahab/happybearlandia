@@ -1,3 +1,4 @@
+import { withRecoveryDeadline } from "../onboarding/recovery-deadline.js";
 import { createProgressiveLoader } from "./progressive-loader.js";
 
 /** Geometry-only OSM context streaming. Never calls buildTown or touches residents.
@@ -187,7 +188,11 @@ export function createMapStreamer(options = {}) {
     while (activeFetches < fetchConcurrency && queued.length) {
       const tile = queued.shift();
       tile.status = "fetching"; tile.controller = new AbortController(); activeFetches++;
-      Promise.resolve().then(() => generated ? generatedArea(tile) : fetchArea(tile, { signal: tile.controller.signal })).then(async (area) => {
+      withRecoveryDeadline(() => generated ? generatedArea(tile) : fetchArea(tile, { signal: tile.controller.signal }), {
+        signal: tile.controller.signal, timeoutMs: options.requestTimeoutMs ?? 15000,
+        message: "Map request timed out. Continue in the loaded neighborhood or retry nearby map.",
+        onTimeout: () => tile.controller.abort("Map request timed out"),
+      }).then(async (area) => {
         if (disposed || tiles.get(tile.key) !== tile || tile.controller.signal.aborted) return;
         if ((!generated && area?.source !== "osm") || (generated && area?.source !== "generated") || !Array.isArray(area.buildings) || !Number.isFinite(area.origin?.lat) || !Number.isFinite(area.origin?.lng) || !(area.radiusM > 0)) throw new Error(area?.error || "Real map unavailable; no procedural neighbor was generated.");
         // Release network slots before worker/mesh completion; geometry has its
@@ -197,7 +202,7 @@ export function createMapStreamer(options = {}) {
           tile.status = "error"; tile.error = error?.message || String(error); notify();
         });
       }).catch((error) => {
-        if (disposed || tiles.get(tile.key) !== tile || tile.controller.signal.aborted) return;
+        if (disposed || tiles.get(tile.key) !== tile) return;
         tile.status = "error"; tile.error = error?.message || String(error); notify();
       }).finally(() => { activeFetches--; pumpFetches(); notify(); });
     }

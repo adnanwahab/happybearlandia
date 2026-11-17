@@ -1,0 +1,303 @@
+{
+  "schemaVersion": "hbl-demo-artifact-audit.v1",
+  "root": "/Users/wahabma/happybearlandia/workspaces/SHE-64/docs/evidence/she64",
+  "records": [
+    {
+      "file": "demo-complete.json",
+      "experimentId": "city_705bdf23e7e64d3b8d6b51f1665d11f6",
+      "seed": 42,
+      "modelVersion": "city-systems.1.0.0",
+      "initialHash": "e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe",
+      "month": 120,
+      "firstDivergence": {
+        "month": 16,
+        "collection": "buildings",
+        "id": "building-project-policy-1-0"
+      },
+      "metrics": {
+        "population": {
+          "baseline": 90,
+          "plan": 90,
+          "delta": 0,
+          "unit": "people",
+          "status": "available",
+          "missing": []
+        },
+        "households": {
+          "baseline": 30,
+          "plan": 30,
+          "delta": 0,
+          "unit": "households",
+          "status": "available",
+          "missing": []
+        },
+        "housingUnits": {
+          "baseline": 36,
+          "plan": 60,
+          "delta": 24,
+          "unit": "homes",
+          "status": "available",
+          "missing": []
+        },
+        "availableUnits": {
+          "baseline": 6,
+          "plan": 30,
+          "delta": 24,
+          "unit": "homes",
+          "status": "available",
+          "missing": []
+        },
+        "meanRent": {
+          "baseline": 971.504282807192,
+          "plan": 230.73527356811846,
+          "delta": -740.7690092390735,
+          "unit": "USD/month",
+          "status": "available",
+          "missing": []
+        },
+        "unhoused": {
+          "baseline": 0,
+          "plan": 0,
+          "delta": 0,
+          "unit": "households",
+          "status": "available",
+          "missing": []
+        },
+        "employed": {
+          "baseline": 9,
+          "plan": 12,
+          "delta": 3,
+          "unit": "workers",
+          "status": "available",
+          "missing": []
+        },
+        "jobs": {
+          "baseline": 9,
+          "plan": 12,
+          "delta": 3,
+          "unit": "jobs",
+          "status": "available",
+          "missing": []
+        },
+        "businesses": {
+          "baseline": 3,
+          "plan": 4,
+          "delta": 1,
+          "unit": "businesses",
+          "status": "available",
+          "missing": []
+        },
+        "meanTravelMinutes": {
+          "baseline": 15.000361152000002,
+          "plan": 15.000108743111113,
+          "delta": -0.00025240888888866664,
+          "unit": "minutes/link",
+          "status": "available",
+          "missing": []
+        },
+        "balance": {
+          "baseline": 14241683.678263139,
+          "plan": 13223778.8936223,
+          "delta": -1017904.7846408393,
+          "unit": "USD",
+          "status": "available",
+          "missing": []
+        },
+        "debt": {
+          "baseline": 0,
+          "plan": 0,
+          "delta": 0,
+          "unit": "USD",
+          "status": "available",
+          "missing": []
+        },
+        "capitalSpending": {
+          "baseline": 0,
+          "plan": 1000000,
+          "delta": 1000000,
+          "unit": "USD cumulative",
+          "status": "available",
+          "missing": []
+        },
+        "completedProjects": {
+          "baseline": 0,
+          "plan": 1,
+          "delta": 1,
+          "unit": "projects",
+          "status": "available",
+          "missing": []
+        }
+      },
+      "backend": "webgpu",
+      "camera": {
+        "position": [
+          132,
+          69,
+          60.000000000000014
+        ],
+        "target": [
+          72,
+          4.5,
+          0
+        ]
+      },
+      "png": {
+        "path": "/Users/wahabma/happybearlandia/workspaces/SHE-64/docs/evidence/she64/demo-complete.png",
+        "width": 1440,
+        "height": 4187
+      }
+    },
+    {
+      "file": "demo-start.json",
+      "experimentId": "city_705bdf23e7e64d3b8d6b51f1665d11f6",
+      "seed": 42,
+      "modelVersion": "city-systems.1.0.0",
+      "initialHash": "e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe",
+      "month": 0,
+      "firstDivergence": {
+        "month": 16,
+        "collection": "buildings",
+        "id": "building-project-policy-1-0"
+      },
+      "metrics": {
+        "population": {
+          "baseline": 90,
+          "plan": 90,
+          "delta": 0,
+          "unit": "people",
+          "status": "available",
+          "missing": []
+        },
+        "households": {
+          "baseline": 30,
+          "plan": 30,
+          "delta": 0,
+          "unit": "households",
+          "status": "available",
+          "missing": []
+        },
+        "housingUnits": {
+          "baseline": 36,
+          "plan": 36,
+          "delta": 0,
+          "unit": "homes",
+          "status": "available",
+          "missing": []
+        },
+        "availableUnits": {
+          "baseline": 6,
+          "plan": 6,
+          "delta": 0,
+          "unit": "homes",
+          "status": "available",
+          "missing": []
+        },
+        "meanRent": {
+          "baseline": 1150,
+          "plan": 1150,
+          "delta": 0,
+          "unit": "USD/month",
+          "status": "available",
+          "missing": []
+        },
+        "unhoused": {
+          "baseline": 0,
+          "plan": 0,
+          "delta": 0,
+          "unit": "households",
+          "status": "available",
+          "missing": []
+        },
+        "employed": {
+          "baseline": 0,
+          "plan": 0,
+          "delta": 0,
+          "unit": "workers",
+          "status": "available",
+          "missing": []
+        },
+        "jobs": {
+          "baseline": 24,
+          "plan": 24,
+          "delta": 0,
+          "unit": "jobs",
+          "status": "available",
+          "missing": []
+        },
+        "businesses": {
+          "baseline": 3,
+          "plan": 3,
+          "delta": 0,
+          "unit": "businesses",
+          "status": "available",
+          "missing": []
+        },
+        "meanTravelMinutes": {
+          "baseline": 15,
+          "plan": 15,
+          "delta": 0,
+          "unit": "minutes/link",
+          "status": "available",
+          "missing": []
+        },
+        "balance": {
+          "baseline": 10000000,
+          "plan": 10000000,
+          "delta": 0,
+          "unit": "USD",
+          "status": "available",
+          "missing": []
+        },
+        "debt": {
+          "baseline": 0,
+          "plan": 0,
+          "delta": 0,
+          "unit": "USD",
+          "status": "available",
+          "missing": []
+        },
+        "capitalSpending": {
+          "baseline": 0,
+          "plan": 0,
+          "delta": 0,
+          "unit": "USD cumulative",
+          "status": "available",
+          "missing": []
+        },
+        "completedProjects": {
+          "baseline": 0,
+          "plan": 0,
+          "delta": 0,
+          "unit": "projects",
+          "status": "available",
+          "missing": []
+        }
+      },
+      "backend": "webgpu",
+      "camera": {
+        "position": [
+          84.4,
+          48.400000000000006,
+          48.400000000000006
+        ],
+        "target": [
+          36,
+          0,
+          0
+        ]
+      },
+      "png": {
+        "path": "/Users/wahabma/happybearlandia/workspaces/SHE-64/docs/evidence/she64/demo-start.png",
+        "width": 1440,
+        "height": 3854
+      }
+    }
+  ],
+  "videos": [
+    {
+      "path": "/Users/wahabma/happybearlandia/workspaces/SHE-64/docs/evidence/she64/video.webm",
+      "durationSeconds": 56.84
+    }
+  ],
+  "limitation": "Structural artifact validation only. Browser test results and visual inspection establish interaction evidence; fixture images are not accepted as substitutes."
+}

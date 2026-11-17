@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./e2e',testMatch:'parcel-storm.e2e.js',timeout:120000,workers:1,outputDir:'/private/tmp/she260-browser-results',use:{baseURL:'http://127.0.0.1:3199',browserName:'chromium',launchOptions:{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--enable-unsafe-webgpu','--enable-unsafe-swiftshader']}},webServer:{cwd:process.cwd(),command:'bun run server.js',env:{PORT:'3199'},url:'http://127.0.0.1:3199/world?demo=1',reuseExistingServer:false}});

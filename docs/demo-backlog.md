@@ -1,3 +1,10 @@
+> Current coordinator re-audit (2026-11-11): U03 is REVIEW (candidate independently
+> passes), not RUNNING. U05/U08 READY; R13/R14 retained REPAIR; two external NB
+> REVIEW. New dispatch held by review depth3; integration held by unrelated dirty
+> checkout changes. No new integration/worker claimed. See
+> [resumption status](coordinator-resumption-status.md) and
+> [next dispatch](coordinator-next-dispatch.json). Historical evidence below retained.
+
 # Demo execution queue
 
 Scope: the existing **One City, Two Futures** journey and reported first-run defects. This queue is executable work, not a request for another plan. Coordinator owns contracts, queue, integration, entry points and final verification. Six existing Codex chats own isolated worktrees; see `one-city-two-futures-workers.json`. No release merge or deployment is authorized.
@@ -30,8 +37,8 @@ These are decompositions of the approved demo/compatibility goals, not newly pro
 | ID | Priority / complexity / status | Task, acceptance and verification | Dependencies / intended owner |
 | --- | --- | --- | --- |
 | U01 | P1 / S / VERIFIED | Native backend failure before/after init selects truthful fallback without leaked half-renderer. Factory rejection/disposal tests plus browser context failure. | R01 / Worker 3 |
-| U02 | P1 / S / READY | Native renderer resize preserves both viewport scales and camera; no clipped changed building. Desktop→390px browser screenshot. | R01 / Worker 3 |
-| U03 | P1 / S / READY | Compare repeated scrub/focus/dispose memory and object counts after native integration; report measured values, not target FPS. | R01 / Worker 6 |
+| U02 | P1 / S / VERIFIED | Native renderer resize preserves both viewport scales and camera; no clipped changed building. Desktop→390px browser screenshot. | R01 / Worker 3 |
+| U03 | P1 / S / RUNNING | Compare repeated scrub/focus/dispose memory and object counts after native integration; report measured values, not target FPS. | R01 / Worker 6 |
 | U04 | P1 / S / VERIFIED | Stop/restart default guided demo while a changed recipe is loading; stale response cannot resume another recipe. Real API cancellation browser check. | R03 / Coordinator |
 | U05 | P1 / S / READY | Neutral KPI styles agree with zero-control, missing metric and negative delta semantics. Renderer-independent UI behavior test plus browser assertion. | R02 / Worker 2 |
 | U06 | P1 / S / VERIFIED | Make household before/after rent/savings units and new-inventory caveat readable without expanding raw JSON; exact identity only. | R02 / Worker 2 |
@@ -322,4 +329,14 @@ U01 actual loss tests integrated345d4c7: candidate and integrated backend9pass/1
 
 | ID | Priority / complexity / status | Executable acceptance | Dependencies | Exclusive ownership | Verification |
 | --- | --- | --- | --- | --- | --- |
-| U18 | P0 / S / READY | Clear native overlay labels on actual GPU/WebGL failure before creating Canvas. Preserve recorded state, inventory, Canvas labels and controls. Extend existing actual-loss tests to require native labels before loss and no stale native labels after loss/scrub. No renderer/City redesign. | R01 | Coordinator isolated repair: world/future-machine/scene/index.js; test/e2e/pipeline-device-loss.e2e.js | Backend/Canvas/scene units + actual native/WebGL loss browser config and visually inspected fallback PNG |
+| U18 | P0 / S / VERIFIED | Clear native overlay labels on actual GPU/WebGL failure before creating Canvas. Preserve recorded state, inventory, Canvas labels and controls. Extend existing actual-loss tests to require native labels before loss and no stale native labels after loss/scrub. No renderer/City redesign. | R01 | Coordinator isolated repair: world/future-machine/scene/index.js; test/e2e/pipeline-device-loss.e2e.js | Backend/Canvas/scene units + actual native/WebGL loss browser config and visually inspected fallback PNG |
+
+
+U18 accepted1d0a488 after real-loss regression first failedbothbackends (7stale spans), then candidate/integrated units26pass1browser-gatedskip and actualnative/WebGLbrowser2pass each. Clears only native overlay; Canvas labels and recorded inventory retained.
+
+U02 candidatee30a1c0 exposed Canvas focused-ID overflow at390/320 and footer overlap, native resize passes. Bounded repair scope explicitly extended by coordinator to scene/canvas-stage.js plus its existing test/config. Same owner, baseline and two-attempt limit; original failing commit/logs retained. Explicit shared-lock scope reconciliation must precede repair resume. Fit ID text within its arm viewport and above44px footer without changing camera or outcomes; second candidate and integrated checks must pass. No other production ownership transferred.
+
+
+U02 bounded repair accepted2c9d973 on attempt2: first candidate failure retained; owner-only repair/scope reconciliation; candidate and integrated17unitpass plus native/Canvas resize2pass each. Exact IDs fit390/320 viewport and remain abovefooter; offscreen pan does not draw stray edge IDs. No frame/seed/camera/metric change. No third attempt authorized. Metadata now classifies the delivered runtime repair as feature/userFacing with existing browser evidence.
+
+U03 actualclaimRUNNING in fresh isolated resource-proof worktree; browser measurements held until final proof jobs finish, to avoid resource contention. U05/U08 remain READY. R13/R14 remain BLOCKED in approved source and REPAIR with ownership/evidence retained in runtime state. Two externalNB REVIEW candidates remain outside frozen feature scope.

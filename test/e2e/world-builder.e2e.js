@@ -1,0 +1,32 @@
+import { test, expect } from '@playwright/test';
+
+test('branch the displayed city, compare evidence, enter both arms and branch again', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/world/living-city/');
+  const builder = page.locator('#builder');
+  await expect(page.locator('#city')).toBeVisible();
+  await builder.getByRole('button', { name: 'Run branch from displayed city' }).click();
+  await expect(builder.locator('[data-status]')).toContainText('Branched from month 2');
+  await expect(builder.locator('[data-arms] article')).toHaveCount(2);
+  await expect(builder.locator('[data-arms]')).toContainText('Supported');
+  await expect(builder.locator('[data-assumptions]')).toContainText('Assumption');
+  await expect(builder.locator('[data-date]')).toContainText('Month 14');
+  await builder.getByRole('button', { name: 'Enter original future' }).click();
+  await expect(builder.locator('[data-status]')).toContainText('Entered original future · month 14');
+  await builder.getByRole('button', { name: 'Enter proposed future' }).click();
+  await expect(builder.locator('[data-status]')).toContainText('Entered proposed future · month 14');
+  await builder.locator('[data-time]').fill('5');
+  await builder.locator('[data-time]').dispatchEvent('input');
+  await builder.getByRole('button', { name: 'Enter proposed future' }).click();
+  await expect(builder.locator('[data-status]')).toContainText('month 7');
+  await page.locator('#visit').click();
+  await expect(page.locator('#home')).toContainText('worker-1');
+  await builder.getByRole('button', { name: 'Run branch from displayed city' }).click();
+  await expect(builder.locator('[data-status]')).toContainText('Branched from month 7');
+  await expect(builder.locator('[data-date]')).toContainText('Month 19');
+  await builder.locator('[data-months]').fill('0');
+  await builder.getByRole('button', { name: 'Run branch from displayed city' }).click();
+  await expect(builder.locator('[data-status]')).toContainText('Could not run branch');
+  expect(errors).toEqual([]);
+});

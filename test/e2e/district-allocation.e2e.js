@@ -1,0 +1,26 @@
+import {test,expect} from '@playwright/test';
+test('district allocation bounds budgets, replays same seed, and invalidates stale results',async({page})=>{
+ await page.goto('/world/challenges/panel.css');
+ await page.evaluate(async()=>{const {mountChallengePanel}=await import('/world/challenges/panel.js');const {createCity}=await import('/world/city/seed.js');document.body.replaceChildren();window.allocation=mountChallengePanel(document.body,{getInitialState:()=>createCity({households:6,seed:42})});await window.allocation.open();});
+ const ui=page.locator('[data-testid=challenge-panel]');
+ await expect(ui.locator('[data-challenge-reference] input')).toHaveCount(3);
+ await expect(ui.locator('[data-challenge-reference-budget]')).toContainText('8,000 remaining');
+ for(const input of await ui.locator('[data-challenge-reference] input').all())await input.check();
+ await expect(ui.locator('[data-challenge-reference-budget]')).toContainText('Over budget');
+ await ui.locator('[data-challenge-freeze]').click();
+ await expect(ui.locator('[data-challenge-status]')).toContainText('exceed');
+ await expect(ui.locator('[data-challenge-frozen]')).toBeHidden();
+ await ui.locator('[data-challenge-reference] input[value=drainage]').uncheck();
+ await ui.locator('[data-challenge-months]').fill('4');
+ await ui.locator('[data-challenge-freeze]').click();
+ await expect(ui.locator('[data-challenge-status]')).toContainText('Verified:');
+ await expect(ui.locator('[data-challenge-terms]')).toContainText('Seed 42');
+ await expect(ui.locator('[data-challenge-result]')).toContainText('Model cannot resolve a difference');
+ const result=await page.evaluate(()=>window.allocation.getState().result);
+ expect(result.reference.seed).toBe(result.candidate.seed);expect(result.reference.initialHash).toBe(result.candidate.initialHash);
+ await ui.locator('[data-challenge-candidate] input[value=drainage]').check();
+ await expect(ui.locator('[data-challenge-result]')).toBeEmpty();
+ await expect(ui.locator('[data-challenge-candidate-budget]')).toContainText('Over budget');
+ await ui.locator('[data-challenge-verify]').click();
+ await expect(ui.locator('[data-challenge-status]')).toContainText('exceed');
+});

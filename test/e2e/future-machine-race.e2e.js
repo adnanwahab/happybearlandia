@@ -5,7 +5,7 @@ async function seek(page,month){await page.getByRole('slider').fill(String(month
 async function identity(page){return page.evaluate(async()=>{
  const h=window.futureMachine.history,s=window.futureMachine.state;
  const {stateHash}=await import('/world/future-machine/data/core.js');
- return {id:h.experimentId,recipe:h.recipe,initialHash:h.initialHash,baselineHash:await stateHash(h.baseline),commonInitial:JSON.stringify(h.baseline[0])===JSON.stringify(h.plan[0]),lengths:[h.baseline.length,h.plan.length],month:s.month,demo:s.demo?.status??'idle',homes:h.plan[120].metrics.housingUnits-h.baseline[120].metrics.housingUnits,backend:window.futureMachine.stats.scene.backend};
+ return {id:h.experimentId,recipe:h.recipe,initialHash:h.initialHash,baselineHash:await stateHash(h.baseline),commonInitial:JSON.stringify(h.baseline[0].state)===JSON.stringify(h.plan[0].state),lengths:[h.baseline.length,h.plan.length],month:s.month,demo:s.demo?.status??'idle',homes:h.plan[120].metrics.housingUnits-h.baseline[120].metrics.housingUnits,backend:window.futureMachine.stats.scene.backend};
  });}
 
 // Only latency is injected. Every held response is fetched from the actual City
@@ -46,9 +46,10 @@ test('cancel/restart keeps latest actual pair and blocks stale demo continuation
    // Cancellation retains the previous comparison for exploration.
    expect((await identity(page)).baselineHash).toBe(original.baselineHash);
    await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption(restartWithPlan?'housing':'baseline');
+   if(restartWithPlan)await page.getByRole('spinbutton',{name:'Proposed homes for next run'}).fill('12');
    await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,37);
    const latest=await identity(page);expect(latest.id).not.toBe(held.url.split('/').at(-2));
-   expect(latest.recipe.intervention===null).toBe(!restartWithPlan);expect(latest.homes).toBe(restartWithPlan?24:0);
+   expect(latest.recipe.intervention===null).toBe(!restartWithPlan);expect(latest.homes).toBe(restartWithPlan?12:0);
    expect(latest.baselineHash).toBe(original.baselineHash);expect(latest.initialHash).toBe(original.initialHash);expect(latest.commonInitial).toBe(true);expect(latest.lengths).toEqual([121,121]);
    await gate.release();
    // A stale demo would restart its presentation clock, then advance after 4s.
@@ -62,4 +63,36 @@ test('cancel/restart keeps latest actual pair and blocks stale demo continuation
  await testInfo.attach('actual-cancel-restart-evidence',{path:evidencePath,contentType:'application/json'});
  console.log('RACE_EVIDENCE',evidencePath);
  expect(errors).toEqual([]);
+});
+
+test('slow demo supports pause → resume → restart → manual without stale autoplay',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ const gate=await holdNextReplay(page);
+ try{
+  await page.getByRole('button',{name:'Play Demo',exact:true}).click();await gate.seen;
+  await page.getByRole('button',{name:'Pause demo',exact:true}).click();
+  expect(await page.evaluate(()=>window.futureMachine.state.demo)).toMatchObject({status:'preparing',paused:true});
+  await gate.release();await ready(page);
+  expect(await page.evaluate(()=>window.futureMachine.state.demo)).toMatchObject({status:'playing',paused:true,elapsedMs:0});
+  await page.getByRole('button',{name:'Resume demo',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.demo.elapsedMs)).toBeGreaterThan(0);
+  await page.getByRole('button',{name:'Restart Demo',exact:true}).click();
+  await page.getByRole('button',{name:'Take manual control',exact:true}).click();
+  await seek(page,37);await page.waitForTimeout(4600);
+  expect(await page.evaluate(()=>window.futureMachine.state.demo.status)).toBe('manual');
+  expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(37);
+  await page.screenshot({path:testInfo.outputPath('manual-takeover.png'),fullPage:true});
+  // Restart with a different configured pair forces another real asynchronous load.
+  await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption('baseline');
+  await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+  const next=await holdNextReplay(page);
+  try{
+   await page.getByRole('button',{name:'Play Demo',exact:true}).click();await next.seen;
+   await page.getByRole('button',{name:'Restart Demo',exact:true}).click();
+   await page.getByRole('button',{name:'Take manual control',exact:true}).click();
+   await next.release();await ready(page);await seek(page,19);await page.waitForTimeout(4600);
+   expect(await page.evaluate(()=>window.futureMachine.state.demo.status)).toBe('manual');
+   expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(19);
+  }finally{await next.release();}
+ }finally{await gate.release();}
 });

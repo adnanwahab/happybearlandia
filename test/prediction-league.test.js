@@ -64,3 +64,30 @@ test('invalid input and cross-plan, control, or date mismatches are rejected', (
     .toThrow('committed plan');
   expect(() => resolvePrediction({ ...prediction, createdAt: undefined }, baseline, adjusted)).toThrow('commitment time');
 });
+
+test('skill compares each metric with zero change and retains worse-than-baseline values', () => {
+  const month = PLAN_START_MONTH + plan.months;
+  for (const [metric, before, after, actual] of [
+    ['meanRent', 1000, 900, -100],
+    ['meanCommuteMinutes', 30, 25, -5],
+    ['unemploymentRate', .18, .15, -3],
+    ['unhoused', 20, 15, -5],
+    ['housingUnits', 100, 110, 10],
+  ]) {
+    const baseline = { recipe: { ...plan, policies: [] }, final: { month, [metric]: before, commuteCount: 1 } };
+    const adjusted = { recipe: plan, final: { month, [metric]: after, commuteCount: 1 } };
+    const resolve = expected => resolvePrediction(createPrediction(plan, { metric, expected }, now), baseline, adjusted);
+    expect(resolve(0)).toMatchObject({ noChangeError: Math.abs(actual), skill: 0 });
+    expect(resolve(actual)).toMatchObject({ absoluteError: 0, skill: 1 });
+    expect(resolve(-actual).skill).toBe(-1);
+    const unchanged = { ...adjusted, final: { ...baseline.final } };
+    for (const expected of [0, actual]) {
+      const result = resolvePrediction(createPrediction(plan, { metric, expected }, now), baseline, unchanged);
+      expect(result).toMatchObject({ state: 'scored', noChangeError: 0, skill: null });
+      expect(JSON.parse(JSON.stringify(result))).toEqual(result);
+    }
+    expect(resolvePrediction(createPrediction(plan, { metric, expected: 0 }, now), baseline,
+      { ...adjusted, final: { month } })).toMatchObject({ state: 'unavailable', noChangeError: null, skill: null });
+    expect(JSON.parse(JSON.stringify(resolve(actual)))).toEqual(resolve(actual));
+  }
+});

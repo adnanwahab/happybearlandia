@@ -77,3 +77,21 @@ test('evidence export bounds and serialization failures are explicit',()=>{
   source.plan[60].month=59;
   expect(()=>createEvidenceReport(source)).toThrow('Month 0');
 });
+
+test('optional landing context roundtrips both cameras and rejects ambiguous or unsafe context',()=>{
+  const base='https://example.test/world/future-machine.html?demo=1';
+  for(const camera of [null,{x:-25,z:12,zoom:.02},{position:[90,100,110],target:[0,1,2]}]){
+    const landing={version:1,mode:'difference',ghosts:false,camera};
+    const url=createShareURL({recipe,month:37,landing},base);
+    expect(parseShareURL(url).landing).toEqual(landing);
+    expect(new URL(url).searchParams.get('demo')).toBe('1');
+    expect(new URL(createShareURL({recipe,month:0},url)).searchParams.has('landing')).toBe(false);
+  }
+  const landing={version:1,mode:'split',ghosts:true,camera:null};
+  for(const patch of [{version:2},{mode:'unknown'},{ghosts:0},{extra:1},{camera:{x:0,z:0,zoom:0}},{camera:{x:0,z:Infinity,zoom:1}},{camera:{position:[0,0,0],target:[0,0,0]}},{camera:{position:[1,2],target:[0,0,0]}}])expect(()=>createShareURL({recipe,month:0,landing:{...landing,...patch}},base)).toThrow();
+  const url=createShareURL({recipe,month:0,landing},base);
+  expect(()=>parseShareURL(url+'&landing={}')).toThrow('Duplicate');
+  const oversized=new URL(url);oversized.searchParams.set('landing','x'.repeat(1025));expect(()=>parseShareURL(oversized.href)).toThrow('too large');
+  expect(()=>parseShareURL(base+'&landing={}')).toThrow('requires');
+  const malformed=new URL(url);malformed.searchParams.set('landing','{');expect(()=>parseShareURL(malformed.href)).toThrow('Malformed');
+});

@@ -5,7 +5,7 @@ This module presents exploratory synthetic model outputs. It does not claim empi
 | Behavior | Actual implementation | Boundary |
 |---|---|---|
 | Activity and destination | population/behavior.js; clock, employment, seeded schedules and need-driven flexible choices | Simplified district destinations; no observed activity diary |
-| Travel mode | Recorded alternatives and mode components in decisionTrace | District travel approximation; inspect-only alternatives are distinguished from recorded decisions |
+| Travel mode | Recorded alternatives and mode components in decisionTrace | Mapped sidewalk walk paths when connected; other modes and missing maps use declared approximations; inspect-only alternatives are distinguished from recorded decisions |
 | Housing search | Household affordability, savings, capacity and utility decisions | District capacities rather than individual leases; displacement risk is not a verified displacement |
 | Employment and economy | population/economy.js and behavior.js | Simplified demand and job capacity, not a validated labor market |
 
@@ -82,3 +82,62 @@ Inspecting a household in Households at risk exposes a What would help this hous
 Rent reduction, childcare subsidy and wage increase controls each accept 0–100%; the projection horizon is 1–365 whole days. The comparison shows each intervention alone and their combination. Rent relief reduces the recorded rent outflow, childcare support reimburses only recorded household-paid care, and wage support scales actual received wages. A household without wages receives no invented job or wage income. Public childcare cost, added employer payroll and landlords' rent forgone are reported separately, per synthetic household, over the chosen horizon. Their sum equals the additional household resources. Full childcare/rent relief cannot exceed recorded charges.
 
 Savings projections use current savings plus daily net cash flow multiplied by the horizon. Work hours, employment, benefits, other spending, prices and behavior stay constant; tax, administration, business viability and general market responses are outside the calculation. Negative savings remain visible as an uncovered deficit. The calculator executes no policy, changes no population state and writes no simulation records. Its JSON export includes settings, baseline, scenarios, evidence bounds, source run/snapshot context and assumptions. The supporting payment link retains the selected snapshot cutoff.
+
+## Playable Life matched follow-up
+
+New resident reports fork the exact paused checkpoint before player commands. The autonomous control receives no player commands and advances through the same 24-hour day plus the selected 30- or 90-day follow-up at the checkpoint’s fixed step. The existing `playable-life.v1` report retains its trajectory fields and adds `arm` and `matchedControl`: seed, modelVersion (also rules version), starting runId, entityId, startTick and endTick. The control also records `after` and an empty `actions` list. Starting checkpoint configuration and world context are the scenario inputs; accepted commands and their minutes remain in the report. Needs use model points and savings use USD. Both arms use the same resident identity and clock without a cross-model mapping. The horizon locks at handoff and remains identical across both arms and pause/resume.
+
+The panel subtracts control outcomes from played outcomes only when provenance matches; unavailable measurements stay unavailable. Reports without compatible arms are observational. This synthetic comparison describes the complete player command sequence in one seeded run, with no sampling uncertainty estimate or empirical causal claim. The control runs on demand, resumes after cancellation, and is destroyed when the report is saved or the page closes.
+
+## Research-only transport ablation
+
+Research-only transport ablation hooks (`transport-experiment.js`) are inert
+unless explicitly attached to a fresh model by the headless research runner.
+The full arm preserves ordinary state exactly. Frozen, shuffled, half and double
+transport feedback leave household, care, housing, firm and social dependencies
+active. They do not constitute resident independence. Controls and streamed
+observers are not production checkpoint state; regenerate from the versioned
+recipe. [E2 protocol and limitations](../../docs/research/million-agent-architectures.md)
+defines the output graph and the withheld release claim.
+
+## Population invariant diagnostics
+
+A read-only consistency audit is available through `bun scripts/audit-population-rules.js`.
+It checks authoritative full-state totals, financial membership, housing/job
+capacity, needs, travel balance, retained choices and event ordering. The
+[validation note](../../docs/population-rule-validation.md) records synthetic
+sources, configuration drift, measured evidence and unavailable validation.
+Passing these engineering checks is not empirical calibration or evidence of
+cross-model equivalence.
+
+
+### Optional resident rules for fresh World runs (SHE-789)
+
+The compatible 1.3.0 state envelope now carries an explicit `residentRules`
+manifest on fresh models. `sidewalks.v1` uses local-metre road polylines to form
+offset sidewalks and junction crossings (9m carriageway, 2m sidewalks; 6m centre
+offset and 6.5m junction trim), with a keyed 2% short mid-block crossing allowance.
+Walking alternatives and committed movement use the same routed distance and
+configured speed. No map/disconnected map remains a labelled straight-line
+fallback; access connectors and widths are synthetic, not surveyed entrances.
+
+`resident-encounters.v1` initiates at most eight pairs after each committed outer
+step: within 4m, awake/free housemates/coworkers/neighbors or park/food visitors,
+three-minute hold, fifteen-minute resident cooldown. Existing household/care,
+work/school and manual walks take priority. The existing relationship action
+applies its actual need and memory effect once; outcomes can be awkward. Holds
+delay travel, and completed travel includes elapsed chat minutes. Active events
+and full route state persist in checkpoints; rendered bubbles and poses use those
+records. These are uncalibrated gameplay rules. Preserve the outer step partition.
+Restoring a checkpoint without the manifest retains the previous automatic-social
+and straight-line travel behavior; it does not silently opt into these rules.
+See [the read contract](DATA_FORMATS.md#current-trip-read-projection) and
+`docs/she-789-residents.md` for verified limitations and tests.
+
+
+Known rule manifests are validated by `world/resident-rules.js`. Unsupported
+versions reject before saved-state mutation, while absent/null older states
+retain prior rules. Ordinary snapshots and future recipes expose that manifest;
+replay and inspection honor it, including old recipes without one. See
+`test/resident-rules-compatibility.test.js` and the final ODD review evidence in
+`docs/she-789-residents.md`.

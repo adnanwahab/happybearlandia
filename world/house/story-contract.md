@@ -56,3 +56,18 @@ Dedicated pure `detectStorySeeds(model,home)` now reports up to 32 current situa
 `storyDecisionPlan` applies deterministic weighted candidate ordering and an occasional seeded decision per configured model-clock boundary. Defaults: enabled true, base chance .12, cooldown30. Strong evidence increases the game intervention probability, never predetermining the social outcome. Input candidate array order is not always favored. The configured chance is a game knob rather than a calibrated real-world forecast. Persisted lastDecision reports the draw, effective chance, boundary, admitted actual request/ID and reason; inspection does not reroll it. `configure {enabled?,chance?,cooldownMinutes?}` accepts a boolean, [0,1], and integer15–240 respectively, without enabling household autonomy. Stable settings controls and read-only situation cards show actual source/evidence and the exact encouraged activity/pair. Model schedule/consent/action availability still decides admission.
 
 When an active party is owned by home.systems.partyChaos, autonomous Story encouragement yields to that descriptor. Inspector partyChaosManaged hides legacy Story party theme controls; legacy partyType rejects rather than creating a competing managed theme. The canonical party UI owns managed party kinds.
+
+## Event-referenced resident recollections (SHE-258)
+
+The normal House Activity drawer renders up to three scripted recollections via
+`event-dialogue.js`. The authority is `home.systems.story.events`, retained in the
+Population checkpoint; IDs are scoped to that household, not the monthly City
+replay service. The speaker is the first recorded participant still present in
+`houseViewRecords(data).members`. No witness or private knowledge is inferred.
+Each line carries `data-dialogue-event-id` and opens its exact retained source
+record, including ID, model minute, type and original text. Expanded sources stay
+open across refreshes. Missing, blank, duplicate or expired IDs, future records,
+empty text and absent participants suppress the line. Rendering does not advance
+or mutate authority, draw randomness, create events or request generated text.
+Existing conversational choices and cosmetic incident quips are separate UI;
+this slice makes no cross-clock drainage or citywide causal claim.

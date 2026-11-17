@@ -1,0 +1,159 @@
+SHE-232 — repository-wide bug-family investigation
+Audit baseline: b963dd353538294cb0fbf5d34d5283fad6e10e68
+Date: 2026-11-12. Source tree initially clean. No application fixes made.
+
+Decision: fix the three confirmed boundary defects below in order B1, B2, B3.
+Do not rebuild existing first-run, navigation or fallback features.
+This is a repository-wide pattern audit, not exhaustive execution of every app.
+
+METHOD AND SCOPE
+Read AGENTS.md, docs/design.md, docs/implementation-plan.md, readme.md,
+world/universe/README.md, world/workers/README.md, world/reality/README.md and
+shared/causality/README.md. No docs/architecture.md or nested AGENTS.md exists.
+Inspected server routing/static serving, homepage/directory/registry, Decision
+clients/studio/edit/exploration, Reality and Constitution runtimes, City worker
+calls, House checkpoint/Studio workers, Bakery, Timeline Braids, Research,
+worker registry/pool, temporal loading, WebGPU demo runtime and CI configuration.
+Searched related patterns across world, tools and game. Root test suite was
+started separately from focused checks. Python operations, inference, blog build,
+all GPU devices, external providers and multiplayer were not fully exercised.
+
+Overlap checked through full Linear descriptions: SHE-73, SHE-18 and SHE-108
+are all In Review. This is not proof their branches are merged. Findings refer
+only to the pinned checkout. No ownership, status or external messages changed.
+
+CONFIRMED BUGS
+
+B1 / high / inconsistent URL canonicalization bypasses server source denial
+Evidence: server.js:552-563, especially line 562, and serveStatic at 205-224.
+The explicit deny rules use decodedWorldPath, but the generic /api.js and
+-api.js suffix guard uses raw pathname. Static serving then decodes it.
+Reproduction: execute the actual extracted static helper and World gate against
+local files, without opening a socket. /world/api.js -> 404;
+/world/%61pi.js -> 200; /world/city/api.js -> 404;
+/world/city/%61pi.js -> 200. No source response bodies were printed.
+Root cause: authorization/filtering and file resolution use different forms of
+one path. This exposes code explicitly marked server-only; it does not establish
+credential disclosure or arbitrary files outside the static root.
+Family search: explicit decoded denies for Decision, AI, temporal and share
+stores resist this particular encoding. Generic suffix denies across other
+World modules share the defect. Tools/data/game static trees use containment
+checks; their public serving is not itself proof of a bug. Symlink escape and
+other unpublished server modules remain untested risks.
+Fix: canonicalize once before all deny/allow checks; resolve the same canonical
+path. Prefer a reviewed browser-public allowlist over expanding ad hoc denies.
+Acceptance: plain, encoded letter, encoded suffix and encoded separator variants
+all deny server modules while browser modules and normal routes still work.
+
+B2 / medium / worker dispatch exceptions leak resources beyond disposal
+Evidence: world/constitution-city/runtime.js:12-26, 30-33, 46-47.
+Reproduction: inject a worker whose postMessage throws 'dispatch failed', with a
+valid three-household initial city and normalized checked-in Dear Congress plan;
+one current scenario, one run, month 0. run() rejects, but worker terminations=0,
+abort listeners added=1/removed=0. destroy() leaves the same counts.
+Root cause: Promise-executor rejection bypasses cleanup. The task is assigned
+to catalog only after request returns; run's finally clears catalog without
+terminating it, so destroy cannot reach the leaked task.
+Family search: Reality runtime catches postMessage; City worker-call has
+explicit construction/dispatch/deadline coverage; House checkpoint catches it;
+law comparison also catches it. Bakery pending map and House Studio pending map
+have unguarded dispatch patterns: probable risks, not independently reproduced
+leaks in their actual browser routes. Research catches startup but its block-
+scoped worker is not available to catch for cleanup: probable same-family risk.
+Fix: one idempotent finish path covering dispatch, error, result and abort;
+clear handlers/listeners and terminate exactly once. Preserve Constitution's
+intentional partial-catalog cancellation semantics.
+Acceptance: thrown dispatch releases worker/listener, retry works, destroy is
+idempotent, and existing partial cancellation and replay supersession still pass.
+
+B3 / medium / malformed successful responses silently become valid client data
+Evidence: world/decision/client.js:5-12 and 22-31.
+Reproduction: inject HTTP 200 with '<html>fallback</html>'; results('demo')
+resolves {}. A watcher can forward it to onUpdate and continue polling rather
+than signal a malformed-response error.
+Root cause: JSON parsing errors are swallowed before HTTP success is checked.
+Family search: every Decision client method shares request(). Exploration and
+Reality share loading parse explicitly instead. world/render.js:1986 catches
+JSON to null in a different call path; do not classify it without its caller's
+error contract. That occurrence alone is not a confirmed same-family defect.
+Fix: reject malformed successful JSON with actionable API error; retain useful
+HTTP errors when error bodies are not JSON. Validate response envelopes at the
+boundary rather than manufacture an empty object.
+Acceptance: malformed 2xx calls onError once, never onUpdate, stops polling;
+valid results and existing summary/full-trace behavior stay compatible.
+
+PROBABLE RISKS (not counted as reproduced user defects)
+
+R1 / medium / stale optimization or fork UI responses
+world/decision/exploration.js:93-96,125-133,157: job/fork results are assigned
+after awaits without the generation/identity checks used by trace cache and
+studio. pollJob checks destruction but not that the response matches the
+currently selected job. Verify delayed old poll versus replacement job and an
+experiment switch during fork before repair. Bind responses to source experiment,
+job and generation; never promote a stale result into a new scenario.
+
+R2 / medium / incomplete bounded worker recovery
+Reality runtime has cancel/error handling but no deadline or messageerror
+handling; Timeline Braids constructs/posts outside a recovery try block and may
+leave 'Reading saved checkpoints…' after synchronous failure. Related unguarded
+dispatch cases are listed in B2. Missing timeout alone does not prove a hang.
+Fault-inject stalled startup, malformed messages and unavailable Worker at normal
+entry points; reuse the established City worker-call lifecycle contract where
+compatible. Coordinate with SHE-108 instead of duplicating its implementation.
+
+R3 / low / catalog documentation and manually curated directory drift
+world/universe/README.md still describes 29 originals; registry and its current
+test intentionally contain 31 after map/flagship additions. routes.html has its
+own curated cards and derives its visible live count from those cards. This is
+not evidence of a live 29-versus-31 counter bug. Clarify curated scope and update
+documentation; test membership only if product requires catalog parity.
+
+INTENTIONAL / EXISTING BEHAVIOR (preserve)
+
+I1: Homepage Play Demo already links to Future Machine (index.html:71).
+Registry test explicitly expects 31 unique entries. No missing-button repair.
+I2: Zero policy passes is distinct from execution failure in outcome-feedback
+and first-run regression tests; playback facts preserve seed=0 and missing mood.
+Disabled Reality controls carry prerequisite explanations. No numeric rewrite.
+I3: createRunTraceCache uses experiment/generation checks and validates run IDs;
+City worker calls already cover abort, stalled workers, dispatch, cleanup and
+late replies. These are reuse examples, not missing infrastructure.
+I4: CPU/Canvas fallback and explicit unsupported states exist. Separate City,
+Population and housing identities/clocks are an intentional architecture boundary.
+Do not infer broken cross-view behavior from equal local IDs or invent mappings.
+Constitution cancel deliberately returns partial recorded work, per existing test.
+
+FIX SEQUENCE AND OWNERSHIP
+1. B1: server route guard + real HTTP denial matrix. Shared route owner first.
+2. B2: Constitution lifecycle regression and focused repair; then fault-inject
+   sibling wrappers with SHE-108 owner. Avoid generic worker rewrite upfront.
+3. B3: Decision client parse/error contract and watcher regression.
+4. Reproduce R1 before a generation-bound UI fix; coordinate first-run ownership
+   with SHE-73. Measure layouts at 320/390/landscape/1440 with SHE-18 owner.
+5. Clarify R3 docs and expand failure injection only after integrated slice passes.
+No production mutation, push, merge, issue status change or deployment authorized.
+
+VERIFICATION AND LIMITS
+Focused baseline command:
+bun test test/world-first-run-repairs.test.js test/universe-shell.test.js
+ test/decision-client-traces.test.js test/city-worker-call.test.js
+ test/worker-platform.test.js test/html-navigation.test.js
+Result: 40 passed, 0 failed, 364 assertions, 3.58 seconds.
+Bounded probe: bun --no-env-file output/she232/reproduce-boundaries.js; all observations
+above reproduced. Server-gate proof evaluates verbatim extracted source with
+local-file serving; it is not a live HTTP or production exploit demonstration.
+Browser attempts: bunx --no-install playwright test --config
+ test/approved-demo-responsive.browser.config.js, default port 39962 then 47932.
+Both failed at server startup with EADDRINUSE. No browser tests executed.
+No measured mobile collision, keyboard-focus or GPU-device claim is made.
+The root baseline and isolated timing follow-up are recorded in checks.txt.
+
+Investigation complete before regression-test authoring. Tests-only mail patch
+follows separately. The report recommends repairs; this task does not apply them.
+
+FINAL CHECK APPENDIX
+Root suite: 1835 pass / 3 skip / 6 fail across 369 files; four environment/setup
+failures and two 5-second timeouts. Both timed-out files pass with an explicit
+60-second limit (14 and 6 tests respectively). See checks.txt for exact outcomes.
+Regression patch: three expected assertion failures, one HTTP setup failure;
+git apply --check passes. No application fixes or tracked source edits retained.

@@ -462,3 +462,26 @@ are deferred; Firefox/Safari are untested because their test engines are absent;
 optimization is deliberately1–6 candidates with1–2 finalists; variance decomposition
 is unavailable. The numbered audit above records these limits. No commits,
 deployment, paid provider calls or external analytics/pilot transmissions.
+
+### Receipt-linked outcome landscape (SHE-163)
+
+Selecting a point or paged future exposes **Open run receipt (JSON)**, linking to
+that exact persisted Decision experiment/run endpoint. This is the existing
+Decision run record, containing seed, effective inputs, model/engine versions,
+metrics and retained replay rows; it is separate from the monthly City canonical
+receipt format. The receipt remains inspectable independently of asynchronous
+monthly-trace loading. Missing records return an explicit API error.
+
+Only completed records with matching experiment, scenario, model version,
+available engine version and uint32 seed enter the current landscape/grid.
+Missing numeric axis values are counted and omitted; a missing depth value never
+gets a center coordinate in the projected view. Zero remains a valid observation.
+SVG supports the full overview without WebGL/WebGPU, and the paged button grid
+provides keyboard selection. Existing scenario sampling bounds the overview;
+full recorded traces still load only for selected runs. These are synthetic model
+outputs, not observed future probabilities or million-agent throughput evidence.
+
+API/unit verification covers100 actual seed runs and exact selected-timeline
+reproduction. Browser acceptance and before/after capture are defined in
+`test/e2e/receipt-landscape.e2e.js`; local execution was blocked at server bind
+(EADDRINUSE), so media/browser verification remains pending.

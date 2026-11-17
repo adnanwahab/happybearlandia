@@ -23,3 +23,50 @@ test('joke follow-ups unlock from an actual completed response and perform diffe
 test('profile editing rejects away people and keeps complete existing appearance/voice/traits intact',()=>{const f=fixture(),id=f.m.prefix+'-p0';send(f,'profile',{personId:id,name:'Avery'});const p=f.m.houseProfiles.people[id];p.shirtColor='#123456';p.voice='deep';const prior=JSON.parse(JSON.stringify(p));send(f,'profile',{personId:id,name:'Morgan',concern:''});expect(f.m.houseProfiles.people[id]).toEqual({...prior,name:'Morgan',concern:''});f.m.people.remaining[0]=10;expect(()=>send(f,'profile',{personId:id,name:'Away edit'})).toThrow('physically');});
 test('earned evening history remains bounded across many actual evenings and no completion reuses earlier actions',()=>{const f=fixture();for(let n=0;n<12;n++){begin(f,'quiet');completeRequested(f,start(f));completeRequested(f,send(f,'exchange',{kind:'appreciation'}));send(f,'finish');}expect(f.h.systems.evening.keepsakes.length).toBeLessThanOrEqual(8);expect(f.h.systems.evening.receipts.length).toBeLessThanOrEqual(32);expect(JSON.stringify(f.h.systems.evening).length).toBeLessThan(49152);sys.validate(f.m,f.h);});
 test('pre-existing same-minute breakage is not invented as a new complication; planning can change or cancel without interrupting real activities',()=>{const f=fixture();f.h.life.conditions.stove={broken:true,wear:1,useMinutes:60};f.h.life.events.push({type:'object-broken',minute:f.m.minute,objectId:'stove',text:'stove needs repair'});begin(f,'cook');stepPopulation(f.m,{minutes:1});expect(active(f).complication).toBeNull();expect(()=>start(f)).toThrow();send(f,'choose',{choiceId:'change-quiet'});const pending=start(f),before=f.h.actions.find(a=>a.id===pending.result.actionId).progress[0]??0;send(f,'cancel');expect(f.h.actions.some(a=>a.id===pending.result.actionId)).toBe(true);expect(f.h.actions.find(a=>a.id===pending.result.actionId).progress[0]??0).toBe(before);expect(f.h.systems.evening.keepsakes).toHaveLength(0);expect(active(f).cancelled).toBe(true);});
+
+test('pantry scene rejects missing ingredients, reserves once and continues identically after save',async()=>{
+ const {createRecipeEconomySystem}=await import('./recipe-economy-adapter.js');
+ const {applyHouseEconomyCommand}=await import('./household-economy.js');
+ if(!householdSystems().some(s=>s.id==='economy'))registerHouseholdSystem(createRecipeEconomySystem());
+ const f=fixture(),personId=f.m.prefix+'-p0';
+ applyHouseEconomyCommand(f.m,f.h,{type:'enablePantry',personId,value:true});
+ begin(f,'pantry');const before=serializePopulation(f.m);
+ expect(active(f).pantry[0].ingredients[0].available).toBe(0);
+ expect(()=>start(f)).toThrow();expect(serializePopulation(f.m)).toEqual(before);
+ f.h.systems.economy.stock.rice=1;
+ const input={type:'choose',choiceId:'start',commandId:'pantry-once'},cooked=sys.command(f.m,f.h,input,f.context);
+ expect(cooked.result.request.type).toBe('cookRecipe');
+ expect(cooked.result.request.systemOptions.recipeId).toBe('porridge');
+ expect(f.h.systems.economy.stock.rice).toBe(0);expect(f.h.preparedServings).toBe(0);
+ expect(sys.command(f.m,f.h,input,f.context).duplicate).toBe(true);
+ stepPopulation(f.m,{minutes:10});expect(active(f).stage).toBe('preparing');expect(f.h.preparedServings).toBe(0);
+ const restored=restorePopulation(serializePopulation(f.m));
+ for(let i=0;i<30;i++){stepPopulation(f.m,{minutes:1});stepPopulation(restored,{minutes:1});}
+ expect(serializePopulation(restored)).toEqual(serializePopulation(f.m));
+ expect(active(f).stage).toBe('serving');expect(f.h.preparedServings).toBe(4);
+ expect(f.h.systems.economy.meals[0].sourceActionId).toBe(cooked.result.actionId);
+ const hungerBefore=f.m.people.hunger[0];
+ completeRequested(f,start(f));expect(f.h.preparedServings).toBe(2);
+ expect(f.m.people.hunger[0]).toBeGreaterThan(hungerBefore);
+ completeRequested(f,send(f,'exchange',{kind:'appreciation'}));
+ const result=send(f,'finish');expect(result.result.keepsake.sourceActionIds).toContain(cooked.result.actionId);
+ sys.validate(f.m,f.h);
+});
+
+test('pantry readiness revalidates stock and stove while a second resident can genuinely help',async()=>{
+ const {createRecipeEconomySystem}=await import('./recipe-economy-adapter.js');
+ const {applyHouseEconomyCommand}=await import('./household-economy.js');
+ if(!householdSystems().some(s=>s.id==='economy'))registerHouseholdSystem(createRecipeEconomySystem());
+ const f=fixture();applyHouseEconomyCommand(f.m,f.h,{type:'enablePantry',personId:f.m.prefix+'-p0',value:true});
+ f.h.systems.economy.stock.rice=1;begin(f,'pantry');
+ expect(active(f).choices[0].available).toBe(true);
+ f.h.systems.economy.stock.rice=0;expect(()=>start(f)).toThrow();
+ f.h.systems.economy.stock.rice=1;
+ const stove=f.h.objects.find(o=>o.type==='stove');f.h.objects=f.h.objects.filter(o=>o!==stove);
+ expect(active(f).choices[0].available).toBe(false);expect(()=>start(f)).toThrow();
+ f.h.objects.push(stove);const cook=start(f),helper=send(f,'choose',{choiceId:'help-clean'});
+ const cooking=f.h.actions.find(a=>a.id===cook.result.actionId),cleaning=f.h.actions.find(a=>a.id===helper.result.actionId);
+ expect(cleaning.type).toBe('clean');expect(cleaning.participants[0]).not.toBe(cooking.participants[0]);
+ expect(f.h.systems.economy.stock.rice).toBe(0);expect(f.h.preparedServings).toBe(0);
+ completeRequested(f,cook);expect(f.h.preparedServings).toBe(4);
+});

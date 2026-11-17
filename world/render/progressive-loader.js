@@ -20,13 +20,32 @@
  * Priority is an ascending numeric score (e.g. squared camera distance); sorting
  * affects queued jobs only and reprioritize() can follow camera movement.
  */
+export function createFrameAllowance(budgetMs = 4) {
+  if (!Number.isFinite(budgetMs) || budgetMs <= 0) throw new RangeError('Positive finite frame allowance required');
+  let frame = null, busy = false;
+  return {
+    enter(timestamp) {
+      if (busy) return null;
+      if (!frame || frame.timestamp !== timestamp) frame = { timestamp, usedMs: 0 };
+      if (frame.usedMs >= budgetMs) return null;
+      busy = true;
+      const current = frame;
+      let released = false;
+      return elapsed => { if (released) return; released = true; current.usedMs += elapsed; busy = false; };
+    },
+  };
+}
+const sharedFrameAllowance = createFrameAllowance();
+
 export function createProgressiveLoader(options = {}) {
   const { items = [], load, attach, fallback, discard, disposeSource, onProgress, onError,
     priority, signal, frameBudgetMs = 4, maxAttachmentsPerFrame = 8 } = options;
   if (!Array.isArray(items) || typeof load !== "function" || typeof attach !== "function") throw new TypeError("Progressive loader requires items[], load(), and attach().");
   const concurrency = Math.max(2, Math.min(4, Math.floor(Number(options.concurrency) || 3)));
-  const budget = Math.max(0.1, Number(frameBudgetMs) || 4);
-  const batchSize = Math.max(1, Math.floor(Number(maxAttachmentsPerFrame) || 8));
+  if (!Number.isFinite(frameBudgetMs) || frameBudgetMs <= 0 || !Number.isSafeInteger(maxAttachmentsPerFrame) || maxAttachmentsPerFrame < 1) throw new RangeError('Finite positive frame budget and positive integer attachment limit required');
+  const budget = frameBudgetMs;
+  const batchSize = maxAttachmentsPerFrame;
+  const allowance = options.frameAllowance ?? sharedFrameAllowance;
   const now = options.now || (() => globalThis.performance?.now?.() ?? Date.now());
   const requestFrame = options.requestFrame || (typeof globalThis.requestAnimationFrame === "function"
     ? (callback) => globalThis.requestAnimationFrame(callback) : (callback) => setTimeout(() => callback(now()), 16));
@@ -37,8 +56,10 @@ export function createProgressiveLoader(options = {}) {
   const ready = [];
   const cleanup = new Set();
   const counts = { total: items.length, completed: 0, attached: 0, successful: 0, failed: 0, fallbacks: 0,
-    cancelled: 0, inFlight: 0, peakInFlight: 0, peakReady: 0, yields: 0, status: "idle" };
+    cancelled: 0, inFlight: 0, peakInFlight: 0, peakReady: 0, yields: 0,
+    maxChunkMs: 0, maxBatchMs: 0, budgetOverruns: 0, budgetDeferrals: 0, status: "idle" };
   let frameId = null, pumping = false, attaching = 0, settled = false, sourceDisposed = false;
+  let activeAllowance = null;
   let resolveDone;
   const done = new Promise((resolve) => { resolveDone = resolve; });
   const getProgress = () => ({ ...counts, queued: queue.length, ready: ready.length, attaching });
@@ -74,7 +95,7 @@ export function createProgressiveLoader(options = {}) {
   }
   function schedule() {
     if (counts.status !== "running" || pumping || frameId !== null || !ready.length) return;
-    frameId = requestFrame(() => { frameId = null; void pump(); });
+    frameId = requestFrame(timestamp => { frameId = null; void pump(timestamp ?? now()); });
   }
   function fill() {
     if (counts.status !== "running") return;
@@ -101,7 +122,7 @@ export function createProgressiveLoader(options = {}) {
     }
     notify(); finishIfDone();
   }
-  async function pump() {
+  async function pump(timestamp) {
     if (counts.status !== "running") return;
     pumping = true;
     counts.yields++;
@@ -109,6 +130,10 @@ export function createProgressiveLoader(options = {}) {
     let processed = 0;
     try {
       while (ready.length && !controller.signal.aborted && processed < batchSize && (processed === 0 || now() - start < budget)) {
+        const releaseAllowance = allowance.enter(timestamp);
+        if (!releaseAllowance) { counts.budgetDeferrals++; break; }
+        const chunkStart = now();
+        activeAllowance = () => releaseAllowance(Math.max(0, now() - chunkStart));
         const job = ready.shift();
         attaching++;
         const context = { signal: controller.signal, index: job.index };
@@ -131,12 +156,19 @@ export function createProgressiveLoader(options = {}) {
           }
           if (!job.loadFailed) release(job.value, job);
         } finally {
+          const elapsed = Math.max(0, now() - chunkStart);
+          releaseAllowance(elapsed);
+          activeAllowance = null;
+          counts.maxChunkMs = Math.max(counts.maxChunkMs, elapsed);
           attaching--;
           if (!controller.signal.aborted) counts.completed++;
           processed++;
         }
       }
     } finally {
+      const elapsed = Math.max(0, now() - start);
+      counts.maxBatchMs = Math.max(counts.maxBatchMs, elapsed);
+      if (elapsed > budget) counts.budgetOverruns++;
       pumping = false;
       if (!controller.signal.aborted) { notify(); fill(); schedule(); finishIfDone(); }
     }
@@ -144,6 +176,7 @@ export function createProgressiveLoader(options = {}) {
   function abort(reason = "Progressive loading cancelled") {
     if (controller.signal.aborted) return;
     controller.abort(reason);
+    activeAllowance?.(); activeAllowance = null;
     if (frameId !== null) { cancelFrame(frameId); frameId = null; }
     counts.cancelled = counts.total - counts.completed;
     counts.status = "cancelled";

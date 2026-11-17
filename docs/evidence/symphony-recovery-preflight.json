@@ -1,0 +1,71 @@
+{
+  "observations": [
+    {
+      "version": 1,
+      "startedAt": 1794454682.259937,
+      "base": "sprint/one-city-two-futures-20261111",
+      "checks": [
+        "disk",
+        "executables",
+        "host-credential-boundary",
+        "host-authentication"
+      ],
+      "ready": false,
+      "disposableCloneRemoved": true,
+      "scope": "host prerequisites only; no issue readiness or execution approval",
+      "freeBytes": 35235057664,
+      "blockedAt": "isolated-clone",
+      "error": "command unavailable or timed out; remote output omitted",
+      "finishedAt": 1794454863.6555
+    },
+    {
+      "version": 1,
+      "startedAt": 1794454879.5761468,
+      "base": "sprint/one-city-two-futures-20261111",
+      "checks": [
+        "disk",
+        "executables",
+        "host-credential-boundary",
+        "host-authentication"
+      ],
+      "ready": false,
+      "disposableCloneRemoved": true,
+      "scope": "host prerequisites only; no issue readiness or execution approval",
+      "freeBytes": 35239288832,
+      "blockedAt": "isolated-clone",
+      "error": "command unavailable or timed out; remote output omitted",
+      "finishedAt": 1794455060.8874261
+    },
+    {
+      "version": 1,
+      "startedAt": 1794454982.3243678,
+      "base": "sprint/one-city-two-futures-20261111",
+      "checks": [
+        "disk",
+        "executables",
+        "host-credential-boundary",
+        "host-authentication",
+        "isolated-clone",
+        "host-baseline-fetch",
+        "sandbox-local-commit",
+        "dependency-install",
+        "sandbox-dependency-import"
+      ],
+      "ready": true,
+      "disposableCloneRemoved": true,
+      "scope": "host prerequisites only; no issue readiness or execution approval",
+      "freeBytes": 36141441024,
+      "objectCacheUsed": true,
+      "baseSha": "0d115ecfc1bf3829dc1993b2f0632f75aef366b6",
+      "probeCommit": "ef671eac080c9f05e73b382ed069eaa1dc68ec7d",
+      "fixtureOnly": false,
+      "finishedAt": 1794454988.1937642
+    }
+  ],
+  "tests": {
+    "focused": 11,
+    "allOps": 19,
+    "failures": 0
+  },
+  "livePipelineCompletionClaimed": false
+}

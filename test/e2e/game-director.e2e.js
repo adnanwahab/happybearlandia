@@ -1,0 +1,21 @@
+import {test,expect} from '@playwright/test';
+test('cinematic library skips, replays and inspects exact records without changing results',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.goto('/world/future-machine.html');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
+ const before=await page.evaluate(()=>JSON.stringify(window.futureMachine.history));
+ const library=page.getByRole('region',{name:'Cinematic moments'}),moment=library.locator('article').first();
+ await expect(moment).toBeVisible();
+ await moment.getByRole('button',{name:'Skip moment',exact:true}).click();
+ await expect(moment.getByRole('status')).toContainText('Skipped');
+ await moment.getByRole('button',{name:'Replay moment',exact:true}).click();
+ await expect(moment.getByRole('status')).toContainText('Replaying');
+ await moment.getByRole('button',{name:'Inspect source',exact:true}).click();
+ await expect(moment.locator('pre')).toBeVisible();
+ await expect(moment.locator('pre')).toContainText('cinematic-city.v1');
+ expect(await page.evaluate(()=>JSON.stringify(window.futureMachine.history))).toBe(before);
+ await page.setViewportSize({width:390,height:844});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect(errors).toEqual([]);
+});

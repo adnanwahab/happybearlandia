@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { districtHeatmap } from '../world/causal/heatmap.js';
+import { districtHeatmap, districtMetricEvidence } from '../world/causal/heatmap.js';
 
 const state = {
   districts: [
@@ -43,4 +43,37 @@ test('occupancy includes all housing units and uses the same scale across checkp
   expect(districtHeatmap(following, 'occupancy').map(({ value, bin }) => [value, bin])).toEqual([
     [1, 4], [1, 4], [null, 'missing'],
   ]);
+});
+
+
+test('missing and invalid inputs are excluded while genuine zero remains available', () => {
+  const checkpoint = {
+    districts: [{ id: 'd' }],
+    households: [null, undefined, NaN, Infinity, '0', 0].map(income => ({ districtId: 'd', income })),
+    units: [undefined, null, '', 'unknown', 'occupied', 'available'].map(status => ({ districtId: 'd', status })),
+  };
+  const income = districtHeatmap(checkpoint, 'income')[0];
+  expect(income).toMatchObject({ value: 0, count: 1, bin: 0 });
+  expect(districtMetricEvidence(checkpoint, 'income', income)).toMatchObject({ label: 'Partial model data' });
+  expect(districtMetricEvidence(checkpoint, 'income', income).details).toContain('1 of 6 eligible records; 5 missing or invalid');
+  expect(districtHeatmap(checkpoint, 'occupancy')[0]).toMatchObject({ value: .5, count: 2 });
+  expect(districtHeatmap({ districts: checkpoint.districts }, 'income')[0]).toMatchObject({ value: null, bin: 'missing' });
+  expect(districtHeatmap({ ...checkpoint, units: [{ districtId: 'd' }] }, 'occupancy')[0]).toMatchObject({ value: null, count: 0 });
+});
+
+test('evidence preserves checkpoint provenance and never claims empirical verification', () => {
+  const checkpoint = { ...state, month: 0, provenance: {
+    datasetVersion: 'osm-area-fixture', worldRevision: 'revision-7',
+    assumptions: ['District assignments are synthetic.'],
+  } };
+  const rows = districtHeatmap(checkpoint, 'rent');
+  const evidence = districtMetricEvidence(checkpoint, 'rent', rows[0]);
+  expect(evidence.label).toBe('Assumption-based model');
+  expect(evidence.details).toContain('Dataset: osm-area-fixture; revision: revision-7; month: 0');
+  expect(evidence.details).toContain('Confidence: empirical confidence not established');
+  expect(evidence.details).toContain('District assignments are synthetic.');
+  expect(evidence.details).toContain('2 of 2 eligible records');
+  const missing = districtMetricEvidence(checkpoint, 'rent', rows[1]);
+  expect(missing.label).toBe('Missing data');
+  expect(missing.details).toContain('No usable samples; no value is estimated.');
 });

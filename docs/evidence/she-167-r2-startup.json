@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "population-startup.v1",
+  "recordedAt": "2026-11-12T23:09:44.188Z",
+  "machine": {
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "totalMemoryBytes": 17179869184,
+    "cpu": "Apple M4"
+  },
+  "route": "/world?people=20&seed=42&renderer=webgl&quality=LOW",
+  "seed": 42,
+  "modelVersion": "1.3.0",
+  "coldDefinition": "New browser process and fresh context for each engine; OS and server caches are not cleared.",
+  "limitations": [
+    "Chromium, Firefox and WebKit are automated engines; WebKit is not shipping Safari.",
+    "JS heap excludes worker, GPU and native memory. Missing memory APIs return null.",
+    "The ordinary World route tests on-demand startup, not a million-resident backend.",
+    "First animation callback is a scheduling observation, not proof of a presented WebGL frame."
+  ],
+  "browsers": [
+    {
+      "engine": "chromium",
+      "status": "unavailable",
+      "reason": "Launch closed before page creation; MachPort bootstrap_check_in permission denied (1100)."
+    },
+    {
+      "engine": "firefox",
+      "status": "unavailable",
+      "reason": "Playwright Firefox executable absent."
+    },
+    {
+      "engine": "webkit",
+      "status": "unavailable",
+      "reason": "Playwright WebKit executable absent."
+    }
+  ],
+  "serverStartup": {
+    "status": "blocked",
+    "port": 54327,
+    "error": "Bun listen EADDRINUSE; no HTTP or browser measurements obtained"
+  }
+}

@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Weekly retention observations</title>
+<style>body{font:17px system-ui;max-width:900px;margin:3rem auto;padding:1rem;background:#fafafa;color:#18232c}button,select{font:inherit;margin:.5rem}td,th{padding:1rem;text-align:left;border-bottom:1px solid #bbb}table{width:100%}</style>
+<h1>Weekly retention observations</h1>
+<p>Reality Compiler only · private to this browser · distinct anonymous sessions, never people or event counts. Nothing is uploaded.</p>
+<p>A session ends after 30 minutes without a qualifying observation. Reloads and tabs share the active session. Completed comparisons qualify as play; successfully reproduced shared futures qualify as shared-link opens. Repeated callbacks count once per session.</p>
+<p>Each denominator is the selected Monday–Monday UTC cohort: play sessions for repeat-play, shared-link sessions for shared-link return. The numerator counts those cohort sessions whose browser records play in a different session during the following UTC week. One return can qualify several cohort sessions. This is a session-cohort proxy, not unique-person or site-wide retention.</p>
+<p>Known bots, previews, WebDriver, Do Not Track and Global Privacy Control are excluded at collection. Detection is heuristic. Clearing storage, missing observations and disabled collection reduce coverage. Up to eight previous UTC weeks and 2,000 sessions are retained; capacity loss can undercount.</p>
+<button id="enable">Enable local observations</button><button id="clear">Disable and erase observations</button>
+<p id="status" role="status"></p><label>Cohort week (UTC) <select id="week"></select></label>
+<p id="period"></p><table><thead><tr><th>Metric</th><th>Returning / eligible sessions</th><th>Rate</th></tr></thead><tbody id="rows"></tbody></table>
+<p><a href="/reality-compiler">Open Reality Compiler</a></p><script type="module" src="./dashboard.js"></script></html>

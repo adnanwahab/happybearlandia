@@ -1,0 +1,36 @@
+name: Deterministic City replay
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        fixture: [zero-control, housing-42, delayed-max-seed]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - name: Check replay diagnostics
+        run: bun test test/city-replay-golden.test.js
+      - name: Require versioned baseline updates
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          FIXTURE: ${{ matrix.fixture }}
+        run: |
+          if git cat-file -e "$BASE:test/fixtures/city-replay/$FIXTURE.json"; then
+            bun scripts/check-city-replay.mjs "$FIXTURE" --guard "$BASE"
+          fi
+      - name: Compare normalized golden result
+        env:
+          FIXTURE: ${{ matrix.fixture }}
+        run: bun scripts/check-city-replay.mjs "$FIXTURE"

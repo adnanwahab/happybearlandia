@@ -1,7 +1,10 @@
+import {createCircleService} from './circle.js';
+import {SAVE_FORMAT_VERSION,compareSavedOutcome} from './save-format.js';
 import {CityStore,validateReadQuery} from './storage.js';
 import {createCity} from './seed.js';
 import {createEngine,addIntervention,scheduleShock} from './engine.js';
 import {VERSION,validateState} from './contracts.js';
+import {workerCall} from './worker-call.js';
 const json=(body,status=200)=>Response.json(body,{status,headers:{'cache-control':'no-store'}});
 export const SAVED_QUERIES={
   'Construction bottlenecks':"SELECT event_type, geography_id, COUNT(*) AS events FROM system_events WHERE system = 'construction' GROUP BY event_type, geography_id ORDER BY events DESC",
@@ -12,14 +15,6 @@ export const SAVED_QUERIES={
   'Compare plans':'SELECT r.scenario_id, m.metric_id, AVG(m.value) AS mean_value, MIN(m.value) AS minimum, MAX(m.value) AS maximum FROM runs r JOIN run_metrics m ON r.run_id = m.run_id GROUP BY r.scenario_id, m.metric_id',
   'Causal events':'SELECT simulation_time, system, event_type, geography_id, payload_json FROM system_events ORDER BY event_id',
 };
-function workerCall(file,data,timeout=60000) {
-  return new Promise((resolve,reject)=>{
-    const worker=new Worker(new URL(file,import.meta.url).href),timer=setTimeout(()=>{worker.terminate();reject(new Error('Operation time limit exceeded'));},timeout);
-    const end=()=>{clearTimeout(timer);worker.terminate();};
-    worker.onmessage=({data})=>{end();data.error?reject(new Error(data.error)):resolve(data.result);};
-    worker.onerror=event=>{end();reject(new Error(event.message||'Worker failed'));};worker.postMessage(data);
-  });
-}
 export function normalizeExperiment(body={}) {
   if(!body||typeof body!=='object')throw new Error('Experiment object required');
   let initial=body.initial?structuredClone(body.initial):createCity(body.city||{});
@@ -37,9 +32,10 @@ export function normalizeExperiment(body={}) {
   }
   if(!Array.isArray(body.shocks||[])||(body.shocks||[]).length>64)throw new Error('At most 64 shocks');
   for(const shock of body.shocks||[])initial=scheduleShock(initial,shock);
-  return {version:VERSION,title:String(body.title||'Coupled city experiment').slice(0,200),initial,runs,months,retention,scenarios,modelManifest:createEngine().manifest,assumptions:'Illustrative uncalibrated coefficients; district transport and coarse monthly markets. Not an empirical forecast.'};
+  return {saveFormatVersion:SAVE_FORMAT_VERSION,version:VERSION,title:String(body.title||'Coupled city experiment').slice(0,200),initial,runs,months,retention,scenarios,modelManifest:createEngine().manifest,assumptions:'Illustrative uncalibrated coefficients; district transport and coarse monthly markets. Not an empirical forecast.'};
 }
 export function createCityApi({root,store:providedStore}={}) {
+  const circles=createCircleService();
   let store=providedStore;const getStore=()=>store||=new CityStore(root);const active=new Set();
   async function execute(id,manifest) {
     const db=getStore();db.status(id,'running');
@@ -53,7 +49,18 @@ export function createCityApi({root,store:providedStore}={}) {
     }catch(error){db.status(id,'failed',error.message);}finally{active.delete(id);}
   }
   return async function handleCityApi(request) {
-    const url=new URL(request.url),match=url.pathname.match(/^\/api\/(city-experiments|experiments)(?:\/(city_[\w-]+)(?:\/(tables|query|export|replay|brief|lineage))?)?\/?$/);
+    const url=new URL(request.url);
+    const circleMatch=url.pathname.match(/^\/api\/city-experiments\/circles\/([\w-]+)$/);
+    if(circleMatch) {
+      try {
+        const key=request.headers.get('authorization')?.replace(/^Bearer /,'');
+        if(request.method==='GET')return json(circles.act(circleMatch[1],key,'read'));
+        if(request.method!=='POST')return json({error:'Method not allowed'},405);
+        const raw=await request.text();if(raw.length>5000)return json({error:'Request too large'},413);
+        const body=JSON.parse(raw);return json(circles.act(circleMatch[1],key,body.action,body));
+      }catch(error){return json({error:error.message},400);}
+    }
+    const match=url.pathname.match(/^\/api\/(city-experiments|experiments)(?:\/(city_[\w-]+)(?:\/(tables|query|export|replay|brief|lineage|circle))?)?\/?$/);
     if(!match||match[1]==='experiments'&&!match[2])return null;
     const [,namespace,id,action]=match;
     if(namespace==='experiments'&&!action)return null;
@@ -74,9 +81,23 @@ export function createCityApi({root,store:providedStore}={}) {
         if(request.method!=='GET')return json({error:'Method not allowed'},405);
         const progress=await workerCall('./query.worker.js',{path:db.path(id),sql:'SELECT COUNT(*) AS completed FROM runs'},3000);
         const metrics=await workerCall('./query.worker.js',{path:db.path(id),sql:SAVED_QUERIES['Compare plans']},3000);
-        return json({id,status:record.status,error:record.error,completed:progress.rows[0].completed,total:record.manifest.runs*record.manifest.scenarios.length,metrics:metrics.rows,manifest:record.manifest});
+        return json({id,status:record.status,error:record.error,completed:progress.rows[0].completed,total:record.manifest.runs*record.manifest.scenarios.length,metrics:metrics.rows,migrations:record.migrations,manifest:record.manifest});
       }
-      if((action==='query'||action==='replay')?request.method!=='POST':request.method!=='GET')return json({error:'Method not allowed'},405);
+      if((action==='query'||action==='replay'||action==='circle')?request.method!=='POST':request.method!=='GET')return json({error:'Method not allowed'},405);
+      if(action==='circle') {
+        const raw=await request.text();if(raw.length>5000)return json({error:'Request too large'},413);
+        const {scenarioId,runIndex,consent}=JSON.parse(raw);
+        if(record.status!=='complete')throw new Error('Completed experiment required');
+        if(!Number.isInteger(runIndex)||runIndex<0||runIndex>=record.manifest.runs||!record.manifest.scenarios.some(s=>s.id===scenarioId))throw new Error('Invalid run identity');
+        const runId=`${scenarioId}-${runIndex}`;
+        const result=await workerCall('./query.worker.js',{path:db.path(id),sql:`SELECT metric_id,value FROM run_metrics WHERE run_id='${runId.replaceAll("'","''")}'`},3000);
+        if(!result.rows.length)throw new Error('Saved evidence unavailable');
+        const manifest=structuredClone(record.manifest);
+        const pin={experimentId:id,scenarioId,runIndex,runId,seed:(manifest.initial.seed+runIndex)>>>0,manifest,
+          manifestDigest:new Bun.CryptoHasher('sha256').update(JSON.stringify(manifest)).digest('hex'),
+          evidence:result.rows.map(row=>({id:row.metric_id,value:row.value,classification:'modeled-result',source:`/api/city-experiments/${id}/export`,runId}))};
+        return json(circles.create(pin,consent),201);
+      }
       if(action==='tables')return json({tables:db.tables(id),savedQueries:SAVED_QUERIES});
       if(action==='query') {
         const body=await request.json();validateReadQuery(body.sql);
@@ -91,7 +112,12 @@ export function createCityApi({root,store:providedStore}={}) {
         const scenario=record.manifest.scenarios.find(s=>s.id===scenarioId);if(!scenario)throw new Error('Unknown scenario');
         let initial=record.manifest.initial;for(const intervention of scenario.interventions||[])initial=addIntervention(initial,intervention);
         const token=`replay-${crypto.randomUUID()}`;active.add(token);
-        try {return json(await workerCall('./run.worker.js',{initial,seed:(initial.seed+runIndex)>>>0,months:record.manifest.months,replay:true},60000));}finally{active.delete(token);}
+        try {
+          const result=await workerCall('./run.worker.js',{initial,seed:(initial.seed+runIndex)>>>0,months:record.manifest.months,replay:true},60000,{signal:request.signal});
+          const verification=compareSavedOutcome(db.savedOutcome(id,`${scenarioId}-${runIndex}`),result.metrics);
+          if(verification.status!=='matched')return json({error:verification.status==='mismatch'?'Saved replay outcome mismatch':'Saved replay outcome verification unavailable',verification,migrations:record.migrations},409);
+          return json({...result,verification,migrations:record.migrations,identity:{experimentId:id,scenarioId,runIndex,runId:`${scenarioId}-${runIndex}`}});
+        }finally{active.delete(token);}
       }
       if(action==='export') {
         if(record.status!=='complete')return json({error:'Export is available after completion'},409);

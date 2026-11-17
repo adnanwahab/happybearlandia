@@ -16,13 +16,10 @@ async function capture(page,info,name,hardware,errors){
  await canvas.scrollIntoViewIfNeeded();
  const bounds=await canvas.boundingBox();
  const png=await canvas.screenshot({path:info.outputPath(`${name}-canvas.png`)});
- const runtime=await page.evaluate(()=>{
+ const runtime=await page.evaluate(async()=>{
   const api=window.futureMachine,h=api.history,s=api.state;
-  let firstDivergence=null;
-  for(let month=0;month<h.plan.length;month++){
-   const added=h.plan[month].state.buildings.find(row=>!h.baseline[month].state.buildings.some(before=>before.id===row.id));
-   if(added){firstDivergence={month,collection:'buildings',id:added.id,building:added};break;}
-  }
+  const {firstDivergence:find,compareHistory}=await import('/world/future-machine/diff/index.js');
+  const stop=find(h,compareHistory(h));const firstDivergence=stop?{month:stop.month,...stop.entity,building:h.plan[stop.month].state.buildings.find(row=>row.id===stop.entity.id)}:null;
   return {schemaVersion:'native-presentation-proof.v1',recipe:h.recipe,seed:h.seed,modelVersion:h.modelVersion,initialHash:h.initialHash,runId:h.experimentId,selectedMonth:s.month,metrics:s.diff.metrics,firstDivergence,scene:api.stats.scene,baseline:h.baseline[s.month],plan:h.plan[s.month],evidence:h.plan.slice(0,s.month+1).flatMap(snapshot=>snapshot.events.map(event=>({arm:'plan',snapshotMonth:snapshot.month,...event}))),provenance:h.provenance};
  });
  const pixels=await page.evaluate(async({png,bounds,targets})=>{

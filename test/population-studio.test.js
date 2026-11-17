@@ -46,7 +46,7 @@ test('unchanged settings normalize defaults and key order while invalid or chang
 test('replacement futures settle cancellation and superseded queued requests never start',async()=>{
  const {createPopulationStudioRunner}=await import('../world/population/studio.js');let resolve,active=false,starts=0;
  const runner=createPopulationStudioRunner({},()=>{expect(active).toBe(false);active=true;starts++;return{ready:new Promise(r=>resolve=()=>{active=false;r(starts);}),cancel(){}};});
- const first=runner.run({});const second=runner.run({});const third=runner.run({});const rejected=second.catch(error=>error.message);expect(starts).toBe(1);resolve();expect(await first).toBe(1);expect(await rejected).toContain('superseded');await Promise.resolve();expect(starts).toBe(2);resolve();expect(await third).toBe(2);
+ const first=runner.run({}).catch(error=>error.message);const second=runner.run({});const third=runner.run({});const rejected=second.catch(error=>error.message);expect(starts).toBe(1);resolve();expect(await first).toContain('superseded');expect(await rejected).toContain('superseded');await Promise.resolve();expect(starts).toBe(2);resolve();expect(await third).toBe(2);
 });
 
 test('paired curves exclude a seed rejected by any scenario',()=>{const row=(configIndex,seed,value,status='completed')=>({manifest:{configIndex,seed},status,summary:{timeSeries:[{minute:0,metrics:{value}}]}});const series=populationComparisonSeries({manifest:{configs:[{},{}]},rows:[row(0,1,10),row(0,2,1000),row(1,1,20),row(1,2,0,'failed')]});expect(series[0].rows[0].metrics.value).toBe(10);expect(series[1].rows[0].metrics.value).toBe(20);expect(series[0].label).toContain('1 common accepted seeds');});

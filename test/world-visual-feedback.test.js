@@ -38,7 +38,7 @@ describe('World feedback evidence', () => {
 function dom() {
   const nodes = [];
   const doc = { createElement(tag) { const events = {}; const node = { tag, ownerDocument: doc, textContent: '', dataset: {}, style: {}, hidden: false,
-    children: [], append(child) { this.children.push(child); }, setAttribute() {}, addEventListener(name, fn) { events[name] = fn; }, removeEventListener(name) { delete events[name]; }, remove() { this.removed = true; }, click() { events.click?.(); } };
+    children: [], append(child) { this.children.push(child); }, setAttribute() {}, addEventListener(name, fn) { events[name] = fn; }, removeEventListener(name) { delete events[name]; }, remove() { this.removed = true; }, click() { events.click?.(); }, dispatch(name) { events[name]?.(); } };
     nodes.push(node); return node; } };
   return { nodes, container: doc.createElement('main') };
 }
@@ -57,4 +57,26 @@ test('guide gates readiness, renders honest error/retry, dispatches actions and 
   expect(nodes.some(n => n.textContent.includes('<script>: walking. Mood: 0.0'))).toBe(true);
   guide.hide(); expect(container.children[0].hidden).toBe(true); guide.show(); expect(container.children[0].hidden).toBe(false);
   guide.dispose(); find('quick-demo').click(); expect(starts).toBe(1); expect(container.children[0].removed).toBe(true);
+});
+
+test('repeat prompt changes one year only after completion and preserves a pending selection', () => {
+  const { nodes, container } = dom(); const changes = [];
+  const guide = mountFirstRunGuide({ container, onChangeYear: year => changes.push(year) });
+  const find = id => nodes.find(n => n.dataset.testid === id);
+  const change = find('quick-demo-change'), year = find('quick-demo-year');
+  const prompt = nodes.find(n => n.children.some(child => child.tag === 'h3' && child.textContent === 'Change one thing'));
+  expect(prompt.hidden).toBe(true);
+  guide.update({ status: 'completed', runId: 1, feedback: { kind: 'matched', year: 3 } });
+  expect(prompt.hidden).toBe(false); expect(year.value).toBe('0');
+  year.value = '5'; year.dispatch('change');
+  guide.update({ status: 'completed', runId: 1 });
+  expect(year.value).toBe('5'); change.click(); expect(changes).toEqual([5]);
+  year.value = '3'; year.dispatch('change'); expect(change.disabled).toBe(true);
+  change.click(); expect(changes).toEqual([5]);
+  for (const status of ['computing', 'stopped', 'error']) {
+    guide.update({ status }); expect(prompt.hidden).toBe(true); expect(change.disabled).toBe(true);
+  }
+  guide.update({ status: 'completed', runId: 2, feedback: { kind: 'matched', year: 0 } });
+  expect(year.value).toBe('3'); expect(change.disabled).toBe(false);
+  guide.dispose(); change.click(); expect(changes).toEqual([5]);
 });

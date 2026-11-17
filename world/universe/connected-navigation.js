@@ -1,3 +1,5 @@
+import { mountContinuity } from '../continuity/view.js';
+import { mountContextualHints } from './contextual-hints.js';
 import { contextFromURL, contextURL, shellURL, navigationMessage } from './navigation.js';
 import { getExperience } from './registry.js';
 import { parseIframeEvent } from '../../shared/causality/index.js';
@@ -18,6 +20,10 @@ export function mountUniverseNavigation(container,{experienceId,onContext=()=>{}
   links.hidden=true;links.style.cssText='display:none;flex-wrap:wrap;gap:12px;padding:6px 3px;max-width:260px';
   const setExpanded=value=>{links.hidden=!value;links.style.display=value?'flex':'none';toggle.setAttribute('aria-expanded',String(value));toggle.textContent=value?'Close ↑':'HBL ↗';toggle.setAttribute('aria-label',value?'Close universe navigation':'Open universe navigation');};
   toggle.addEventListener('click',()=>setExpanded(links.hidden));
+  nav.addEventListener('keydown',event=>{
+    if(event.key !== 'Escape' || links.hidden || event.defaultPrevented)return;
+    event.preventDefault();event.stopPropagation();setExpanded(false);toggle.focus();
+  });
 
   const home=doc.createElement('a'),world=doc.createElement('a'),futures=doc.createElement('a');
   home.textContent='HappyBearLandia';world.textContent='World';futures.textContent='Worldline';
@@ -26,6 +32,8 @@ export function mountUniverseNavigation(container,{experienceId,onContext=()=>{}
   const fail=()=>{nav.replaceChildren();const error=doc.createElement('span');error.setAttribute('role','alert');error.textContent='Invalid world context. Open a valid shared link to continue.';nav.append(error);};
   try{context=contextFromURL(win.location.href);}catch{fail();return Object.freeze({getContext:()=>null,dispose:()=>nav.remove()});}
   const render=()=>{home.href=shellURL(experienceId,context);world.href=shellURL('world',context);futures.href=shellURL('worldline',context);};
+  const continuity=win.parent===win && ['world','living-city','future-machine','optimization'].includes(experienceId) ? mountContinuity(links) : null;
+  const hints=mountContextualHints(links,{workspaceId:experienceId});
   const embedded=win.parent!==win;
   const publish=message=>{if(embedded)win.parent.postMessage(message,win.location.origin);};
   const receive=event=>{
@@ -45,6 +53,6 @@ export function mountUniverseNavigation(container,{experienceId,onContext=()=>{}
     getContext:()=>structuredClone(context),
     select(entityId){const message=navigationMessage('select',context,{entityId});context={...context,entityId};win.history.replaceState(null,'',contextURL(win.location.href,context));render();publish(message);},
     navigate,
-    dispose(){win.removeEventListener('message',receive);win.removeEventListener('popstate',restore);nav.removeEventListener('click',click);nav.remove();}
+    dispose(){continuity?.dispose();hints.dispose();win.removeEventListener('message',receive);win.removeEventListener('popstate',restore);nav.removeEventListener('click',click);nav.remove();}
   });
 }

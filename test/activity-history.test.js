@@ -12,3 +12,21 @@ describe('exact bounded activity history',()=>{
  test('deterministic partition property conserves totals for many arbitrary intervals',()=>{let seed=42;const random=()=>((seed=Math.imul(seed,1664525)+1013904223>>>0)/4294967296);const h=createActivityHistory({maxBuckets:3});let raw=0,represented=0;for(let id=0;id<100;id++){let minute=0;for(let i=0;i<20;i++){const duration=1+Math.floor(random()*97),weight=1+id%4;record(h,String(id),i%2?'WORK':'HOME',minute,minute+duration,{weight});minute+=duration;raw+=duration;represented+=duration*weight;}}const s=snapshotActivityHistory(h);expect(s.totals.agentMinutes).toBe(raw);expect(s.totals.representedAgentMinutes).toBe(represented);expect(s.retention.droppedBucketAgentMinutes+s.buckets.reduce((sum,b)=>sum+b.agentMinutes,0)).toBe(raw);});
  test('100k actor admission is linear-budgeted and state stays explicitly bounded',()=>{const h=createActivityHistory({maxBuckets:1,maxEvents:0});const start=performance.now();for(let i=0;i<100000;i++)record(h,`p${i}`,'HOME',0,1);const ms=performance.now()-start;expect(h.actorCount).toBe(100000);expect(h.totals.agentMinutes).toBe(100000);expect(()=>record(h,'overflow','HOME',0,1)).toThrow('budget');console.info('History100kintervals measuredms:',Math.round(ms));});
 });
+
+test('need validation is atomic and weighted need sums survive interval splitting',()=>{
+ const whole=createActivityHistory(),split=createActivityHistory();
+ const needs={energy:0,hunger:100,fun:37.5};
+ record(whole,'p','HOME',30,150,{districtId:'A',weight:2.5,needs});
+ for(let start=30;start<150;start++)record(split,'p','HOME',start,start+1,{districtId:'A',weight:2.5,needs});
+ expect(split.totals.needs).toEqual(whole.totals.needs);
+ for(const key of Object.keys(whole.buckets)){
+  expect(split.buckets[key].needs).toEqual(whole.buckets[key].needs);
+  expect(split.buckets[key].districts.A.needs).toEqual(whole.buckets[key].districts.A.needs);
+ }
+ for(const invalid of [{energy:NaN},{energy:-1},{energy:101},Array(13).fill(1),Object.fromEntries(Array.from({length:13},(_,i)=>[`need${i}`,1]))]){
+  const before=structuredClone(whole);
+  expect(()=>record(whole,'q','HOME',150,151,{needs:invalid})).toThrow();
+  expect(whole).toEqual(before);
+ }
+ expect(whole.totals.needs.fun.representedMinuteSum).toBe(37.5*120*2.5);
+});

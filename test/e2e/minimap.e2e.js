@@ -1,0 +1,36 @@
+import {test,expect} from '@playwright/test';
+for(const mobile of [false,true]) test(`minimap bookmarks preserve scene and selection ${mobile?'mobile reduced motion':'desktop'}`,async({page})=>{
+  await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:1000});
+  if(mobile)await page.emulateMedia({reducedMotion:'reduce'});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.route('**/OrbitControls.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+'\nconst original=OrbitControls.prototype.update;OrbitControls.prototype.update=function(...args){globalThis.__camera=this;return original.apply(this,args);};'});});
+  await page.goto('/world?demo=1&synthetic=1&people=16&renderer=webgl&quality=LOW');
+  await page.waitForFunction(()=>window.hblWorldStartup?.readyMs&&window.__camera);
+  const map=page.getByTestId('world-minimap');await map.locator('summary').click();
+  await map.getByRole('button',{name:'Center loaded area',exact:true}).click();
+  const target=()=>page.evaluate(()=>({x:__camera.target.x,z:__camera.target.z}));
+  const saved=await target();
+  await map.getByRole('button',{name:'Bookmark view',exact:true}).click();
+  const bookmark=map.locator('[data-mm-bookmarks] button');await expect(bookmark).toHaveCount(1);
+  await map.locator('canvas').focus();await page.keyboard.press('ArrowRight');
+  await expect.poll(async()=>JSON.stringify(await target())).not.toBe(JSON.stringify(saved));
+  // Existing activity selection entry point uses a persistent person ID.
+  const id=await page.evaluate(()=>window.hblWorldActivity.getSnapshot?.()?.people?.[0]?.id??null);
+  expect(id).not.toBeNull();
+  await page.evaluate(id=>window.hblWorldActivity.selectPerson(id),id);
+  await expect(map.locator('[data-mm-recent] button')).toHaveCount(1);
+  const inspector=await page.locator('#inspect').textContent();
+  await map.locator('[data-mm-recent] button').click();
+  expect(await page.locator('#inspect').textContent()).toBe(inspector);
+  const marker=await page.evaluate(()=>{window.__sceneMarker={};return performance.timeOrigin;});
+  await bookmark.focus();await page.keyboard.press('Enter');
+  await expect.poll(async()=>JSON.stringify(await target())).toBe(JSON.stringify(saved));
+  expect(await page.locator('#inspect').textContent()).toBe(inspector);
+  expect(await page.evaluate(()=>performance.timeOrigin)).toBe(marker);
+  expect(await page.evaluate(()=>Boolean(window.__sceneMarker))).toBe(true);
+  await page.screenshot({path:test.info().outputPath(`minimap-${mobile?'mobile':'desktop'}.png`)});
+  await page.keyboard.press('Escape');await expect(map).not.toHaveAttribute('open','');await expect(map.locator('summary')).toBeFocused();
+  await page.keyboard.press('Enter');await expect(bookmark).toBeVisible();
+  await map.getByRole('button',{name:'Hide map',exact:true}).click();await expect(map.locator('summary')).toBeFocused();
+  expect(errors).toEqual([]);
+});

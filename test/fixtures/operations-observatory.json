@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "symphony": { "source": "https://linear.app/shel-bernstein/issue/SHE-180", "observedAt": "2026-11-12T12:00:00Z", "running": 0, "retrying": 0, "blocked": 1, "capacity": 1 },
+  "ci": { "source": "https://github.com/adnanwahab/happybearlandia/actions/runs/123", "observedAt": "2026-11-12T12:00:00Z", "runs": [{ "name": "Synthetic CI fixture", "status": "failure", "source": "https://github.com/adnanwahab/happybearlandia/actions/runs/123" }] },
+  "costs": { "source": "https://linear.app/shel-bernstein/issue/SHE-202", "observedAt": "2026-11-12T12:00:00Z", "features": [{ "id": "Synthetic verified feature", "verified": true, "costUSD": 12, "source": "https://linear.app/shel-bernstein/issue/SHE-202" }] },
+  "release": { "source": "https://linear.app/shel-bernstein/issue/SHE-202", "observedAt": "2026-11-12T12:00:00Z", "buildId": "abcdef123", "gates": [{ "name": "Synthetic journey gate", "status": "passed", "source": "https://linear.app/shel-bernstein/issue/SHE-202" }] },
+  "product": { "source": "https://linear.app/shel-bernstein/issue/SHE-202", "observedAt": "2026-11-12T12:00:00Z", "outcomes": [{ "name": "Synthetic completion", "value": 80, "unit": "% of fixture sessions", "kind": "synthetic", "source": "https://linear.app/shel-bernstein/issue/SHE-202" }] }
+}

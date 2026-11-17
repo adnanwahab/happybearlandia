@@ -1,0 +1,1067 @@
+From b298b6c72217140e0a494545e3868a9fa7a2cb76 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 17 Nov 2026 09:00:50 -0600
+Subject: [PATCH] Add redacted server logs at /api/server-logs
+
+Record page views, API calls, failed and slow requests, handler
+exceptions, console errors and warnings, and process starts as daily
+JSON lines on the Fly volume (/data/server-logs). Publish them
+read-only at /api/server-logs with a summary (top 404s, 5xx routes,
+slowest routes, repeated errors, restarts) plus recent entries, so
+people and agents can see what fails in production without Fly access.
+
+Everything is redacted before it is written: no IPs, query strings,
+headers, cookies or bodies, and IDs, share codes, emails, tokens and
+coordinates are stripped from paths and messages. Logs keep 14 days,
+stop at 20 MB a day, and HBL_SERVER_LOGS=off disables them.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_011zJYagxyb5JPpjt5bub8jL
+---
+ .env.example               |   5 +
+ docs/release-operations.md |   2 +
+ fly.toml                   |   2 +
+ ops/server-logs/README.md  |  54 ++++++++
+ ops/server-logs/api.js     | 200 +++++++++++++++++++++++++++++
+ ops/server-logs/capture.js | 136 ++++++++++++++++++++
+ ops/server-logs/redact.js  |  96 ++++++++++++++
+ ops/server-logs/store.js   | 131 +++++++++++++++++++
+ server.js                  |  11 +-
+ test/server-logs.test.js   | 257 +++++++++++++++++++++++++++++++++++++
+ test/server.test.js        |  11 ++
+ 11 files changed, 903 insertions(+), 2 deletions(-)
+ create mode 100644 ops/server-logs/README.md
+ create mode 100644 ops/server-logs/api.js
+ create mode 100644 ops/server-logs/capture.js
+ create mode 100644 ops/server-logs/redact.js
+ create mode 100644 ops/server-logs/store.js
+ create mode 100644 test/server-logs.test.js
+
+diff --git a/.env.example b/.env.example
+index f8a86f3..bc45409 100644
+--- a/.env.example
++++ b/.env.example
+@@ -13,6 +13,11 @@ OVERPASS_TIMEOUT_MS=15000
+ # Civic package API base URL
+ DEAR_CONGRESS_URL=https://dear-congress.fly.dev/api
+ 
++# Redacted server logs served at /api/server-logs (see ops/server-logs/README.md)
++# HBL_SERVER_LOG_DIR=.hbl-private/server-logs
++# HBL_SERVER_LOG_RETENTION_DAYS=14
++# HBL_SERVER_LOGS=off
++
+ # Optional player patch voting (private SQLite volume, secret from server environment)
+ # HBL_PATCH_VOTE_SECRET=generate-a-long-random-secret
+ # HBL_PATCH_VOTE_DB_PATH=/private/persistent/patch-votes.sqlite
+diff --git a/docs/release-operations.md b/docs/release-operations.md
+index 18593f5..e1189e5 100644
+--- a/docs/release-operations.md
++++ b/docs/release-operations.md
+@@ -2,6 +2,8 @@
+ 
+ This release exposes `/api/health`, `/api/ready`, and the [Simulation Health dashboard](/tools/simulation-health/). Liveness answers whether the HTTP process can respond. Readiness checks the required World and causal SQLite tables and read/write access to the Decision Studio directory. A readiness failure returns 503. Probes use local storage and cache their result for two seconds. They leave saved records unchanged.
+ 
++`/api/server-logs` publishes redacted server logs for the last 14 days: failed and slow requests, page and API traffic, handler exceptions, console errors and warnings, and each process start with its build ID. Read it after a deploy or during an incident; see [the server logs module](../ops/server-logs/README.md) for what is and isn't recorded.
++
+ ## Before a release
+ 
+ - Record the current image/build, Git revision, database schema compatibility, mount layout, and the operator responsible for rollback.
+diff --git a/fly.toml b/fly.toml
+index 258ef4d..4b10e65 100644
+--- a/fly.toml
++++ b/fly.toml
+@@ -12,6 +12,8 @@ primary_region = 'dfw'
+   DECISION_STORE_DIR = '/data/decision-experiments'
+   HBL_CITY_DATA_DIR = '/data/city-experiments'
+   HBL_REALITY_SHARE_DB_PATH = '/data/reality-shares.sqlite'
++  # On the volume so /api/server-logs history survives machine stops and deploys.
++  HBL_SERVER_LOG_DIR = '/data/server-logs'
+ 
+ [build]
+ 
+diff --git a/ops/server-logs/README.md b/ops/server-logs/README.md
+new file mode 100644
+index 0000000..9a4fe97
+--- /dev/null
++++ b/ops/server-logs/README.md
+@@ -0,0 +1,54 @@
++# Server logs
++
++`GET /api/server-logs` is a public, read-only view of the server's recent logs, so people
++and agents (such as the daily improvement run) can see what fails or runs slowly in
++production without access to Fly.
++
++## What is recorded
++
++- Page views, API calls and WebSocket upgrades: method, normalized path, status and duration.
++- Every failed (4xx/5xx) or slow (1.5 s or more) request, including static assets.
++- Exceptions thrown by route handlers: name, message and the top six stack frames.
++- `console.error` and `console.warn` output. Output still prints to stdout and stderr as before.
++- A `server started` entry with the build ID each time the process starts, which covers deploys and cold starts.
++
++Not recorded: successful static-asset requests, successful health checks, requests to
++`/api/server-logs`, and Fly's own platform logs.
++
++## Privacy
++
++Everything is redacted before it is written, so the files and the endpoint hold the same data.
++
++- Never stored: IP addresses, query strings, fragments, headers, cookies, user agents or request bodies.
++- Paths keep their route shape, but record IDs, share codes, room codes, house and date names become `:id`.
++- Messages and stack frames lose emails, bearer tokens, `key=value` secrets, URL query strings,
++  IPv4 and IPv6 addresses, coordinates, UUIDs, long hex or mixed tokens and long numbers.
++  Messages are capped at 500 characters.
++
++The endpoint is public on purpose. If a log line ever carries personal data, fix the
++redaction or the code that logged it. Set `HBL_SERVER_LOGS=off` to stop recording and
++return 404 from the endpoint.
++
++## Query parameters
++
++| Parameter | Default | Meaning |
++| --- | --- | --- |
++| `since` | `24h` | A duration (`30m`, `6h`, `2d`) or an ISO timestamp, within the retention window |
++| `until` | now | ISO timestamp |
++| `level` | `info` | Minimum level: `info`, `warn` or `error` |
++| `type` | all | `request`, `exception`, `console`, `lifecycle` or `notice` |
++| `path` | all | Path prefix, for example `/api/area` |
++| `limit` | `200` | Entries returned, 0 to 1000. The summary always covers the whole matching window. |
++
++For example, `/api/server-logs?since=24h&level=warn` returns the last day's problems. The
++response has a `summary` (status classes, busiest paths, top 404s, 5xx routes, slowest
++routes by p95, repeated errors, process starts and builds) and `entries`, newest first.
++Responses are cached for 10 seconds.
++
++## Storage
++
++JSON lines, one file per UTC day (`server-YYYY-MM-DD.jsonl`), in `HBL_SERVER_LOG_DIR`. In
++production this is `/data/server-logs` on the Fly volume, so history survives machine stops
++and deploys. Locally it defaults to `.hbl-private/server-logs`. The directory must be
++outside the public static roots. Files older than `HBL_SERVER_LOG_RETENTION_DAYS` (default
++14) are deleted, and each day stops at 20 MB with a single `notice` entry.
+diff --git a/ops/server-logs/api.js b/ops/server-logs/api.js
+new file mode 100644
+index 0000000..105e345
+--- /dev/null
++++ b/ops/server-logs/api.js
+@@ -0,0 +1,200 @@
++import { captureConsole, createServerLogRecorder, instrumentFetch } from './capture.js';
++import { normalizePath } from './redact.js';
++import { createServerLogStore, DEFAULT_LOG_DIR } from './store.js';
++
++export const SCHEMA = 'server-logs.v1';
++const DAY_MS = 86400000;
++const LEVELS = { info: 0, warn: 1, error: 2 };
++const TYPES = new Set(['request', 'exception', 'console', 'lifecycle', 'notice']);
++const UNITS = { m: 60000, h: 3600000, d: DAY_MS };
++const OFF = /^(0|off|false|no|disabled)$/i;
++const PRIVACY = 'Redacted before storage: no IP addresses, query strings, headers, cookies or request bodies are kept, '
++  + 'and IDs, share codes, emails, tokens and coordinates are removed from paths and messages.';
++const NOT_RECORDED = ['successful static-asset requests', 'successful health checks', 'requests to /api/server-logs',
++  'Fly platform logs (proxy, machine start and stop)'];
++
++const json = (body, status = 200, headers = {}) => Response.json(body, {
++  status, headers: { 'cache-control': 'no-store', 'x-robots-tag': 'noindex', ...headers },
++});
++
++function parseSince(value, now, retentionDays) {
++  const floor = now - retentionDays * DAY_MS;
++  if (value === null || value === '') return Math.max(floor, now - DAY_MS);
++  const relative = /^(\d{1,4})([mhd])$/.exec(value);
++  if (relative) return Math.max(floor, now - Number(relative[1]) * UNITS[relative[2]]);
++  const at = Date.parse(value);
++  if (!Number.isFinite(at)) throw new Error('since must be a duration such as 30m, 6h or 2d, or an ISO timestamp.');
++  return Math.min(now, Math.max(floor, at));
++}
++
++export function parseQuery(params, now, retentionDays) {
++  const since = parseSince(params.get('since'), now, retentionDays);
++  let until = now;
++  if (params.get('until')) {
++    const at = Date.parse(params.get('until'));
++    if (!Number.isFinite(at)) throw new Error('until must be an ISO timestamp.');
++    until = Math.min(now, at);
++  }
++  if (until < since) throw new Error('until must be later than since.');
++  const level = params.get('level') || 'info';
++  if (!Object.hasOwn(LEVELS, level)) throw new Error('level must be info, warn or error.');
++  const type = params.get('type') || null;
++  if (type && !TYPES.has(type)) throw new Error('type must be request, exception, console, lifecycle or notice.');
++  const limitText = params.get('limit');
++  const limit = limitText === null ? 200 : Number(limitText);
++  if (!/^\d{1,4}$/.test(limitText ?? '200') || limit > 1000) throw new Error('limit must be a whole number from 0 to 1000.');
++  const path = params.get('path') ? normalizePath(params.get('path')) : null;
++  return { since, until, level, type, limit, path };
++}
++
++function bump(map, key, base, at) {
++  const item = map.get(key) || { ...base, count: 0, firstAt: at, lastAt: at };
++  item.count++;
++  if (at < item.firstAt) item.firstAt = at;
++  if (at > item.lastAt) item.lastAt = at;
++  map.set(key, item);
++}
++const top = (items, score, count) => [...items].sort((a, b) => score(b) - score(a)).slice(0, count);
++function percentile(values, fraction) {
++  if (!values.length) return null;
++  const sorted = [...values].sort((a, b) => a - b);
++  return sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(fraction * sorted.length) - 1))];
++}
++
++// Aggregates the whole matching window, not only the entries returned, so a reader
++// sees which routes fail or crawl and which errors repeat at a glance.
++export function summarizeEntries(entries) {
++  const byLevel = { info: 0, warn: 0, error: 0 };
++  const byType = {};
++  const byStatusClass = {};
++  const byKind = {};
++  const routes = new Map();
++  const missing = new Map();
++  const failures = new Map();
++  const problems = new Map();
++  const builds = new Set();
++  let requests = 0;
++  let serverStarts = 0;
++  for (const entry of entries) {
++    if (Object.hasOwn(byLevel, entry.level)) byLevel[entry.level]++;
++    byType[entry.type] = (byType[entry.type] || 0) + 1;
++    if (entry.type === 'request') {
++      requests++;
++      const statusClass = `${Math.floor(entry.status / 100)}xx`;
++      byStatusClass[statusClass] = (byStatusClass[statusClass] || 0) + 1;
++      byKind[entry.kind] = (byKind[entry.kind] || 0) + 1;
++      const key = `${entry.method} ${entry.path}`;
++      const route = routes.get(key) || { method: entry.method, path: entry.path, kind: entry.kind, count: 0, errors: 0, ms: [] };
++      route.count++;
++      if (entry.status >= 400) route.errors++;
++      if (Number.isFinite(entry.ms) && route.ms.length < 5000) route.ms.push(entry.ms);
++      routes.set(key, route);
++      if (entry.status === 404) bump(missing, entry.path, { path: entry.path }, entry.t);
++      if (entry.status >= 500) bump(failures, `${key} ${entry.status}`, { method: entry.method, path: entry.path, status: entry.status }, entry.t);
++    } else if (entry.type === 'lifecycle') {
++      if (entry.message === 'server started') serverStarts++;
++      if (entry.build) builds.add(entry.build);
++    } else {
++      const message = entry.type === 'exception' ? `${entry.name}: ${entry.message}` : entry.message;
++      bump(problems, `${entry.type}|${entry.level}|${entry.path || ''}|${message}`,
++        { type: entry.type, level: entry.level, message, ...(entry.path ? { path: entry.path } : {}) }, entry.t);
++    }
++  }
++  const routeList = [...routes.values()].map(({ ms, ...route }) => ({
++    ...route, p95Ms: percentile(ms, 0.95), maxMs: ms.length ? ms.reduce((a, b) => Math.max(a, b)) : null,
++  }));
++  return {
++    entries: entries.length, byLevel, byType,
++    requests: {
++      total: requests, byStatusClass, byKind,
++      topPaths: top(routeList, route => route.count, 15),
++      notFound: top(missing.values(), item => item.count, 15),
++      serverErrors: top(failures.values(), item => item.count, 15),
++      slowest: top(routeList.filter(route => route.p95Ms !== null), route => route.p95Ms, 10)
++        .map(({ method, path, count, p95Ms, maxMs }) => ({ method, path, count, p95Ms, maxMs })),
++    },
++    problems: top(problems.values(), item => item.count, 20),
++    serverStarts, builds: [...builds],
++  };
++}
++
++export function createServerLogsHandler(options = {}) {
++  const { store } = options;
++  const now = options.now || Date.now;
++  const cacheMs = options.cacheMs ?? 10000;
++  const cache = new Map();
++  return function handleServerLogs(request) {
++    if (request.method !== 'GET') return json({ error: 'Use GET /api/server-logs.' }, 405, { allow: 'GET' });
++    const url = new URL(request.url);
++    const at = now();
++    const key = [...url.searchParams].sort(([a], [b]) => a.localeCompare(b)).map(pair => pair.join('=')).join('&');
++    const cached = cache.get(key);
++    if (cached && at - cached.at < cacheMs) return json(cached.body);
++    let query;
++    try {
++      query = parseQuery(url.searchParams, at, store.retentionDays);
++    } catch (error) {
++      return json({ error: error.message }, 400);
++    }
++    const { entries, truncated } = store.read({ since: query.since, until: query.until });
++    const minimum = LEVELS[query.level];
++    const matching = entries.filter(entry => (LEVELS[entry.level] ?? 0) >= minimum
++      && (!query.type || entry.type === query.type)
++      && (!query.path || String(entry.path || '').startsWith(query.path)));
++    const body = {
++      schemaVersion: SCHEMA,
++      generatedAt: new Date(at).toISOString(),
++      build: options.buildId || 'unknown',
++      processStartedAt: options.startedAt || null,
++      window: { since: new Date(query.since).toISOString(), until: new Date(query.until).toISOString() },
++      query: { level: query.level, type: query.type, path: query.path, limit: query.limit },
++      retentionDays: store.retentionDays,
++      privacy: PRIVACY,
++      notRecorded: NOT_RECORDED,
++      truncated,
++      summary: summarizeEntries(matching),
++      entries: matching.slice(0, query.limit),
++    };
++    if (cache.size >= 100) cache.clear();
++    cache.set(key, { at, body });
++    return json(body);
++  };
++}
++
++const notFound = () => new Response('Not found', { status: 404 });
++
++// Server wiring: HBL_SERVER_LOG_DIR (default .hbl-private/server-logs),
++// HBL_SERVER_LOG_RETENTION_DAYS (default 14) and HBL_SERVER_LOGS=off to disable.
++// A bad configuration disables logging rather than stopping the game server.
++export function createServerLogs(env = process.env, options = {}) {
++  const buildId = String(env.HBL_BUILD_ID || 'unknown').slice(0, 80);
++  const startedAt = new Date((options.now || Date.now)()).toISOString();
++  const disabled = {
++    enabled: false,
++    instrument: handler => handler,
++    captureConsole: () => () => {},
++    started: () => false,
++    handle: notFound,
++  };
++  if (OFF.test(env.HBL_SERVER_LOGS || '')) return disabled;
++  let store;
++  try {
++    store = createServerLogStore({
++      dir: env.HBL_SERVER_LOG_DIR || DEFAULT_LOG_DIR,
++      retentionDays: env.HBL_SERVER_LOG_RETENTION_DAYS,
++      now: options.now,
++    });
++  } catch (error) {
++    console.error(`[server-logs] disabled: ${error.message}`);
++    return disabled;
++  }
++  const recorder = createServerLogRecorder(store, { appRoot: options.appRoot });
++  return {
++    enabled: true,
++    store,
++    instrument: handler => instrumentFetch(handler, recorder),
++    captureConsole: (target = console) => captureConsole(recorder, target),
++    started: () => recorder.lifecycle('server started', { build: buildId }),
++    handle: createServerLogsHandler({ store, buildId, startedAt, now: options.now }),
++  };
++}
+diff --git a/ops/server-logs/capture.js b/ops/server-logs/capture.js
+new file mode 100644
+index 0000000..d571a9c
+--- /dev/null
++++ b/ops/server-logs/capture.js
+@@ -0,0 +1,136 @@
++import { normalizePath, redactText } from './redact.js';
++
++export const SLOW_REQUEST_MS = 1500;
++const HEALTH_PATHS = new Set(['/api/health', '/api/ready', '/api/demo/ready']);
++const LOGS_PATH = '/api/server-logs';
++const METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']);
++const STACK_FRAMES = 6;
++
++export function classifyRequest(request, pathname) {
++  if ((request.headers.get('upgrade') || '').toLowerCase() === 'websocket') return 'websocket';
++  if (pathname.startsWith('/api/')) return 'api';
++  const destination = request.headers.get('sec-fetch-dest');
++  if (destination === 'document') return 'page';
++  if (!destination && (request.headers.get('accept') || '').includes('text/html')) return 'page';
++  return 'asset';
++}
++
++// Keep what explains player experience (pages, API calls, failures, slow responses)
++// and skip high-volume noise: successful static assets, health probes and this endpoint.
++export function shouldRecordRequest({ kind, path, status, ms }, slowMs = SLOW_REQUEST_MS) {
++  if (path === LOGS_PATH) return status >= 500;
++  if (HEALTH_PATHS.has(path)) return status >= 400;
++  if (status >= 400 || ms >= slowMs) return true;
++  return kind !== 'asset';
++}
++
++const methodOf = request => METHODS.has(request?.method) ? request.method : 'OTHER';
++const errorName = error => {
++  const name = typeof error?.name === 'string' ? error.name.replace(/[^\w.$-]/g, '').slice(0, 60) : '';
++  return name || 'Error';
++};
++function errorMessage(error) {
++  if (error instanceof Error) return error.message;
++  if (typeof error === 'string') return error;
++  try { return JSON.stringify(error) ?? String(error); } catch { return String(error); }
++}
++function stackFrames(error, appRoot) {
++  if (typeof error?.stack !== 'string') return [];
++  const root = appRoot.endsWith('/') ? appRoot : appRoot + '/';
++  return error.stack.split('\n').map(line => line.trim()).filter(line => line.startsWith('at ')).slice(0, STACK_FRAMES)
++    .map(line => redactText(line.split(root).join('').replace(/file:\/\//g, ''), 200));
++}
++function formatArg(value) {
++  if (typeof value === 'string') return value;
++  if (value instanceof Error) return `${errorName(value)}: ${value.message}`;
++  if (value && typeof value === 'object') {
++    if (typeof value.message === 'string') return value.message;
++    try {
++      const text = JSON.stringify(value);
++      if (text && text !== '{}') return text.slice(0, 300);
++    } catch {}
++    return Object.prototype.toString.call(value);
++  }
++  return String(value);
++}
++
++export function createServerLogRecorder(store, options = {}) {
++  const slowMs = options.slowMs ?? SLOW_REQUEST_MS;
++  const appRoot = options.appRoot ?? process.cwd();
++  return {
++    request(request, pathname, status, ms) {
++      const kind = classifyRequest(request, pathname);
++      const path = pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname;
++      if (!shouldRecordRequest({ kind, path, status, ms }, slowMs)) return false;
++      const slow = ms >= slowMs;
++      return store.record({
++        level: status >= 500 ? 'error' : status >= 400 || slow ? 'warn' : 'info',
++        type: 'request', kind, method: methodOf(request), path: normalizePath(pathname), status,
++        ms: Math.round(ms), ...(slow ? { slow: true } : {}),
++      });
++    },
++    exception(error, request, pathname) {
++      return store.record({
++        level: 'error', type: 'exception', method: methodOf(request), path: normalizePath(pathname),
++        name: errorName(error), message: redactText(errorMessage(error)), stack: stackFrames(error, appRoot),
++      });
++    },
++    console(level, args) {
++      const message = redactText(args.map(formatArg).join(' '));
++      if (!message.trim()) return false;
++      return store.record({ level, type: 'console', message });
++    },
++    lifecycle(message, details = {}) {
++      return store.record({ level: 'info', type: 'lifecycle', message: redactText(message, 200), ...details });
++    },
++  };
++}
++
++const safely = action => {
++  try { action(); } catch {}
++};
++
++// Wraps the Bun.serve fetch handler. Responses and thrown errors pass through
++// unchanged; a successful WebSocket upgrade returns no Response and is logged as 101.
++export function instrumentFetch(handler, recorder, clock = () => performance.now()) {
++  return async function fetchWithServerLogs(request, server) {
++    const started = clock();
++    let pathname = '/';
++    try { pathname = new URL(request.url).pathname; } catch {}
++    let response;
++    try {
++      response = await handler.call(this, request, server);
++    } catch (error) {
++      safely(() => recorder.exception(error, request, pathname));
++      safely(() => recorder.request(request, pathname, 500, clock() - started));
++      throw error;
++    }
++    safely(() => recorder.request(request, pathname, response ? response.status : 101, clock() - started));
++    return response;
++  };
++}
++
++// Mirrors console.error and console.warn into the log. Output still prints as before,
++// and a re-entrancy guard keeps a failing write from looping back into the console.
++export function captureConsole(recorder, target = console) {
++  const originals = {};
++  let busy = false;
++  for (const level of ['error', 'warn']) {
++    const original = target[level];
++    if (typeof original !== 'function' || original.serverLogsCapture) continue;
++    originals[level] = original;
++    const capture = (...args) => {
++      const result = original.apply(target, args);
++      if (!busy) {
++        busy = true;
++        try { recorder.console(level, args); } catch {} finally { busy = false; }
++      }
++      return result;
++    };
++    capture.serverLogsCapture = true;
++    target[level] = capture;
++  }
++  return () => {
++    for (const [level, original] of Object.entries(originals)) target[level] = original;
++  };
++}
+diff --git a/ops/server-logs/redact.js b/ops/server-logs/redact.js
+new file mode 100644
+index 0000000..1f57791
+--- /dev/null
++++ b/ops/server-logs/redact.js
+@@ -0,0 +1,96 @@
++// Everything recorded by the server-logs module is published at /api/server-logs,
++// so redaction runs before anything reaches disk. Callers never pass IPs, query
++// strings, headers, cookies or request bodies; free text is scrubbed of emails,
++// secrets, network addresses, coordinates and identifiers.
++
++export const MAX_MESSAGE = 500;
++
++const URL_WITH_QUERY = /\b(https?:\/\/[^\s?#"'<>]+)[?#][^\s"'<>]*/gi;
++const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
++const BEARER = /\bBearer\s+[A-Za-z0-9._~+/=-]+/gi;
++const SECRET_PAIR = /\b(authorization|cookie|token|secret|password|passwd|api[_-]?key|access[_-]?key|session|signature|credential)(s?\s*[:=]\s*)("[^"]*"|'[^']*'|[^\s,;&)}\]]+)/gi;
++const COORDINATE_PAIR = /-?\d{1,3}\.\d{3,}\s*,\s*-?\d{1,3}\.\d{3,}/g;
++const COORDINATE_FIELD = /\b(lat|lng|lon|latitude|longitude)\b(\s*[:=]?\s*)-?\d{1,3}(?:\.\d+)?/gi;
++const UUID = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
++const IPV4 = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g;
++const IPV6_CANDIDATE = /(?<![\w:.])[0-9A-Fa-f]{0,4}(?::[0-9A-Fa-f]{0,4}){2,7}(?![\w:])/g;
++const HEX_ID = /\b[0-9a-f]{16,}\b/gi;
++const MIXED_TOKEN = /\b(?=[A-Za-z0-9_-]*\d)(?=[A-Za-z0-9_-]*[A-Za-z])[A-Za-z0-9_-]{20,}\b/g;
++const LONG_NUMBER = /\b\d{9,}\b/g;
++const CONTROL = /[\u0000-\u0008\u000b-\u001f\u007f]/g;
++
++// Clock times such as 12:30:45 have colons too; an address needs a hex letter or "::".
++const looksLikeIpv6 = text => (text.match(/:/g) || []).length >= 2 && (text.includes('::') || /[a-f]/i.test(text));
++
++export function redactText(value, max = MAX_MESSAGE) {
++  const text = String(value ?? '')
++    .replace(CONTROL, ' ')
++    .replace(URL_WITH_QUERY, '$1?[redacted]')
++    .replace(EMAIL, '[email]')
++    .replace(BEARER, 'Bearer [redacted]')
++    .replace(SECRET_PAIR, '$1$2[redacted]')
++    .replace(COORDINATE_PAIR, '[coordinates]')
++    .replace(COORDINATE_FIELD, '$1$2[coordinate]')
++    .replace(UUID, '[id]')
++    .replace(IPV4, '[ip]')
++    .replace(IPV6_CANDIDATE, match => looksLikeIpv6(match) ? '[ip]' : match)
++    .replace(HEX_ID, '[id]')
++    .replace(MIXED_TOKEN, '[token]')
++    .replace(LONG_NUMBER, '[number]');
++  return text.length > max ? text.slice(0, max - 1) + '…' : text;
++}
++
++// Routes whose segments after the prefix are record IDs, share codes, room codes or
++// player-chosen text. Every such segment is replaced unless it is a known action word
++// or a static file name.
++const PRIVATE_SEGMENT_PREFIXES = [
++  '/r/', '/world/date/', '/world/house/', '/github/previews/',
++  '/api/reality-shares/', '/api/world-homes/', '/api/world-experiments/', '/api/world-history/',
++  '/api/runs/', '/api/experiments/', '/api/city-experiments/', '/api/world/experiments/',
++  '/api/decision-experiments/', '/api/decision-optimizations/', '/api/act-normal/rooms/',
++];
++const ACTION_WORDS = new Set(['fork', 'restore', 'date-media', 'house-session', 'image', 'cancel', 'pause',
++  'resume', 'status', 'result', 'results', 'events', 'trace', 'vote', 'compare', 'export']);
++const STATIC_FILE = /\.(?:js|mjs|cjs|css|html?|json|map|png|jpe?g|gif|svg|webp|avif|ico|wasm|glb|gltf|bin|ktx2|hdr|mp3|wav|ogg|mp4|webm|txt|csv|geojson|woff2?|ttf|otf|pdf|md)$/i;
++const UUID_EXACT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
++const MAX_PATH = 200;
++const MAX_SEGMENTS = 16;
++
++function decode(segment) {
++  try { return decodeURIComponent(segment); } catch { return segment; }
++}
++
++function privateSegment(segment) {
++  const text = decode(segment);
++  return ACTION_WORDS.has(text) || (STATIC_FILE.test(text) && !/[@\s]/.test(text)) ? segment : ':id';
++}
++
++function publicSegment(segment) {
++  const text = decode(segment);
++  if (text.length > 64 || /[@\s]/.test(text)) return ':id';
++  if (STATIC_FILE.test(text)) return segment;
++  if (UUID_EXACT.test(text) || /^[0-9a-f]{16,}$/i.test(text) || /^\d{4,}$/.test(text)) return ':id';
++  const digits = /\d/.test(text);
++  if (digits && /[A-Za-z]/.test(text) && text.length >= 16) return ':id';
++  if (digits && /[a-z]/.test(text) && /[A-Z]/.test(text) && text.length >= 8) return ':id';
++  return segment;
++}
++
++// Keep the route shape (useful for finding broken links and failing handlers) while
++// dropping query strings, fragments and anything that identifies a record or player.
++export function normalizePath(input) {
++  let path = String(input ?? '/');
++  const cut = path.search(/[?#]/);
++  if (cut >= 0) path = path.slice(0, cut);
++  if (!path.startsWith('/')) path = '/' + path;
++  const prefix = PRIVATE_SEGMENT_PREFIXES.find(candidate => path.startsWith(candidate));
++  const fixed = prefix ? prefix.split('/').length - 2 : Infinity;
++  const segments = path.split('/').slice(1);
++  const kept = segments.slice(0, MAX_SEGMENTS).map((segment, index) => {
++    if (!segment) return segment;
++    return index >= fixed ? privateSegment(segment) : publicSegment(segment);
++  });
++  if (segments.length > MAX_SEGMENTS) kept.push('…');
++  const normalized = '/' + kept.join('/');
++  return normalized.length > MAX_PATH ? normalized.slice(0, MAX_PATH - 1) + '…' : normalized;
++}
+diff --git a/ops/server-logs/store.js b/ops/server-logs/store.js
+new file mode 100644
+index 0000000..25394fa
+--- /dev/null
++++ b/ops/server-logs/store.js
+@@ -0,0 +1,131 @@
++import { appendFileSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync } from 'node:fs';
++import { isAbsolute, join, relative, resolve, sep } from 'node:path';
++
++export const DEFAULT_LOG_DIR = '.hbl-private/server-logs';
++export const MAX_READ_BYTES = 64 * 1024 * 1024;
++const DAY_MS = 86400000;
++const FILE = /^server-(\d{4}-\d{2}-\d{2})\.jsonl$/;
++// Directories served as static files. Raw log files must never be reachable there.
++const PUBLIC_ROOTS = ['data', 'world', 'game', 'tools', 'blog', 'visualizations', 'web', 'shared'];
++
++const clampInt = (value, min, max, fallback) => {
++  const number = Number(value);
++  return value !== undefined && value !== null && value !== '' && Number.isInteger(number)
++    ? Math.min(max, Math.max(min, number)) : fallback;
++};
++const dayOf = ms => new Date(ms).toISOString().slice(0, 10);
++
++export function resolveLogDir(dir = DEFAULT_LOG_DIR) {
++  const absolute = resolve(dir);
++  for (const root of PUBLIC_ROOTS) {
++    const rel = relative(resolve(root), absolute);
++    if (!isAbsolute(rel) && rel !== '..' && !rel.startsWith('..' + sep)) {
++      throw new Error('Server log directory must be outside public static directories.');
++    }
++  }
++  return absolute;
++}
++
++// Append-only JSON lines, one file per UTC day. Writes are synchronous so an entry
++// is on disk before the response is sent, and failures never reach the caller.
++export function createServerLogStore(options = {}) {
++  const dir = resolveLogDir(options.dir || DEFAULT_LOG_DIR);
++  const now = options.now || Date.now;
++  const retentionDays = clampInt(options.retentionDays, 1, 90, 14);
++  const maxBytesPerDay = clampInt(options.maxBytesPerDay, 1024, 1024 * 1024 * 1024, 20 * 1024 * 1024);
++  let prepared = false;
++  let day = null;
++  let bytes = 0;
++  let capped = false;
++  let dropped = 0;
++  const fileFor = name => join(dir, `server-${name}.jsonl`);
++
++  function prune(at = now()) {
++    const oldest = dayOf(at - (retentionDays - 1) * DAY_MS);
++    let names = [];
++    try { names = readdirSync(dir); } catch { return 0; }
++    let removed = 0;
++    for (const name of names) {
++      const match = FILE.exec(name);
++      if (!match || match[1] >= oldest) continue;
++      try { unlinkSync(join(dir, name)); removed++; } catch {}
++    }
++    return removed;
++  }
++
++  function append(line) {
++    appendFileSync(fileFor(day), line);
++    bytes += Buffer.byteLength(line);
++  }
++
++  function record(entry) {
++    try {
++      const at = now();
++      if (!prepared) {
++        mkdirSync(dir, { recursive: true });
++        prepared = true;
++      }
++      const today = dayOf(at);
++      if (today !== day) {
++        day = today;
++        capped = false;
++        try { bytes = statSync(fileFor(day)).size; } catch { bytes = 0; }
++        prune(at);
++      }
++      const t = new Date(at).toISOString();
++      const line = JSON.stringify({ t, ...entry }) + '\n';
++      if (bytes + Buffer.byteLength(line) > maxBytesPerDay) {
++        dropped++;
++        if (!capped) {
++          capped = true;
++          append(JSON.stringify({ t, level: 'warn', type: 'notice',
++            message: 'Daily server log size limit reached; later entries today were dropped.' }) + '\n');
++        }
++        return false;
++      }
++      append(line);
++      return true;
++    } catch {
++      dropped++;
++      return false;
++    }
++  }
++
++  // Entries between since and until, newest first. Stops before reading more than
++  // MAX_READ_BYTES and reports truncation so the caller can narrow the window.
++  function read({ since, until = now() } = {}) {
++    let names = [];
++    try { names = readdirSync(dir); } catch { return { entries: [], truncated: false }; }
++    const first = dayOf(since);
++    const last = dayOf(until);
++    const days = names.map(name => FILE.exec(name)?.[1]).filter(name => name && name >= first && name <= last).sort().reverse();
++    const entries = [];
++    let total = 0;
++    let truncated = false;
++    for (const name of days) {
++      let text;
++      try {
++        const size = statSync(fileFor(name)).size;
++        if (total + size > MAX_READ_BYTES) {
++          truncated = true;
++          break;
++        }
++        total += size;
++        text = readFileSync(fileFor(name), 'utf8');
++      } catch {
++        continue;
++      }
++      const lines = text.split('\n');
++      for (let index = lines.length - 1; index >= 0; index--) {
++        if (!lines[index]) continue;
++        let entry;
++        try { entry = JSON.parse(lines[index]); } catch { continue; }
++        const at = Date.parse(entry?.t);
++        if (Number.isFinite(at) && at >= since && at <= until) entries.push(entry);
++      }
++    }
++    return { entries, truncated };
++  }
++
++  return { dir, retentionDays, record, read, prune, stats: () => ({ dropped, retentionDays, maxBytesPerDay }) };
++}
+diff --git a/server.js b/server.js
+index c31f614..e25e95a 100644
+--- a/server.js
++++ b/server.js
+@@ -1,3 +1,8 @@
++import { createServerLogs } from './ops/server-logs/api.js';
++// Redacted request, error and warning logs, published at /api/server-logs.
++// Start capturing before other handlers initialize. See ops/server-logs/README.md.
++const serverLogs = createServerLogs(process.env);
++serverLogs.captureConsole();
+ import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
+ import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
+ const handleMiniSymphony = createMiniSymphonyHandler();
+@@ -461,7 +466,7 @@ const server = serve({
+   port: PORT,
+   hostname: process.env.HBL_BIND_HOST || undefined,
+ 
+-  async fetch(request, server) {
++  fetch: serverLogs.instrument(async function routeRequest(request, server) {
+     const releaseResponse=handleReleaseExperiment(request);
+     if(releaseResponse)return releaseResponse;
+     const { pathname } = new URL(request.url);
+@@ -471,6 +476,7 @@ const server = serve({
+     if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');
+     if (pathname === '/mini-symphony/style.css') return serveFile('./tools/mini-symphony-dashboard/style.css');
+     if (pathname === "/api/operations-observatory") return handleOperationsObservatory(request);
++    if (pathname === "/api/server-logs" || pathname === "/api/server-logs/") return serverLogs.handle(request);
+     if (pathname === "/tools/operations-observatory") return Response.redirect(new URL("/tools/operations-observatory/",request.url),302);
+     const admission=admitSimulation(request,server.requestIP(request)?.address);
+     if(admission)return admission;
+@@ -618,7 +624,7 @@ const server = serve({
+     if (under(pathname, "/blog")) return serveStatic("/blog", "./blog/dist", pathname);
+ 
+     return notFound();
+-  },
++  }),
+ 
+   websocket: {
+     pong(ws){if(ws.data?.roomId)actNormalService.websocket.pong(ws);},
+@@ -658,3 +664,4 @@ console.log(`  /blog   http://localhost:${server.port}/blog (after building blog
+ console.log(`  ws      ws://localhost:${server.port}/ws`);
+ console.log(`  overpass ${OVERPASS_ENDPOINTS.map(endpoint => publicProviderOrigin(endpoint) ?? "invalid provider endpoint").join(" | ")} (timeout ${OVERPASS_TIMEOUT_MS}ms)`);
+ console.log(`  dear-congress proxy origin ${DEAR_CONGRESS_ORIGIN}`);
++serverLogs.started();
+diff --git a/test/server-logs.test.js b/test/server-logs.test.js
+new file mode 100644
+index 0000000..0618fde
+--- /dev/null
++++ b/test/server-logs.test.js
+@@ -0,0 +1,257 @@
++import { expect, test } from 'bun:test';
++import { mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++import { normalizePath, redactText } from '../ops/server-logs/redact.js';
++import { createServerLogStore, resolveLogDir } from '../ops/server-logs/store.js';
++import { captureConsole, classifyRequest, createServerLogRecorder, instrumentFetch } from '../ops/server-logs/capture.js';
++import { createServerLogs, createServerLogsHandler } from '../ops/server-logs/api.js';
++
++const T0 = Date.parse('2026-11-17T12:00:00Z');
++function setup(storeOptions = {}) {
++  const dir = mkdtempSync(join(tmpdir(), 'hbl-server-logs-'));
++  let time = T0;
++  const now = () => time;
++  const store = createServerLogStore({ dir, now, ...storeOptions });
++  return { dir, store, now, advance: ms => { time += ms; }, cleanup: () => rmSync(dir, { recursive: true, force: true }) };
++}
++const request = (path, init = {}) => new Request('https://hbl.test' + path, init);
++
++test('redaction strips personal data and secrets from free text', () => {
++  const text = redactText('user jane.doe@example.com from 203.0.113.9 and 2001:db8::1 at 29.7286,-95.4746 lat=29.7 '
++    + 'sent token=abc123SECRET with Bearer eyJhbGciOi.JIUzI1 to https://api.example.com/v1/x?key=supersecret#frag '
++    + 'id 0b9c3f1e-2a4d-4e6f-8a1b-1c2d3e4f5a6b hex deadbeefdeadbeefdeadbeef code Ab3dEf9hIjKlMn0pQrStUv phone 5551234567');
++  for (const secret of ['jane.doe', '203.0.113.9', 'db8', '29.7286', '29.7', 'abc123SECRET', 'eyJhbGciOi', 'supersecret',
++    '0b9c3f1e', 'deadbeef', 'Ab3dEf9h', '5551234567']) expect(text).not.toContain(secret);
++  for (const marker of ['[email]', '[ip]', '[coordinates]', 'lat=[coordinate]', 'token=[redacted]', 'Bearer [redacted]',
++    'https://api.example.com/v1/x?[redacted]', '[id]', '[token]', '[number]']) expect(text).toContain(marker);
++});
++
++test('redaction keeps ordinary diagnostics readable and bounded', () => {
++  const line = 'Game bundle failed at 12:30:45 after 1500 ms in world/api.js:123:45 (city-systems.1.0.0)';
++  expect(redactText(line)).toBe(line);
++  expect(redactText('x'.repeat(900))).toHaveLength(500);
++  expect(redactText('a\u0000b')).toBe('a b');
++});
++
++test('paths keep their route shape but lose queries, IDs, share codes and names', () => {
++  const cases = {
++    '/world?lat=29.7&lng=-95.4': '/world',
++    '/r/AbCdEfGh': '/r/:id',
++    '/api/reality-shares/abcdefgh12': '/api/reality-shares/:id',
++    '/api/world-experiments/abcdefgh/house-session/Jane%20Doe': '/api/world-experiments/:id/house-session/:id',
++    '/api/world-homes/home_0123456789abcdef0123/restore': '/api/world-homes/:id/restore',
++    '/api/act-normal/rooms/AB12CD': '/api/act-normal/rooms/:id',
++    '/world/date/jane.doe': '/world/date/:id',
++    '/world/house/house.js': '/world/house/house.js',
++    ['/github/previews/' + 'a'.repeat(32)]: '/github/previews/:id',
++    '/api/runs/0b9c3f1e-2a4d-4e6f-8a1b-1c2d3e4f5a6b/cancel': '/api/runs/:id/cancel',
++    '/notes/someone@example.com': '/notes/:id',
++    ['/x/' + 'a1'.repeat(10)]: '/x/:id',
++    '/x/123456': '/x/:id',
++    '/game/1': '/game/1',
++    '/world/storm/response.html': '/world/storm/response.html',
++    '/vendor/three/three.webgpu.js': '/vendor/three/three.webgpu.js',
++    '/api/patch-votes/U06/vote': '/api/patch-votes/U06/vote',
++    '/.env': '/.env',
++  };
++  for (const [input, expected] of Object.entries(cases)) expect(normalizePath(input)).toBe(expected);
++  expect(normalizePath('/a' + '/b'.repeat(40))).toEndWith('/…');
++});
++
++test('logs can never be written inside a public static directory', () => {
++  for (const dir of ['data/server-logs', 'world', 'tools/logs', 'blog/dist/logs']) {
++    expect(() => resolveLogDir(dir)).toThrow('outside public static directories');
++  }
++  expect(resolveLogDir('.hbl-private/server-logs')).toEndWith(join('.hbl-private', 'server-logs'));
++});
++
++test('the store appends daily JSON lines, reads newest first and prunes expired days', () => {
++  const s = setup({ retentionDays: 2 });
++  try {
++    expect(s.store.record({ level: 'info', type: 'lifecycle', message: 'first' })).toBe(true);
++    s.advance(1000);
++    s.store.record({ level: 'warn', type: 'console', message: 'second' });
++    expect(s.store.read({ since: T0 - 1000 }).entries.map(entry => entry.message)).toEqual(['second', 'first']);
++    expect(s.store.read({ since: T0 + 500 }).entries.map(entry => entry.message)).toEqual(['second']);
++    writeFileSync(join(s.dir, 'server-2026-11-10.jsonl'), JSON.stringify({ t: '2026-11-10T00:00:00.000Z', level: 'info', type: 'notice', message: 'old' }) + '\n');
++    s.advance(86400000);
++    s.store.record({ level: 'info', type: 'notice', message: 'next day' });
++    expect(readdirSync(s.dir).sort()).toEqual(['server-2026-11-17.jsonl', 'server-2026-11-18.jsonl']);
++    expect(s.store.read({ since: T0 - 1000 }).entries.map(entry => entry.message)).toEqual(['next day', 'second', 'first']);
++  } finally {
++    s.cleanup();
++  }
++});
++
++test('a full day stops writing and leaves exactly one notice', () => {
++  const s = setup({ maxBytesPerDay: 1024 });
++  try {
++    let written = 0;
++    for (let i = 0; i < 50; i++) {
++      if (s.store.record({ level: 'info', type: 'request', kind: 'api', method: 'GET', path: '/api/area', status: 200, ms: 5 })) written++;
++    }
++    const { entries } = s.store.read({ since: T0 - 1 });
++    expect(written).toBeGreaterThan(0);
++    expect(written).toBeLessThan(50);
++    expect(entries.filter(entry => entry.type === 'notice')).toHaveLength(1);
++    expect(s.store.stats().dropped).toBe(50 - written);
++  } finally {
++    s.cleanup();
++  }
++});
++
++test('request logging keeps pages, APIs and failures and skips routine noise', () => {
++  const s = setup();
++  try {
++    const recorder = createServerLogRecorder(s.store, { appRoot: '/app' });
++    const page = request('/world/future-machine.html', { headers: { 'sec-fetch-dest': 'document' } });
++    expect(classifyRequest(page, '/world/future-machine.html')).toBe('page');
++    expect(classifyRequest(request('/world'), '/world')).toBe('asset');
++    expect(classifyRequest(request('/world', { headers: { accept: 'text/html,*/*' } }), '/world')).toBe('page');
++    expect(classifyRequest(request('/ws', { headers: { upgrade: 'websocket' } }), '/ws')).toBe('websocket');
++    expect(recorder.request(page, '/world/future-machine.html', 200, 40)).toBe(true);
++    expect(recorder.request(request('/world/app.js'), '/world/app.js', 200, 3)).toBe(false);
++    expect(recorder.request(request('/world/missing.js'), '/world/missing.js', 404, 2)).toBe(true);
++    expect(recorder.request(request('/world/huge.glb'), '/world/huge.glb', 200, 2400)).toBe(true);
++    expect(recorder.request(request('/api/ready'), '/api/ready', 200, 1)).toBe(false);
++    expect(recorder.request(request('/api/ready'), '/api/ready', 503, 1)).toBe(true);
++    expect(recorder.request(request('/api/server-logs/'), '/api/server-logs/', 200, 1)).toBe(false);
++    expect(recorder.request(request('/api/area?lat=29.7286&lng=-95.4746'), '/api/area', 200, 12)).toBe(true);
++    const { entries } = s.store.read({ since: T0 - 1 });
++    expect(entries.map(entry => [entry.path, entry.status, entry.level])).toEqual([
++      ['/api/area', 200, 'info'],
++      ['/api/ready', 503, 'error'],
++      ['/world/huge.glb', 200, 'warn'],
++      ['/world/missing.js', 404, 'warn'],
++      ['/world/future-machine.html', 200, 'info'],
++    ]);
++    expect(entries.find(entry => entry.path === '/world/huge.glb').slow).toBe(true);
++    expect(JSON.stringify(entries)).not.toContain('29.7');
++  } finally {
++    s.cleanup();
++  }
++});
++
++test('instrumented fetch records outcomes without changing responses or thrown errors', async () => {
++  const s = setup();
++  try {
++    const recorder = createServerLogRecorder(s.store, { appRoot: process.cwd() });
++    let tick = 0;
++    const fetchHandler = instrumentFetch(async incoming => {
++      const { pathname } = new URL(incoming.url);
++      if (pathname === '/boom') throw new Error('failed for jane@example.com');
++      if (pathname === '/ws') return undefined;
++      return new Response('ok', { status: pathname === '/api/missing' ? 404 : 200 });
++    }, recorder, () => (tick += 5));
++    expect(await (await fetchHandler(request('/api/ok'))).text()).toBe('ok');
++    expect((await fetchHandler(request('/api/missing'))).status).toBe(404);
++    expect(await fetchHandler(request('/ws', { headers: { upgrade: 'websocket' } }))).toBeUndefined();
++    await expect(fetchHandler(request('/boom'))).rejects.toThrow('failed for jane@example.com');
++    const { entries } = s.store.read({ since: T0 - 1 });
++    const exception = entries.find(entry => entry.type === 'exception');
++    expect(exception).toMatchObject({ level: 'error', method: 'GET', path: '/boom', name: 'Error', message: 'failed for [email]' });
++    expect(exception.stack.length).toBeGreaterThan(0);
++    expect(exception.stack.join('\n')).not.toContain(process.cwd());
++    expect(entries.find(entry => entry.type === 'request' && entry.path === '/boom').status).toBe(500);
++    expect(entries.find(entry => entry.kind === 'websocket').status).toBe(101);
++    expect(entries.find(entry => entry.path === '/api/missing')).toMatchObject({ status: 404, ms: 5 });
++  } finally {
++    s.cleanup();
++  }
++});
++
++test('console errors and warnings are mirrored once, redacted, and still printed', () => {
++  const s = setup();
++  try {
++    const printed = [];
++    const target = { error: (...args) => printed.push(['error', ...args]), warn: (...args) => printed.push(['warn', ...args]) };
++    const recorder = createServerLogRecorder(s.store);
++    const restore = captureConsole(recorder, target);
++    captureConsole(recorder, target);
++    target.error('[world] lookup failed for', 'jane@example.com', new TypeError('bad 29.7286,-95.4746'));
++    target.warn('Received invalid JSON');
++    expect(printed).toHaveLength(2);
++    expect(s.store.read({ since: T0 - 1 }).entries.map(entry => [entry.level, entry.message])).toEqual([
++      ['warn', 'Received invalid JSON'],
++      ['error', '[world] lookup failed for [email] TypeError: bad [coordinates]'],
++    ]);
++    restore();
++    expect(target.error.serverLogsCapture).toBeUndefined();
++
++    // A recorder that itself writes to the console cannot loop.
++    const looping = { console: () => target.error('inner') };
++    captureConsole(looping, target);
++    target.error('outer');
++    expect(printed.slice(-2).map(entry => entry[1])).toEqual(['outer', 'inner']);
++  } finally {
++    s.cleanup();
++  }
++});
++
++test('the endpoint summarizes the whole window and returns recent entries newest first', async () => {
++  const s = setup();
++  try {
++    const recorder = createServerLogRecorder(s.store);
++    recorder.lifecycle('server started', { build: 'b1' });
++    for (let i = 0; i < 3; i++) {
++      s.advance(1000);
++      recorder.request(request('/missing.png'), '/missing.png', 404, 2);
++    }
++    s.advance(1000);
++    recorder.request(request('/api/area'), '/api/area', 500, 30);
++    s.advance(1000);
++    recorder.request(request('/api/area'), '/api/area', 200, 2000);
++    for (let i = 0; i < 2; i++) {
++      s.advance(1000);
++      recorder.console('error', ['[world] /api/area unhandled error']);
++    }
++    const handle = createServerLogsHandler({ store: s.store, buildId: 'b1', startedAt: new Date(T0).toISOString(), now: s.now, cacheMs: 0 });
++    const response = handle(request('/api/server-logs?since=1h&limit=2'));
++    expect(response.status).toBe(200);
++    expect(response.headers.get('cache-control')).toBe('no-store');
++    const body = await response.json();
++    expect(body).toMatchObject({ schemaVersion: 'server-logs.v1', build: 'b1', retentionDays: 14, truncated: false });
++    expect(body.entries).toHaveLength(2);
++    expect(body.entries[0].type).toBe('console');
++    expect(body.summary.entries).toBe(8);
++    expect(body.summary.requests.notFound).toEqual([expect.objectContaining({ path: '/missing.png', count: 3 })]);
++    expect(body.summary.requests.serverErrors[0]).toMatchObject({ method: 'GET', path: '/api/area', status: 500, count: 1 });
++    expect(body.summary.requests.slowest[0]).toMatchObject({ path: '/api/area', p95Ms: 2000, maxMs: 2000 });
++    expect(body.summary.problems[0]).toMatchObject({ type: 'console', count: 2, message: '[world] /api/area unhandled error' });
++    expect(body.summary).toMatchObject({ serverStarts: 1, builds: ['b1'] });
++
++    const errors = await handle(request('/api/server-logs?level=error')).json();
++    expect(errors.entries).toHaveLength(3);
++    expect(errors.entries.every(entry => entry.level === 'error')).toBe(true);
++    const area = await handle(request('/api/server-logs?path=/api/area&type=request')).json();
++    expect(area.entries.map(entry => entry.status)).toEqual([200, 500]);
++    const recent = await handle(request('/api/server-logs?since=' + new Date(T0 + 4500).toISOString())).json();
++    expect(recent.entries).toHaveLength(3);
++
++    for (const query of ['since=yesterday', 'limit=5000', 'limit=-1', 'level=toString', 'type=secret', 'until=soon']) {
++      expect(handle(request('/api/server-logs?' + query)).status).toBe(400);
++    }
++    expect(handle(request('/api/server-logs', { method: 'POST' })).status).toBe(405);
++  } finally {
++    s.cleanup();
++  }
++});
++
++test('HBL_SERVER_LOGS=off and unsafe directories disable logging without stopping the server', () => {
++  const off = createServerLogs({ HBL_SERVER_LOGS: 'off' });
++  expect(off.enabled).toBe(false);
++  expect(off.handle(request('/api/server-logs')).status).toBe(404);
++  const handler = async () => new Response('ok');
++  expect(off.instrument(handler)).toBe(handler);
++
++  const original = console.error;
++  const seen = [];
++  console.error = (...args) => seen.push(args.join(' '));
++  try {
++    expect(createServerLogs({ HBL_SERVER_LOG_DIR: 'data/server-logs' }).enabled).toBe(false);
++  } finally {
++    console.error = original;
++  }
++  expect(seen.join('\n')).toContain('outside public static directories');
++});
+diff --git a/test/server.test.js b/test/server.test.js
+index d7eb654..f53bfc8 100644
+--- a/test/server.test.js
++++ b/test/server.test.js
+@@ -13,6 +13,7 @@ test('the production server keeps merged feature routes and simulation admission
+       DECISION_STORE_DIR: join(directory, 'decision'),
+       HBL_JOURNAL_ROOT: join(directory, 'journals'),
+       HBL_DETECTIVE_ROOT: join(directory, 'detective'),
++      HBL_SERVER_LOG_DIR: join(directory, 'server-logs'),
+       NODE_ENV: 'test',
+       HBL_TEST_SIMULATION_PER_CLIENT: '2',
+       HBL_TEST_SIMULATION_TOTAL: '2',
+@@ -96,6 +97,16 @@ test('the production server keeps merged feature routes and simulation admission
+     }
+     expect((await fetch(origin + '/shared/media/private.js')).status).toBe(404);
+ 
++    // Requests through the real dispatcher reach the redacted server log.
++    const serverLogs = await fetch(origin + '/api/server-logs?since=1h&level=warn');
++    expect(serverLogs.status).toBe(200);
++    expect(serverLogs.headers.get('cache-control')).toBe('no-store');
++    const logBody = await serverLogs.json();
++    expect(logBody.schemaVersion).toBe('server-logs.v1');
++    expect(logBody.summary.requests.notFound.some(item => item.path === '/shared/media/private.js')).toBe(true);
++    const lifecycle = await (await fetch(origin + '/api/server-logs?type=lifecycle')).json();
++    expect(lifecycle.entries[0]).toMatchObject({ type: 'lifecycle', message: 'server started' });
++
+     // Invalid bodies consume admission but never start a simulation or write a run.
+     const submit = () => fetch(origin + '/api/runs', {
+       method: 'POST', headers: { 'content-type': 'application/json' }, body: '{',
+-- 
+2.43.0
+

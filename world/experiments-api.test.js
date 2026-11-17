@@ -79,3 +79,26 @@ test('procedural comparison bypasses OSM and records the pinned input',async()=>
   const job=await waitDone(handle,started.experimentId);
   expect(job.status).toBe('done');expect(areaCalls).toBe(0);expect(job.params.procedural).toBe(true);
 });
+
+test('burst overload retains every accepted job and releases capacity after failures', async () => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  let calls = 0;
+  const handle = createExperimentsHandler({ runner: async input => {
+    calls++; await gate;
+    if (calls === 1) throw new Error('modeled failure');
+    return fakeRunner(input);
+  } });
+  const responses = await Promise.all(Array.from({ length: 30 }, () => handle(post({ proposalIds: ['t_bus'], procedural: true, maxPeople: 1 }))));
+  const accepted = await Promise.all(responses.filter(r => r.status === 202).map(r => r.json()));
+  expect(accepted.length).toBe(9);
+  const rejected = responses.filter(r => r.status === 429);
+  expect(rejected.length).toBe(21);
+  expect(rejected[0].headers.get('retry-after')).toBe('1');
+  expect((await (await handle(get('/api/world/experiments'))).json()).experiments.length).toBe(9);
+  release();
+  const done = await Promise.all(accepted.map(job => waitDone(handle, job.experimentId)));
+  expect(calls).toBe(9);
+  expect(done.filter(job => job.status === 'error').length).toBe(1);
+  expect((await handle(post({ proposalIds: ['t_bus'], procedural: true }))).status).toBe(202);
+});

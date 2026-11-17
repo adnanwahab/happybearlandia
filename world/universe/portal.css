@@ -1,0 +1,8 @@
+@view-transition { navigation: auto; }
+::view-transition-group(*) { animation-duration: 320ms; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+.portal-announcement { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html.portal-reduced::view-transition-group(*), html.portal-reduced::view-transition-old(*), html.portal-reduced::view-transition-new(*) { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}

@@ -2,6 +2,10 @@
 
 Use this checklist after selecting a release. The November 10 audit was read-only. Backup creation on the production host, restore, deployment, restart, and production test writes require the operator’s authorization and a maintenance window. See the [release audit](release-audit.md) for the observed source and production state.
 
+## Million-resident claim gate
+
+Before any public million-agent claim, satisfy the separate [verified evidence gate](million-resident-release-gate.md). Run `bun ops/check-million-release.js evidence.json`, archive its report, and resolve every HOLD with independent review and explicit operator approval. Ordinary release health checks do not verify population scale.
+
 ## 1. Freeze the candidate and review the diff
 
 - [ ] Reconfirm remote main with `git ls-remote --heads origin main`. The audited tip was `fd43cc739b82b39dfe85a72db713b6d1ddaaf450`, the merge commit of [PR #8](https://github.com/adnanwahab/happybearlandia/pull/8).
@@ -72,7 +76,7 @@ Transfer to a private workstation or backup destination with `fly ssh sftp get <
 - [ ] Recheck Machine identity and the existing `/data` attachment. Recheck Fly release state and logs. A volume mismatch, SQLite migration failure, read error, or unexplained data loss stops the rollout.
 - [ ] Check public HTTP 200 for [home](https://happybearlandia.fly.dev/), [routes](https://happybearlandia.fly.dev/routes), [World](https://happybearlandia.fly.dev/world), [House](https://happybearlandia.fly.dev/world/house), [Time Machine](https://happybearlandia.fly.dev/world/causal.html), [newspaper](https://happybearlandia.fly.dev/world/newspaper/), [discoveries](https://happybearlandia.fly.dev/world/discoveries/), [Living City](https://happybearlandia.fly.dev/world/living-city/), [Civilization](https://happybearlandia.fly.dev/world/civilization/), [Laboratory](https://happybearlandia.fly.dev/world/laboratory/), [Invention](https://happybearlandia.fly.dev/world/invention/), [Hidden Systems](https://happybearlandia.fly.dev/world/hidden-systems/), [Learning](https://happybearlandia.fly.dev/world/learning/), [Storm](https://happybearlandia.fly.dev/world/storm/), [Connected Lives](https://happybearlandia.fly.dev/world/connected-lives/), and [Houston map](https://happybearlandia.fly.dev/tools/houston-map).
 - [ ] With the staged save fixture, exercise Time Machine event replay, Bakery evidence, a same-seed Living City comparison, one approved Observatory experiment, and Storm comparison. Restore an existing resident from Connected Lives to the exact World and House checkpoint. Repeat production read-only smoke where data is already available. Ask for separate approval before creating test saves or recording scenarios in production.
-- [ ] Run the read-only browser smoke against the deployed build with `HBL_SMOKE_URL=https://happybearlandia.fly.dev HBL_SMOKE_BUILD_ID=<verified-sha> bunx playwright test --config test/production-smoke.config.js`. Confirm both storage checks, the build shown on Simulation Health, and advertised route responses.
+- [ ] Run the read-only browser smoke against the deployed build with `HBL_SMOKE_URL=https://happybearlandia.fly.dev HBL_SMOKE_BUILD_ID=<verified-sha> bunx playwright test --config test/production-smoke.config.js`. Use the same `git rev-parse HEAD` value passed as `HBL_BUILD_ID` when building the image; do not derive the expected ID from the live endpoint. The smoke gate rejects `unknown`, missing, malformed, or mismatched build IDs even when storage is ready. An existing image must already contain the verified build ID; `--build-arg` cannot retrofit an image deployed by digest. Confirm both storage checks, the build shown on Simulation Health, and advertised route responses.
 - [ ] Record actual Fly version, image digest, mount, smoke times and results. Keep the old image and offsite backup until the monitoring window ends.
 
 ## Local walkthrough URLs
@@ -91,3 +95,19 @@ Use the local application origin, `http://127.0.0.1:3000` with the default port.
 ### Rollback
 
 Trigger rollback for sustained startup failures, inaccessible saved records, storage attachment mismatch, unexpected schema failure, or a blocking user journey. Freeze affected writes, preserve the current mounted state, and capture the failing release and logs. Use the known-good pre-release image and its matching configuration only when staging verified it against the resulting schema. The observed pre-release digest is `registry.fly.io/happybearlandia@sha256:deaed19df4bd96ea11809dd2b2e67180f79bcca61b4feebd0f964bcccbf05f30`. If the old app cannot read the migrated schema, restore an authorized recovery point onto an isolated or replacement volume first, verify it, and resolve writes made since that recovery point before switching traffic. Recheck the read-only smoke and document the recovery.
+
+## Accessibility gate for each new or changed system
+
+- [ ] Record the system, route, candidate SHA, tested journey and tester. Complete
+  the journey using keyboard alone, including entry, entity selection, actions,
+  errors, dismissal and return. Verify visible focus and no keyboard traps.
+- [ ] Repeat with a screen reader and assistive/switch input. Verify names,
+  headings, state changes, errors, modal focus and a semantic alternative to
+  canvas-only actions. Record reader/browser and actual results.
+- [ ] Measure rendered text contrast (4.5:1 normal, 3:1 large) and control/focus
+  contrast (3:1), including overlays, selected, hover and error states.
+- [ ] Enable reduced motion before entry and change it during play. Verify CSS
+  and renderer/camera effects, flashing and transitions across the entire journey.
+- [ ] Run focused accessibility regressions and the system's normal browser
+  journey. Record blockers and unresolved failures; release requires these gates
+  to pass for every included system. Automated checks supplement manual checks.

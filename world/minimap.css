@@ -3,3 +3,11 @@
 .world-minimap .mm-screen-pad{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:25px 25px 25px;gap:3px;align-items:center;justify-items:center;margin:7px auto 1px;max-width:140px}.world-minimap .mm-screen-pad [data-mm-screen=north]{grid-column:2;grid-row:1}.world-minimap .mm-screen-pad [data-mm-screen=west]{grid-column:1;grid-row:2}.world-minimap .mm-screen-pad [data-mm-screen=east]{grid-column:3;grid-row:2}.world-minimap .mm-screen-pad [data-mm-screen=south]{grid-column:2;grid-row:3}.world-minimap .mm-screen-pad span{grid-column:2;grid-row:2;font-size:8px;white-space:nowrap;color:#b6cfc9}.world-minimap .mm-screen-pad button{width:34px;height:25px;padding:1px;font-size:17px;line-height:1}.world-minimap .mm-screen-pad button:hover{background:#3d665f}
 
 @media(min-width:1100px){.vehicle-inspector{right:var(--vehicle-inspector-right,286px);top:var(--vehicle-inspector-top,88px)}}
+
+.world-minimap .mm-body{max-height:calc(100dvh - 130px);overflow-y:auto;overscroll-behavior:contain}
+.world-minimap section{border-top:1px solid #729b92;margin-top:8px;padding-top:8px}
+.world-minimap section strong{display:block;margin-top:8px}
+.world-minimap section button{min-height:36px;margin:3px 2px;max-width:100%;overflow-wrap:anywhere;text-align:left}
+.world-minimap summary:focus-visible{outline:2px solid #91f2dc;outline-offset:-3px}
+@media(max-width:600px){.world-minimap section button{min-height:44px}.world-minimap summary{min-height:24px}}
+@media(prefers-reduced-motion:reduce){.world-minimap *{scroll-behavior:auto;animation:none;transition:none}}

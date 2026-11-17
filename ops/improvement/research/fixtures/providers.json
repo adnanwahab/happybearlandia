@@ -1,0 +1,19 @@
+{
+  "note": "Synthetic metadata fixtures, not empirical observations or real paper claims.",
+  "openalex": {
+    "id": "https://openalex.org/W123",
+    "doi": "https://doi.org/10.1234/example",
+    "title": "Synthetic housing mechanism",
+    "abstract_inverted_index": {"Effect": [0]},
+    "topics": [{"id": "https://openalex.org/T123"}, {"id": "https://openalex.org/T123"}],
+    "best_oa_location": {"license": "cc-by", "pdf_url": "https://example.org/paper.pdf"}
+  },
+  "crossref": {
+    "message": {
+      "DOI": "10.1234/EXAMPLE",
+      "title": ["Synthetic Housing Mechanism."],
+      "license": [{"URL": "https://creativecommons.org/licenses/by/4.0/"}],
+      "link": [{"URL": "https://example.org/paper.pdf"}]
+    }
+  }
+}

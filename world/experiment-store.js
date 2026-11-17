@@ -1,3 +1,4 @@
+import { filterExperimentRecords } from "./experiment-registry.js";
 const DB_NAME = "happybearlandia-civic-experiments";
 const DB_VERSION = 1;
 const STORE = "records";
@@ -63,7 +64,7 @@ export async function listExperimentRecords(limit = 20, options = {}) {
     const request = store.getAll();
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
-      const rows = (request.result || [])
+      const rows = filterExperimentRecords(request.result || [], options.filters)
         .sort((a, b) => String(b.savedAt || "").localeCompare(String(a.savedAt || "")))
         .slice(0, Math.max(1, limit));
       resolve(rows);

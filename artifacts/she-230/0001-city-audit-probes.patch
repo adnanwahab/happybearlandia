@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 12 Nov 2026 12:00:00 -0600
+Subject: [PATCH] test: characterize SHE-230 City audit findings
+
+Characterization probes document observed defects; passing does not mean fixed.
+
+---
+diff --git a/test/she-230-audit.test.js b/test/she-230-audit.test.js
+new file mode 100644
+index 0000000..5090255
+--- /dev/null
++++ b/test/she-230-audit.test.js
+@@ -0,0 +1,36 @@
++import {test,expect} from 'bun:test';
++import {createCity} from '../world/city/seed.js';
++import {createEngine,addIntervention,scheduleShock,cityMetrics} from '../world/city/engine.js';
++import {CapacityRegistry} from '../world/city/contracts.js';
++const fixture=()=>{const s=createCity({seed:42,households:30});s.parcels.forEach(p=>p.capacity=0);return s;};
++test('audit: zero-compliance transit still reduces free time',()=>{
++ const base=fixture(),engine=createEngine();
++ const control=engine.run(base,12).state;
++ const plan=engine.run(addIntervention(base,{type:'transit',districtId:'d1',amount:10,cost:0,compliance:0}),12).state;
++ const before=control.links.find(l=>l.id==='transit-d1-d0'),after=plan.links.find(l=>l.id===before.id);
++ expect(after.capacity).toBe(before.capacity);expect(after.freeTime).toBe(before.freeTime*.8);
++ console.log('zero compliance transit',before.freeTime,after.freeTime);
++ const zone=engine.run(addIntervention(base,{type:'upzone',districtId:'d1',amount:10,cost:0,compliance:0}),4).state;
++ expect(zone.parcels.find(p=>p.districtId==='d1').capacity).toBe(10);
++});
++test('audit: reserveAll retains partial reservation when later input throws',()=>{
++ const r=new CapacityRegistry();r.register({resource:'water',time:1,capacity:10});
++ expect(()=>r.reserveAll([{resource:'water',time:1,amount:8},{resource:'water',time:1,amount:NaN}])).toThrow();
++ expect(r.query({resource:'water',time:1}).used).toBe(8);
++});
++test('audit: simultaneous district flood payload damage is cumulative',()=>{
++ let s=fixture();s.districts.forEach(d=>d.floodRisk=1);
++ for(const districtId of ['d0','d1'])s=scheduleShock(s,{type:'flood',districtId,start:1,duration:1,severity:1});
++ const step=createEngine().step(s),events=step.events.filter(e=>e.eventType==='FLOOD_DAMAGE');
++ const d1damage=s.units.filter(u=>u.districtId==='d1').reduce((n,u)=>n+u.rent*12,0);
++ expect(events[1].payload.damage).toBe(events[0].payload.damage+d1damage);
++ console.log('flood payloads',events.map(e=>[e.geographyId,e.payload.damage]),'city',step.state.systems.environment.damage);
++});
++test('audit: hazard displaced residents are absent from current month housing proposals',()=>{
++ let s=fixture();s.districts[1].floodRisk=1;s.households.forEach(h=>h.leaseUntil=100);
++ s=scheduleShock(s,{type:'flood',districtId:'d1',start:1,duration:1,severity:1});
++ const step=createEngine().step(s),displaced=step.state.households.filter(h=>!h.unitId);
++ expect(displaced.length).toBe(10);expect(step.proposals.find(p=>p.system==='housing').value).toEqual([]);
++ expect(step.decisions.filter(d=>d.actorType==='housing')).toEqual([]);
++ console.log('displaced',displaced.length,'link mean',cityMetrics(step.state).meanTravelMinutes,'trip mean',step.state.systems.transport.meanMinutes);
++});
+-- 
+2.50.0

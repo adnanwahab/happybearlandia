@@ -1,0 +1,333 @@
+{
+  "schemaVersion": "hbl-coordinator-resumption.v1",
+  "auditedAt": "2026-11-12T03:06:40.422399+00:00",
+  "head": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+  "lastIntegratedApplication": "2c9d973234ea73546d5597b068cda538a5136a2f",
+  "runtimeLedgerUpdatedAt": "2026-11-11T16:12:09.125Z",
+  "integrationDecision": {
+    "task": "U03",
+    "commit": "ef1339b17f9cd860f34bc3722b84347833c596b6",
+    "status": "REVIEW",
+    "candidateReview": "PASS",
+    "integrated": false,
+    "reason": "Unrelated dirty integration checkout; existing pipeline requires clean checkout. Preserve changes; do not stash, commit or reset them implicitly.",
+    "nextCommand": [
+      "bun",
+      "scripts/pipeline-coordinator.mjs",
+      "integrate",
+      "U03",
+      "continuous-coordinator",
+      "/absolute/path/to/u03-review.json"
+    ]
+  },
+  "checks": [
+    {
+      "command": "bun test test/future-machine*.test.js test/two-futures*.test.js test/world-readiness-regression.test.js test/pipeline-coordinator.test.js test/pipeline-repair.test.js test/demo-pipeline.test.js",
+      "source": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+      "pass": 121,
+      "skip": 3,
+      "fail": 0,
+      "assertions": 947,
+      "seconds": 22.18
+    },
+    {
+      "command": "bun test test/future-machine-canvas.test.js",
+      "source": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+      "pass": 8,
+      "fail": 0,
+      "assertions": 53
+    },
+    {
+      "command": "HBL_U03_PORT=40117 HBL_NATIVE_WEBGPU=1 HBL_BACKEND_ANGLE=metal HBL_U03_REQUIRE_WEBGPU=1 HBL_U03_ARTIFACT_DIR=/private/tmp/hbl-coordinator-resume-u03 bunx playwright test --config test/pipeline-resources.browser.config.js",
+      "source": "ef1339b17f9cd860f34bc3722b84347833c596b6",
+      "pass": 3,
+      "fail": 0,
+      "seconds": 16.6
+    },
+    {
+      "command": "HBL_TWO_FUTURES_PORT=40118 HBL_TWO_FUTURES_ARTIFACT_DIR=/private/tmp/hbl-coordinator-resume-canonical bunx playwright test --config test/two-futures-sprint.browser.config.js",
+      "source": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+      "pass": 13,
+      "skip": 1,
+      "fail": 0,
+      "duration": "1.8 minutes",
+      "skipReason": "Named recording opt-in not enabled"
+    },
+    {
+      "command": "HBL_RESPONSIVE_PORT=40119 HBL_RESPONSIVE_ARTIFACT_DIR=/private/tmp/hbl-coordinator-resume-responsive bunx playwright test --config test/approved-demo-responsive.browser.config.js",
+      "source": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+      "pass": 3,
+      "fail": 0,
+      "seconds": 11.1,
+      "widths": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "command": "HBL_SHARE_ARTIFACT_DIR=/private/tmp/hbl-coordinator-resume-share bunx playwright test --config test/future-machine-share-reliability.browser.config.js",
+      "source": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+      "pass": 5,
+      "fail": 0,
+      "seconds": 20.6
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "metrics": {
+    "workersLaunchedThisSession": 0,
+    "confirmedRunningPipelineAssignments": 0,
+    "retainedRepairReservations": [
+      "R13",
+      "R14"
+    ],
+    "review": [
+      "U03",
+      "NB-district-candidate",
+      "NB-grid-fixture"
+    ],
+    "readyPool": [
+      "U05",
+      "U08"
+    ],
+    "dispatchable": [],
+    "integratedThisSession": [],
+    "integrationLatencySeconds": null,
+    "latencyReason": "No integration completed; U03 remains waiting. Historical latency is not current throughput."
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--aeb14-posal-resource-measurements/webgl-resources.json",
+      "sha256": "96586f25b0efdcd7487d64f12eaadc377d76326b61defe5e9500ca027b2d4791"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--aeb14-posal-resource-measurements/webgl-after-dispose.png",
+      "sha256": "934982a8e63ab7d59ee3812d250276106e94cc4f9be604e74fa07b5aa0bbdbbd"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--aeb14-posal-resource-measurements/webgl-before-dispose.png",
+      "sha256": "e314e99e096b2246e2a456ca548a42224332e2587ca15762a455d2554ee90113"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--64422-posal-resource-measurements/canvas2d-resources.json",
+      "sha256": "028c273123b3e5666ad7fa12af06ef5c7da3b483c508389f2f990c11044fc1cb"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--64422-posal-resource-measurements/canvas2d-before-dispose.png",
+      "sha256": "bd446b0a436edd9aad229fa1576cbdd68fe6f692d9375831ee8ba39231976632"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--64422-posal-resource-measurements/canvas2d-after-dispose.png",
+      "sha256": "934982a8e63ab7d59ee3812d250276106e94cc4f9be604e74fa07b5aa0bbdbbd"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--87a98-posal-resource-measurements/preferred-after-dispose.png",
+      "sha256": "934982a8e63ab7d59ee3812d250276106e94cc4f9be604e74fa07b5aa0bbdbbd"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--87a98-posal-resource-measurements/preferred-before-dispose.png",
+      "sha256": "11c5362a68430c46e5e5ddfea6073cf744d5a790b9973668b4ae1f691dc6ca11"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-u03/pipeline-resources.e2e.js--87a98-posal-resource-measurements/preferred-resources.json",
+      "sha256": "1b2fb43f16d8d53026b48df64e1c538968f7cf1bbb941cff070368053226260e"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-compatibility.-85822-acts-and-provenance-resolve/world-canvas-real-week.png",
+      "sha256": "5c4346f6d2fbbc1e4fdb47314cc23971624e0faec4a1836b88ca5ae70ce76359"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-compatibility.-85822-acts-and-provenance-resolve/world-canvas-activity.png",
+      "sha256": "1aa3c65030b8efd4b87792b220d7578e0add7605e0a63293b9956880587a2b93"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--0b5a2-rgence-hold-respects-reduce/cinematic-month-16.json",
+      "sha256": "7c81b430bae2b10d3b32ae9749a93b0998ab27bbd42f3050d58b21746c1cd501"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--0b5a2-rgence-hold-respects-reduce/cinematic-month-16.png",
+      "sha256": "5b404ecc8281fb7f63a02efac042c0e52e6431c34213c1e1fa8a03aa923c4c6e"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-compatibility.-02733-xplicit-in-actual-worker-UI/reality-nonpassing-explained.png",
+      "sha256": "f3245574f449f23ac6e2c13278d64f207148a8cc00578043148c395482e4a71c"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--2e7e6-hold-respects-no-preference/cinematic-month-16.json",
+      "sha256": "75346c07d2a1f54f34472fe2cb22d08134a1df2e7ebd561cd621223959a64bbc"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--2e7e6-hold-respects-no-preference/cinematic-month-16.png",
+      "sha256": "318b1a5792bab06a8dfa1b4201e70785f2daa027bc3fd16f9cbc2827ebdcdd26"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--16be4-ired-evidence-and-selection/webgl-unavailable.png",
+      "sha256": "f7651382137276464edd440dd91042a84fd07b2d9e964a7932647116eeab7c86"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--16be4-ired-evidence-and-selection/webgl-unavailable.json",
+      "sha256": "49aaadcbfaa37744e3ac9144e69953d6a4c99741c8365e83df39b1e98a9aeea0"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--3acb9-ference-only-and-metric-WHY/interactive-why-month-120.json",
+      "sha256": "dd83a0d86dd89e24ce42650f624ffad030b5cac9a7a074342e16266e3693ee9a"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--3acb9-ference-only-and-metric-WHY/interactive-why-month-120.png",
+      "sha256": "085aaa52ae860265556db61eb507212ec2ecbe868453bda40e54e15350441bc4"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-compatibility.-de69e-cs-and-WHY-without-overflow/mobile-320-canvas-why.png",
+      "sha256": "02c3c63c21c6371d9566f336b00ce1b5afc529c22febeb3f27754ef14188ba6a"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/before-month-0.png",
+      "sha256": "a1c54d841131f11c5479ec99dd52828ebb9185fe3a06bad3d1e3aab55616978e"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/before-month-0.json",
+      "sha256": "0596d0a203f9ea26ad22c3bfbc4219cb606f24fede2e1ba7b193a7ca38520160"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/after-month-120.json",
+      "sha256": "9a123ee07df23aadda0e71a896c04894cf932f6f57dde58a81042cef4fef4022"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-canonical/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/after-month-120.png",
+      "sha256": "1a61a363a15d03221600af34fe661b5be2712bef1694fe072667e205fead08ec"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-month-16-why.png",
+      "sha256": "2a00d8f532b0b9a880260250839a187373ecbeaaa1ebd947af520c7d70880a72"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-matched-0.json",
+      "sha256": "1e0eddd57d1ce138a4d9f1a6fa5d4e12a085b316311ea8e6fea902f3ff23c2d9"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-matched-0.png",
+      "sha256": "e802ceb0448dad3ae9d148006517fbdc2b2bc9800c25027cc535b9723e85345f"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-month-16-why.json",
+      "sha256": "cda74414630c5823e06b12ae4242a876b29a1626fdf5c0ed4e049ae1effbac83"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-reverse-0.png",
+      "sha256": "b7f6cd8af13c7eed3575a9f6eb8cf9479e011cba0c1de55fd953073e1253f378"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-reverse-0.json",
+      "sha256": "1e0eddd57d1ce138a4d9f1a6fa5d4e12a085b316311ea8e6fea902f3ff23c2d9"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-matched-0.png",
+      "sha256": "1b959f1738c5563ca18ea52d9ee7cb41c92f7d5bd0791716570f146eae15396d"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-matched-0.json",
+      "sha256": "62aaf1ae6e53bac65f706de787d7da28c4d5a16c2e18eecf43bed2a531f5b90d"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-month-16-why.png",
+      "sha256": "9f91c4e8d3bb8752840810ee660176a482815447c5dbb4030bdb711cff669e5c"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-reverse-0.png",
+      "sha256": "641959537b73fd9852087ca189bc42da5c7343f0d4dbf162d49536828f240f23"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-month-16-why.json",
+      "sha256": "46f6562b557b46928d53fea7bd15558cc7f3325453ea237e4b897eebdb5c61a0"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-reverse-0.json",
+      "sha256": "62aaf1ae6e53bac65f706de787d7da28c4d5a16c2e18eecf43bed2a531f5b90d"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-matched-0.png",
+      "sha256": "b3b7b73ac691da68cbc5a2b9da26d2cc860106c7e62785b4d2db0fb163179765"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-reverse-0.json",
+      "sha256": "74f8dd6570a5968cdcd2aa645d6e0bfcdd53c6c7310ad888777f08411dcea1f4"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-matched-0.json",
+      "sha256": "74f8dd6570a5968cdcd2aa645d6e0bfcdd53c6c7310ad888777f08411dcea1f4"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-month-16-why.json",
+      "sha256": "270d90d3616d178dddc5ae8196a9e30af11da2ef394d5f5644b2d0297a6bee7e"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-reverse-0.png",
+      "sha256": "55c66c8b884192da99985b49d3493c3ae3607d1809784f760aaf989316399ea1"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-month-16-why.png",
+      "sha256": "78541ba3f013b00cab1742372feee2ea7ff8593709e2fba1d9e9af95fe294c1b"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/future-machine-share-relia-d2e01-eserves-exact-zero-outcomes/zero-control-seed-4294967295.json",
+      "sha256": "0b803e6d2d79d3303581700982c84215855445568f5e99b9967e06c420a6ac06"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/future-machine-share-relia-14683-eserves-exact-zero-outcomes/zero-control-seed-0.json",
+      "sha256": "cf77a1dabc90ca40ed63a3934173d182b7ed955ed673cd79668f8d102fb1f939"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/future-machine-share-relia-35a09-visible-disclosure-at-ready/missing-record-ready.png",
+      "sha256": "f39b71cb7b4a5b7bc2d9b5164539ff864472e84337ef969d410d8832de9109eb"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/future-machine-share-relia-35a09-visible-disclosure-at-ready/missing-record-recomputed.json",
+      "sha256": "257e43d8173aabcf0f3017563f53dbe336bb67c8e0e2805ba2710042b66dfe47"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/future-machine-share-relia-27c2d-act-histories-after-refresh/saved-replay.json",
+      "sha256": "22a3b88c43bc708a8b388e1c52cb3b8a8aa4d1aefcb967686379facff579e444"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/future-machine-share-relia-27c2d-act-histories-after-refresh/attachments/saved-replay-7c18c090863717198c3f8ba206da6d060eb53f6f.json",
+      "sha256": "22a3b88c43bc708a8b388e1c52cb3b8a8aa4d1aefcb967686379facff579e444"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/future-machine-share-relia-35a09-visible-disclosure-at-ready/attachments/missing-record-recomputed-396558c9faad85af809858ce0364eb2b6ada49fa.json",
+      "sha256": "257e43d8173aabcf0f3017563f53dbe336bb67c8e0e2805ba2710042b66dfe47"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/future-machine-share-relia-14683-eserves-exact-zero-outcomes/attachments/boundary-zero-share-29d1535d021f76ece8536b0165d654a6949d8a17.json",
+      "sha256": "cf77a1dabc90ca40ed63a3934173d182b7ed955ed673cd79668f8d102fb1f939"
+    },
+    {
+      "path": "/private/tmp/hbl-coordinator-resume-share/future-machine-share-relia-d2e01-eserves-exact-zero-outcomes/attachments/boundary-zero-share-964cb356bf296c22d311d4a4ac6ff05829a69c2d.json",
+      "sha256": "0b803e6d2d79d3303581700982c84215855445568f5e99b9967e06c420a6ac06"
+    }
+  ],
+  "limitations": [
+    "No release merge, push, deployment or remote issue mutation.",
+    "No new recording yet; prior accepted recording is historical evidence.",
+    "No Safari/Firefox/physical-device proof.",
+    "Resource totals do not certify zero GPU bytes or zero heap growth."
+  ]
+}

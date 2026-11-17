@@ -8,3 +8,20 @@ test('display consumes the actual compact ensemble runtime result without duplic
  const {createCityFromArea}=await import('../world/city/seed.js'),{compileRealityProposal}=await import('../world/reality/compiler.js'),{normalizeRealityRequest,executeRealityExperiment}=await import('../world/reality/runtime-core.js'),{ensembleRealityFutures}=await import('../world/reality/ensemble-core.js');
  const initial=createCityFromArea({source:'osm',origin:{lat:35,lng:139},buildings:[{id:'fixture-footprint',pts:[[35,139],[35,139.001],[35.001,139.001],[35,139]]}]},{households:1});const result=await executeRealityExperiment(normalizeRealityRequest({program:compileRealityProposal('Build housing'),initial,runs:3,months:1,seed:42,parameterUncertainty:[]})),ensemble=await ensembleRealityFutures(result,{month:1}),report=ensembleDisplayReport(ensemble,{worldContext:{origin:{lat:35,lng:139}}});expect(report.completedFutures).toBe(3);expect(report.runs.map(r=>r.runId)).toEqual(result.runs.map(r=>r.runId));expect(report.records.some(row=>row.sourceId==='fixture-footprint'&&row.poly)).toBe(true);expect(report.clock.time).toBe(1);
 });
+
+test('WebGL uses exact per-record alpha including endpoints without extra batches',()=>{
+ const scene=new THREE.Scene(),view=mountEnsembleGhostLayer({THREE,scene});
+ const records=[0,1,3,7].map(present=>({present,frequency:present/7,center:[present*10,0]}));
+ view.update({records,completedFutures:7},{enabled:true});
+ const dots=scene.children[0].children[0],colors=dots.geometry.getAttribute('color');
+ expect(colors.itemSize).toBe(4);expect(colors.count).toBe(3);expect(dots.material.opacity).toBe(1);
+ [1/7,3/7,1].forEach((alpha,i)=>expect(colors.getW(i)).toBeCloseTo(alpha,7));
+ expect(view.getStats().drawBatches).toBe(1);view.destroy();
+});
+
+test('Canvas fallback preserves exact count ratios, skips absent structures and restores state',async()=>{
+ const {drawEnsembleCanvas}=await import('../world/reality/ensemble-view.js');
+ const alphas=[],context={save(){},restore(){this.restored=true;},beginPath(){},moveTo(){},lineTo(){},closePath(){},stroke(){alphas.push(this.globalAlpha);}};
+ drawEnsembleCanvas(context,{completedFutures:7,records:[0,1,3,7].map(present=>({present,center:[0,0]}))},{enabled:true});
+ expect(alphas).toEqual([1/7,3/7,1]);expect(context.restored).toBe(true);
+});

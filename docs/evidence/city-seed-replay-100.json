@@ -1,0 +1,4908 @@
+{
+  "schemaVersion": "city-seed-replay-sweep.v1",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    2147483647,
+    2147483648,
+    4294967294,
+    4294967295
+  ],
+  "boundaries": [
+    {
+      "seed": 0,
+      "households": 1,
+      "intervention": null
+    },
+    {
+      "seed": 4294967295,
+      "households": 120,
+      "intervention": {
+        "type": "housing",
+        "districtId": "d1",
+        "amount": 120,
+        "cost": 0,
+        "delay": 120,
+        "compliance": 0
+      }
+    }
+  ],
+  "caseCount": 106,
+  "passed": 106,
+  "results": [
+    {
+      "index": 0,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 0,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "f49da5e5da9b2f7cc668435b725a6e266bb2dbb3aff52d1b71dce6fd249aa850",
+        "baseline": {
+          "rawDigest": "1185c215357ed40ce34c79acadc98ebb68d56db2f8094fc3b1ab720849767d5d",
+          "historyDigest": "fe3827822966043715a450d801b2422d930b25dee57456778274e4140a64a19c",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "5402ab4a197bb2a81595891e92f2930dccff6ad2457a1509144b8f9356f82562",
+          "historyDigest": "6100c76722e26bfd95f373a2066b2de09e8da12897d25e524165b2196640b1d6",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "f49da5e5da9b2f7cc668435b725a6e266bb2dbb3aff52d1b71dce6fd249aa850",
+        "baseline": {
+          "rawDigest": "1185c215357ed40ce34c79acadc98ebb68d56db2f8094fc3b1ab720849767d5d",
+          "historyDigest": "fe3827822966043715a450d801b2422d930b25dee57456778274e4140a64a19c",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "5402ab4a197bb2a81595891e92f2930dccff6ad2457a1509144b8f9356f82562",
+          "historyDigest": "6100c76722e26bfd95f373a2066b2de09e8da12897d25e524165b2196640b1d6",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 1,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 1,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "3de6574b8af6c0ff062eb85dc84fb81212db08e56c3c123e2663df0ba55ee7c3",
+        "baseline": {
+          "rawDigest": "fea358b41f3c179fca94720ce3a9366ec78e0ea77c8d7c9936cb7be0089dfe23",
+          "historyDigest": "ba827fee518b7c65a6288b808f7cd193868745d95276c8ce67908ced86cfaa0b",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "7390a786e04f9a6f2ebae898d520051cfbe87d02893b7f22db786da4c86c9c17",
+          "historyDigest": "f3d2784cf374ff0af33e6c10d027f0b1537de450b659815d584f201c490984fb",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "3de6574b8af6c0ff062eb85dc84fb81212db08e56c3c123e2663df0ba55ee7c3",
+        "baseline": {
+          "rawDigest": "fea358b41f3c179fca94720ce3a9366ec78e0ea77c8d7c9936cb7be0089dfe23",
+          "historyDigest": "ba827fee518b7c65a6288b808f7cd193868745d95276c8ce67908ced86cfaa0b",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "7390a786e04f9a6f2ebae898d520051cfbe87d02893b7f22db786da4c86c9c17",
+          "historyDigest": "f3d2784cf374ff0af33e6c10d027f0b1537de450b659815d584f201c490984fb",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 2,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 2,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "460baf1483ff1fa989d1393f664b792117ff27a43524cdb661d9ee8f64a69685",
+        "baseline": {
+          "rawDigest": "d2357fdf1197b8865bf8c30ca155bea3eaf5990bd0c776c02e8f5b24806410df",
+          "historyDigest": "d8762c319af2d1ed24b1ce3e7ae1907df46f0d18a5bdc203bf3ce3c00800ec2d",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "5613246bf2500c30777cd4ffa623e9e3b457c95492ff9c04e404cfc2c446d4ea",
+          "historyDigest": "9129d4d06ad25726f5e75832830ac0843025c8fc45e7817d590b6ddb25752742",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "460baf1483ff1fa989d1393f664b792117ff27a43524cdb661d9ee8f64a69685",
+        "baseline": {
+          "rawDigest": "d2357fdf1197b8865bf8c30ca155bea3eaf5990bd0c776c02e8f5b24806410df",
+          "historyDigest": "d8762c319af2d1ed24b1ce3e7ae1907df46f0d18a5bdc203bf3ce3c00800ec2d",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "5613246bf2500c30777cd4ffa623e9e3b457c95492ff9c04e404cfc2c446d4ea",
+          "historyDigest": "9129d4d06ad25726f5e75832830ac0843025c8fc45e7817d590b6ddb25752742",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 3,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 3,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "1bb13a3ccf2347127697b227f7f2aad0e454b3ab4aa2a97339870e2163749281",
+        "baseline": {
+          "rawDigest": "a0bdd08a7ac3ac0c240f75561c2514fde5e38c5d07440efbd0fde7bd575dac33",
+          "historyDigest": "48a7fb71e6f8c8b890214ba71f896b099c6e0aa988d9d20fd70d08236fd9ed32",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e8a564167338657399301f9017103f074e255a4632fcc4a19398e8d9d6d8bc60",
+          "historyDigest": "84faa5c50e04b831cbaf0a96f06f54e74b4eb6ed4523b8c353db5489c8874bcc",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "1bb13a3ccf2347127697b227f7f2aad0e454b3ab4aa2a97339870e2163749281",
+        "baseline": {
+          "rawDigest": "a0bdd08a7ac3ac0c240f75561c2514fde5e38c5d07440efbd0fde7bd575dac33",
+          "historyDigest": "48a7fb71e6f8c8b890214ba71f896b099c6e0aa988d9d20fd70d08236fd9ed32",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e8a564167338657399301f9017103f074e255a4632fcc4a19398e8d9d6d8bc60",
+          "historyDigest": "84faa5c50e04b831cbaf0a96f06f54e74b4eb6ed4523b8c353db5489c8874bcc",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 4,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 4,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "a939bb855669c47915416542bb93cc7815b79bb82631959b08b9fddfd061c36f",
+        "baseline": {
+          "rawDigest": "ddd303cd6d26577ef431503e9462ae158ebeafabf7f80a18341e978e68868315",
+          "historyDigest": "fcc9b23ca2f492dbac77b82148d304ac5239f3bf2196e65e5c764eb7ea646f58",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "eb99537d552cb2025f99b36963e7b7989859f410e55fb50504f8d0c473d47d48",
+          "historyDigest": "853d7a85b53e3d75e7107177c1e0ffe44b2c43af21337c5eb2af718f6bed21d6",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "a939bb855669c47915416542bb93cc7815b79bb82631959b08b9fddfd061c36f",
+        "baseline": {
+          "rawDigest": "ddd303cd6d26577ef431503e9462ae158ebeafabf7f80a18341e978e68868315",
+          "historyDigest": "fcc9b23ca2f492dbac77b82148d304ac5239f3bf2196e65e5c764eb7ea646f58",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "eb99537d552cb2025f99b36963e7b7989859f410e55fb50504f8d0c473d47d48",
+          "historyDigest": "853d7a85b53e3d75e7107177c1e0ffe44b2c43af21337c5eb2af718f6bed21d6",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 5,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 5,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "3806a0a0a38db52fd097c22bcdd20c59733ecd2ba28eec75d107890ffdd4f9ff",
+        "baseline": {
+          "rawDigest": "dcfc5edba959c54a47336c1f2dcc2968bd343faccb1097137b40359445e8b6eb",
+          "historyDigest": "bcc6134230624dafc5c73288b63e2cdf52be815b43683c1bbb04353891190483",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "368bd8928792b3a245dc306531f8846eceb1002bd29ff1033cb98b222341c226",
+          "historyDigest": "42d72be52a5769b70ca20d3d04136f21bad7e4980baa2321cef217cc328e2067",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "3806a0a0a38db52fd097c22bcdd20c59733ecd2ba28eec75d107890ffdd4f9ff",
+        "baseline": {
+          "rawDigest": "dcfc5edba959c54a47336c1f2dcc2968bd343faccb1097137b40359445e8b6eb",
+          "historyDigest": "bcc6134230624dafc5c73288b63e2cdf52be815b43683c1bbb04353891190483",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "368bd8928792b3a245dc306531f8846eceb1002bd29ff1033cb98b222341c226",
+          "historyDigest": "42d72be52a5769b70ca20d3d04136f21bad7e4980baa2321cef217cc328e2067",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 6,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 6,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "e3cf1b7678b5355cd0514ee9647cad6b2bc37fbdb180d88ca8b52feec0ce9243",
+        "baseline": {
+          "rawDigest": "bd29b3d79aa869cf66af5eeb864d0b3225d37a7c46c23af9c6b9a977c7510fc7",
+          "historyDigest": "6a7508d772562ca26850d86ec4dd5a654dd2ca0a239ab200e44d2e1127a67d13",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "713c38b1568372602b4a646a8e3543418dd7b865429ac04ddee326b0081cd0c5",
+          "historyDigest": "c98a47b302986a1cd69d96ee0499bde2df9c818fac2690eab3da92d39b9851e6",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "e3cf1b7678b5355cd0514ee9647cad6b2bc37fbdb180d88ca8b52feec0ce9243",
+        "baseline": {
+          "rawDigest": "bd29b3d79aa869cf66af5eeb864d0b3225d37a7c46c23af9c6b9a977c7510fc7",
+          "historyDigest": "6a7508d772562ca26850d86ec4dd5a654dd2ca0a239ab200e44d2e1127a67d13",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "713c38b1568372602b4a646a8e3543418dd7b865429ac04ddee326b0081cd0c5",
+          "historyDigest": "c98a47b302986a1cd69d96ee0499bde2df9c818fac2690eab3da92d39b9851e6",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 7,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 7,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "2b5285afcd34a95999401d90f0e120d1b36682c8249f9a503123dd2ca5987e3e",
+        "baseline": {
+          "rawDigest": "bed846f92fb7dfa1cd3c280720374e0779e6e1ff09e61f3a54cfe7c3fcb08a8a",
+          "historyDigest": "62bdd35a2ce862d668f4d5701b932f5237cff6df3eb29c195cbdcbce85641711",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "9a7282ef45e86e253f596b20206d33ed9b8d5226e574692fee615a774b9cb398",
+          "historyDigest": "49b224d5b3f81794a9578cf21d1ecba0989de174f6d63b0f2956cefb77d11524",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "2b5285afcd34a95999401d90f0e120d1b36682c8249f9a503123dd2ca5987e3e",
+        "baseline": {
+          "rawDigest": "bed846f92fb7dfa1cd3c280720374e0779e6e1ff09e61f3a54cfe7c3fcb08a8a",
+          "historyDigest": "62bdd35a2ce862d668f4d5701b932f5237cff6df3eb29c195cbdcbce85641711",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "9a7282ef45e86e253f596b20206d33ed9b8d5226e574692fee615a774b9cb398",
+          "historyDigest": "49b224d5b3f81794a9578cf21d1ecba0989de174f6d63b0f2956cefb77d11524",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 8,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 8,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "81bb7ab0246bd5c5c09cf4218e86b3d9491afb906f4dae795d1dd9bfe409d620",
+        "baseline": {
+          "rawDigest": "a991cdeb76eef93808df3ec755d7eb7087cfcba74483b1bc54fe490cfa8c7297",
+          "historyDigest": "d27c7b883bc30acf8bf25953af9f2de7be8e009be0d8b1ef774d74362eb8e9ab",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "63a7a9c57db8784115d11817e437434e671b421c1a77159a41278e57c9d768fc",
+          "historyDigest": "cd91bfe45d5b008e8f7049f604d2b1a094bba9d1e0cd3a05900fb7599ea9629e",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "81bb7ab0246bd5c5c09cf4218e86b3d9491afb906f4dae795d1dd9bfe409d620",
+        "baseline": {
+          "rawDigest": "a991cdeb76eef93808df3ec755d7eb7087cfcba74483b1bc54fe490cfa8c7297",
+          "historyDigest": "d27c7b883bc30acf8bf25953af9f2de7be8e009be0d8b1ef774d74362eb8e9ab",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "63a7a9c57db8784115d11817e437434e671b421c1a77159a41278e57c9d768fc",
+          "historyDigest": "cd91bfe45d5b008e8f7049f604d2b1a094bba9d1e0cd3a05900fb7599ea9629e",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 9,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 9,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "55f1aeec62fcd290244351803f1727c5e572ded78a12fb75f0a8d4c2bd202b8b",
+        "baseline": {
+          "rawDigest": "e5fe7b7fcd3a4a4836f7723f88c913875ea6c04409a6eba52d9b3b5cd643c06b",
+          "historyDigest": "afedb10d15805a1b0b124f79e35f4480b04ac9dc8c88b10506bd9753d9557f97",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "82d51b5be155affefb602a5d9453fdd7e383b4d280802fb7f164bfab3a249e46",
+          "historyDigest": "5705c7c14aaa5713afff6fa80a1dc912de108cbfc824620e06ded869fded46ad",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "55f1aeec62fcd290244351803f1727c5e572ded78a12fb75f0a8d4c2bd202b8b",
+        "baseline": {
+          "rawDigest": "e5fe7b7fcd3a4a4836f7723f88c913875ea6c04409a6eba52d9b3b5cd643c06b",
+          "historyDigest": "afedb10d15805a1b0b124f79e35f4480b04ac9dc8c88b10506bd9753d9557f97",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "82d51b5be155affefb602a5d9453fdd7e383b4d280802fb7f164bfab3a249e46",
+          "historyDigest": "5705c7c14aaa5713afff6fa80a1dc912de108cbfc824620e06ded869fded46ad",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 10,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 10,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "e262e2e6ddd757d13249bbc8bf9aadb8cf9ce14eb66a74b547a0d6dbbc625ef9",
+        "baseline": {
+          "rawDigest": "58e8492d29e8150922f19c105ada0405c30cfe704691d92c2afc33f5f194206a",
+          "historyDigest": "29c9da3b56463dab470c404b79394fb0fe7df25716d0aed24011b06ebc8ea23a",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "a01b7485be49a8cae7bead434b0af2e5b71947e6a5891cd0004d7cfa12e165f9",
+          "historyDigest": "b3b8b5805e58e36ad5f2b8172e4f18e79c530300b67fc432add8b0e2afbaf5c9",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "e262e2e6ddd757d13249bbc8bf9aadb8cf9ce14eb66a74b547a0d6dbbc625ef9",
+        "baseline": {
+          "rawDigest": "58e8492d29e8150922f19c105ada0405c30cfe704691d92c2afc33f5f194206a",
+          "historyDigest": "29c9da3b56463dab470c404b79394fb0fe7df25716d0aed24011b06ebc8ea23a",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "a01b7485be49a8cae7bead434b0af2e5b71947e6a5891cd0004d7cfa12e165f9",
+          "historyDigest": "b3b8b5805e58e36ad5f2b8172e4f18e79c530300b67fc432add8b0e2afbaf5c9",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 11,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 11,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "f8ac2a37aa5b2244332883951f2951eb733ce4b68b00202c006c340b4e24ccd8",
+        "baseline": {
+          "rawDigest": "65c71e4cd9f162bf21903c90749849749e93b48d5c1013476e6697cf75738dab",
+          "historyDigest": "319bbd4644ce831d7ab08cbff42e9cfbb0109017ae22f49b489d79155f6d0429",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ac2f3d194eb8a98b6da551ce5414e0c87cd58e3dc52aace3b036854bc5c5e745",
+          "historyDigest": "9a9c6e4fdec69507f889da478926383977afb3167832a98f45f3237810ecfeb2",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "f8ac2a37aa5b2244332883951f2951eb733ce4b68b00202c006c340b4e24ccd8",
+        "baseline": {
+          "rawDigest": "65c71e4cd9f162bf21903c90749849749e93b48d5c1013476e6697cf75738dab",
+          "historyDigest": "319bbd4644ce831d7ab08cbff42e9cfbb0109017ae22f49b489d79155f6d0429",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ac2f3d194eb8a98b6da551ce5414e0c87cd58e3dc52aace3b036854bc5c5e745",
+          "historyDigest": "9a9c6e4fdec69507f889da478926383977afb3167832a98f45f3237810ecfeb2",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 12,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 12,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "2871dcb75a6535a0f6d256dab3ae90a4cda7cf9021535a381d7a2470d9f2bd45",
+        "baseline": {
+          "rawDigest": "2a39549844a261a5126612648ed829ef00cc5855bfb084b261d5d8a44e1cd209",
+          "historyDigest": "a984cd0592468dd80e3c7fdf0c4cde03ff58d5831afeb3c1872f2b3f3598d652",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "59233761540a9ea06c1c537fb17d3fd640a592335ab12c8acc59dda1161f88de",
+          "historyDigest": "30500f9796db4e78883938d832cc9a51c8dfc750d6b57de239bd9790b76803b6",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "2871dcb75a6535a0f6d256dab3ae90a4cda7cf9021535a381d7a2470d9f2bd45",
+        "baseline": {
+          "rawDigest": "2a39549844a261a5126612648ed829ef00cc5855bfb084b261d5d8a44e1cd209",
+          "historyDigest": "a984cd0592468dd80e3c7fdf0c4cde03ff58d5831afeb3c1872f2b3f3598d652",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "59233761540a9ea06c1c537fb17d3fd640a592335ab12c8acc59dda1161f88de",
+          "historyDigest": "30500f9796db4e78883938d832cc9a51c8dfc750d6b57de239bd9790b76803b6",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 13,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 13,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "479c3eb4c4daa420a45ee5b5a3143bed7fca6a8592a797dbd2d85aa9667315d6",
+        "baseline": {
+          "rawDigest": "20be42c4990b4dee63ab2535cb95950378dc79e2121856f64bfd2fdc1ee72c75",
+          "historyDigest": "ce15e2c2d47094430ecf414011c89930173a52f1b6f2a3e3d8a23fa6500aadfa",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "8612bea8731a62a9acf3131ec54bdf5ce53b15791b64ce8c0ce56c795890f370",
+          "historyDigest": "67bf31537fb4b2f65a8bd602565e6f891e5f9a760e1f361b2ee38ed3d2c4c7e9",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "479c3eb4c4daa420a45ee5b5a3143bed7fca6a8592a797dbd2d85aa9667315d6",
+        "baseline": {
+          "rawDigest": "20be42c4990b4dee63ab2535cb95950378dc79e2121856f64bfd2fdc1ee72c75",
+          "historyDigest": "ce15e2c2d47094430ecf414011c89930173a52f1b6f2a3e3d8a23fa6500aadfa",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "8612bea8731a62a9acf3131ec54bdf5ce53b15791b64ce8c0ce56c795890f370",
+          "historyDigest": "67bf31537fb4b2f65a8bd602565e6f891e5f9a760e1f361b2ee38ed3d2c4c7e9",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 14,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 14,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "b36dad22bf4ee14a313fb501a052595a1bb1d2b37b200cef15ba75d7cb41d7e1",
+        "baseline": {
+          "rawDigest": "bff283b17fd64ccec7624bee26798926d304378c3ca048a1a349e77220d5516e",
+          "historyDigest": "3fe5493a1e710af4908cd21712d8579ac48d503a0313795f610d155e09ce4cb8",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "502e9b3596a9afebbb8c4ff85a570e569bb8eb54f10f8ce4392cf38a94d5c4ff",
+          "historyDigest": "ff6aca4b0f061dffbb81b8f087b2cf817daab8d89cfe1cf961d931a2797f42ca",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "b36dad22bf4ee14a313fb501a052595a1bb1d2b37b200cef15ba75d7cb41d7e1",
+        "baseline": {
+          "rawDigest": "bff283b17fd64ccec7624bee26798926d304378c3ca048a1a349e77220d5516e",
+          "historyDigest": "3fe5493a1e710af4908cd21712d8579ac48d503a0313795f610d155e09ce4cb8",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "502e9b3596a9afebbb8c4ff85a570e569bb8eb54f10f8ce4392cf38a94d5c4ff",
+          "historyDigest": "ff6aca4b0f061dffbb81b8f087b2cf817daab8d89cfe1cf961d931a2797f42ca",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 15,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 15,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "58d92ceb4d8771493839e6fe34fe5adb2b6788b10e23afe8da3102c9156b7a6c",
+        "baseline": {
+          "rawDigest": "eebca4b25f21ccdd66bc9228c8838e372452182d8a3c38ab47cd08199b27175a",
+          "historyDigest": "ccee7dda60fc2f4ff59e82de6c6867594d6521e90ee00444361b4f67b6924267",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "483138e8fa7a59f7c0cc27bf113414cb44af88cda3fe119296e7a1268e4107da",
+          "historyDigest": "3877537a4c3b5e44ca9658344d773da7f2ae106baa1aaed06757a9e29bd5c787",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "58d92ceb4d8771493839e6fe34fe5adb2b6788b10e23afe8da3102c9156b7a6c",
+        "baseline": {
+          "rawDigest": "eebca4b25f21ccdd66bc9228c8838e372452182d8a3c38ab47cd08199b27175a",
+          "historyDigest": "ccee7dda60fc2f4ff59e82de6c6867594d6521e90ee00444361b4f67b6924267",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "483138e8fa7a59f7c0cc27bf113414cb44af88cda3fe119296e7a1268e4107da",
+          "historyDigest": "3877537a4c3b5e44ca9658344d773da7f2ae106baa1aaed06757a9e29bd5c787",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 16,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 16,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "288e5069d571deb1c11c2ed69d501c6611df9e6f8e58af3dbdbb509e84e4183f",
+        "baseline": {
+          "rawDigest": "34a02bc582efc6052b7e8ff435723be5c72b212b191f1f92db1570d540c1b284",
+          "historyDigest": "8726c730b14b9fc5837cf78d127a34844aad9409f439c6b8c8d816ea108cbb93",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "0dbd99e21d86da5a38e0e51869eb10ad0ad6702ada3593a05b3083e62f4e5241",
+          "historyDigest": "a4aa2202178c861fa1602d79b566bdaead4edda56c6db2c9f9c1c0efd554dc36",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "288e5069d571deb1c11c2ed69d501c6611df9e6f8e58af3dbdbb509e84e4183f",
+        "baseline": {
+          "rawDigest": "34a02bc582efc6052b7e8ff435723be5c72b212b191f1f92db1570d540c1b284",
+          "historyDigest": "8726c730b14b9fc5837cf78d127a34844aad9409f439c6b8c8d816ea108cbb93",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "0dbd99e21d86da5a38e0e51869eb10ad0ad6702ada3593a05b3083e62f4e5241",
+          "historyDigest": "a4aa2202178c861fa1602d79b566bdaead4edda56c6db2c9f9c1c0efd554dc36",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 17,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 17,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "f6dceae3a1726fb94ba22380f1f6db66d8951c0b30ba3d5d0536c2d41c896d68",
+        "baseline": {
+          "rawDigest": "9aee75228ae1de3eb70c4954890c7206d0b6202b17e4bd5f4a7b72865d87bccd",
+          "historyDigest": "4e96bc262330d7312e619f116ce91db4af781578e3b8cac571aa5fdfd884ed4e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "8ffbbe69d71b8b78ec316b6cd3391fce5a8fdc45e9d1e59585bfeee72ae9c24a",
+          "historyDigest": "3ca2a6e40d077e14adbe80f1305d1bd81530d4ea3621b24d2210f2f536e48bc6",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "f6dceae3a1726fb94ba22380f1f6db66d8951c0b30ba3d5d0536c2d41c896d68",
+        "baseline": {
+          "rawDigest": "9aee75228ae1de3eb70c4954890c7206d0b6202b17e4bd5f4a7b72865d87bccd",
+          "historyDigest": "4e96bc262330d7312e619f116ce91db4af781578e3b8cac571aa5fdfd884ed4e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "8ffbbe69d71b8b78ec316b6cd3391fce5a8fdc45e9d1e59585bfeee72ae9c24a",
+          "historyDigest": "3ca2a6e40d077e14adbe80f1305d1bd81530d4ea3621b24d2210f2f536e48bc6",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 18,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 18,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "77fd8609e10d42d7fd0365b25046f9f47dee3ac42eb3b2613086b59faff12cc9",
+        "baseline": {
+          "rawDigest": "9fce5ed9d87cebceb1599edaf10d3456f74a59ccd3719e4054affc0d0ae2760a",
+          "historyDigest": "7fa43d4604c3b83fa937fa28e1c8c10583129793dcac95412877582298e5065f",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b953265e57d7fda43db776946fd84b7b06eeb76b0ad73189ca52d35647a9bb27",
+          "historyDigest": "baf7dce8e6ede556608d0ff25e02bceccdd065c17192c0edf5b14e859282d320",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "77fd8609e10d42d7fd0365b25046f9f47dee3ac42eb3b2613086b59faff12cc9",
+        "baseline": {
+          "rawDigest": "9fce5ed9d87cebceb1599edaf10d3456f74a59ccd3719e4054affc0d0ae2760a",
+          "historyDigest": "7fa43d4604c3b83fa937fa28e1c8c10583129793dcac95412877582298e5065f",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b953265e57d7fda43db776946fd84b7b06eeb76b0ad73189ca52d35647a9bb27",
+          "historyDigest": "baf7dce8e6ede556608d0ff25e02bceccdd065c17192c0edf5b14e859282d320",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 19,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 19,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "cf9d2dd5ad71e975ee5c1fda00b47838e38aa2ae1c64cb9f2d9f125ce99cb838",
+        "baseline": {
+          "rawDigest": "ff8d9a4043104f6f903bddf2598f2b86f263c4889f7c070248ffacdf440b6536",
+          "historyDigest": "59d32152cb3d255beb9114800412093877f65a2cdd8984d5dab79b7601f6d4a5",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "788d8f3056418d6f3413ad2d388a7622cc78d90dd01d2cc7c70037e12854dae2",
+          "historyDigest": "12f1b4c641808a5efb2b9d4c8b1b246ae477102cb31e4b3c2bfab81e80cd78f8",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "cf9d2dd5ad71e975ee5c1fda00b47838e38aa2ae1c64cb9f2d9f125ce99cb838",
+        "baseline": {
+          "rawDigest": "ff8d9a4043104f6f903bddf2598f2b86f263c4889f7c070248ffacdf440b6536",
+          "historyDigest": "59d32152cb3d255beb9114800412093877f65a2cdd8984d5dab79b7601f6d4a5",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "788d8f3056418d6f3413ad2d388a7622cc78d90dd01d2cc7c70037e12854dae2",
+          "historyDigest": "12f1b4c641808a5efb2b9d4c8b1b246ae477102cb31e4b3c2bfab81e80cd78f8",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 20,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 20,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "99252ea56d65d511a7f096163320dcf21a736d37c9b767d982064b569604c23b",
+        "baseline": {
+          "rawDigest": "eda52aedffbc9e605ebc5c33854af1874378b4393b496371f604b17d2957f29f",
+          "historyDigest": "e1c56027936e67a34b9fa63d449588047d20925adf87653299544ed13b11cb4d",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "543c0812b00cbe7e27af1aa9156f94116568684d079ce0b06b94ff0bfed2e0c1",
+          "historyDigest": "e196ac00576bf8da395365dd04db9e018181153802b2003243cda2e47de83f55",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "99252ea56d65d511a7f096163320dcf21a736d37c9b767d982064b569604c23b",
+        "baseline": {
+          "rawDigest": "eda52aedffbc9e605ebc5c33854af1874378b4393b496371f604b17d2957f29f",
+          "historyDigest": "e1c56027936e67a34b9fa63d449588047d20925adf87653299544ed13b11cb4d",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "543c0812b00cbe7e27af1aa9156f94116568684d079ce0b06b94ff0bfed2e0c1",
+          "historyDigest": "e196ac00576bf8da395365dd04db9e018181153802b2003243cda2e47de83f55",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 21,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 21,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "82d365d535e20e24a50ea4d2252dca4624c1bb120f1a6ff4328c61c3cd888f1d",
+        "baseline": {
+          "rawDigest": "4486510a5b4bbc3fac59704b2029504e15ff2e3f13266f6bccfba32a70a941b9",
+          "historyDigest": "f1d9193ee97e753753c8a02ac5eb371dccc2c73992879287ebd23af0e1ccd659",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "d8d26accd52fb6dfbe73e8dcb7381c78ce1f7865c607199e03ef3f4c464a8545",
+          "historyDigest": "f2872506dfc8908af63cdbe70bd2c0b4cd8985916afbe64be894a646aeda892c",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "82d365d535e20e24a50ea4d2252dca4624c1bb120f1a6ff4328c61c3cd888f1d",
+        "baseline": {
+          "rawDigest": "4486510a5b4bbc3fac59704b2029504e15ff2e3f13266f6bccfba32a70a941b9",
+          "historyDigest": "f1d9193ee97e753753c8a02ac5eb371dccc2c73992879287ebd23af0e1ccd659",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "d8d26accd52fb6dfbe73e8dcb7381c78ce1f7865c607199e03ef3f4c464a8545",
+          "historyDigest": "f2872506dfc8908af63cdbe70bd2c0b4cd8985916afbe64be894a646aeda892c",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 22,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 22,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "523df6b357f9ddc2ecaa2807ddb7975c593e3cb7a1b7dae0b7d211db3c127c94",
+        "baseline": {
+          "rawDigest": "cf96177197acf4c22ee6471e53cd1eaa91d3568d2f40605d784a5e918ef27b0c",
+          "historyDigest": "fd037dee74208ee6f0b2f8daa3a65169bc1c214197f43b328347604ca40cb048",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b6c613783d9ab100589621cb8fb366e39a4d382a0b896156e2ac5e497216c3ca",
+          "historyDigest": "e56c150aa0660ee2d4c213c5ae3d6d2b2958fe592a37badc46fd0bc105c8c23f",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "523df6b357f9ddc2ecaa2807ddb7975c593e3cb7a1b7dae0b7d211db3c127c94",
+        "baseline": {
+          "rawDigest": "cf96177197acf4c22ee6471e53cd1eaa91d3568d2f40605d784a5e918ef27b0c",
+          "historyDigest": "fd037dee74208ee6f0b2f8daa3a65169bc1c214197f43b328347604ca40cb048",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b6c613783d9ab100589621cb8fb366e39a4d382a0b896156e2ac5e497216c3ca",
+          "historyDigest": "e56c150aa0660ee2d4c213c5ae3d6d2b2958fe592a37badc46fd0bc105c8c23f",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 23,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 23,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "3f2632a0c933fe87ee9349fd6e4f15ba064562bc00889d58ae3ca9dc10b46a3e",
+        "baseline": {
+          "rawDigest": "f57696a83a0d85be7d15c39b897a62e51868087efce64d3bfd93800e0dc5701d",
+          "historyDigest": "d58b35473ce8a84e8844be452def863909a759ca3de3a6ce8fe33ac414041b83",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "cd040b2f63ef832a9e825d414721709651eec0062fe5b45243c59d0b128eabd7",
+          "historyDigest": "f13dac0f0ae6cc103a0984b108400e2ef747e17ad960e2e02ea405d832d00312",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "3f2632a0c933fe87ee9349fd6e4f15ba064562bc00889d58ae3ca9dc10b46a3e",
+        "baseline": {
+          "rawDigest": "f57696a83a0d85be7d15c39b897a62e51868087efce64d3bfd93800e0dc5701d",
+          "historyDigest": "d58b35473ce8a84e8844be452def863909a759ca3de3a6ce8fe33ac414041b83",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "cd040b2f63ef832a9e825d414721709651eec0062fe5b45243c59d0b128eabd7",
+          "historyDigest": "f13dac0f0ae6cc103a0984b108400e2ef747e17ad960e2e02ea405d832d00312",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 24,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 24,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "0f8dd99e108c62a8a91e3dd119ce1015d258b4a2b09a9bc1d7baf425a7033a04",
+        "baseline": {
+          "rawDigest": "dbbce21177f69947f1f3dae3e5549ba36c37379afaf2b669e7f35a00278a3a66",
+          "historyDigest": "977ac0435bba169c21d4114ebf8e806ec166aaa75e7fe44ae672a8f4f1e2ef58",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b0f60875a51609dfa46035e7f55a2ceb6119cebcbc2e514cfb72cca45f2f8de3",
+          "historyDigest": "bd9db7bef2bd556c4188e1d5ad29a4c008e6c713a2de612abb94323e661a5fff",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "0f8dd99e108c62a8a91e3dd119ce1015d258b4a2b09a9bc1d7baf425a7033a04",
+        "baseline": {
+          "rawDigest": "dbbce21177f69947f1f3dae3e5549ba36c37379afaf2b669e7f35a00278a3a66",
+          "historyDigest": "977ac0435bba169c21d4114ebf8e806ec166aaa75e7fe44ae672a8f4f1e2ef58",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b0f60875a51609dfa46035e7f55a2ceb6119cebcbc2e514cfb72cca45f2f8de3",
+          "historyDigest": "bd9db7bef2bd556c4188e1d5ad29a4c008e6c713a2de612abb94323e661a5fff",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 25,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 25,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "ae03d0eea7a8f7620059a695a9ee6e0360d6f4cb38b0fee427566800efc0d45e",
+        "baseline": {
+          "rawDigest": "f40500a948a4c34c6e3a7acbc4c5e903bacfede4dc8132412a6b3c4ab4b3c681",
+          "historyDigest": "11fe124a2b4280400730b9e7ddbebc3d2b4fe5a3f94316ce54c5f683ce9649a5",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "074afb66bd8d760449eb2813fd33d826c33492af694f0e688cb9afa2c04c9f77",
+          "historyDigest": "b6d793709804d37a19ec628131ed87068d71a64a551eb261acd96bf73e9ae9ed",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "ae03d0eea7a8f7620059a695a9ee6e0360d6f4cb38b0fee427566800efc0d45e",
+        "baseline": {
+          "rawDigest": "f40500a948a4c34c6e3a7acbc4c5e903bacfede4dc8132412a6b3c4ab4b3c681",
+          "historyDigest": "11fe124a2b4280400730b9e7ddbebc3d2b4fe5a3f94316ce54c5f683ce9649a5",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "074afb66bd8d760449eb2813fd33d826c33492af694f0e688cb9afa2c04c9f77",
+          "historyDigest": "b6d793709804d37a19ec628131ed87068d71a64a551eb261acd96bf73e9ae9ed",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 26,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 26,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "4c66e50213e9683db6339b5a1c825627367da38a277f7732584f22d89bf1804d",
+        "baseline": {
+          "rawDigest": "ae22d182e494325b32a251909803a2b0bbf64b1b24948842018f1e740a696d76",
+          "historyDigest": "e524525271e3cc2078fac776088285f9289a606c848dfd78a69940a5d59bcb58",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "a5a79df15e601a0dbf1756e5be2264de5e8f297dfe9ebbcbbfe0dcfddb366a96",
+          "historyDigest": "9fc2e3ab6f7e4ef1dba6dcd654be95570c50c92ddddf5ace76eed4df260bb6c1",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "4c66e50213e9683db6339b5a1c825627367da38a277f7732584f22d89bf1804d",
+        "baseline": {
+          "rawDigest": "ae22d182e494325b32a251909803a2b0bbf64b1b24948842018f1e740a696d76",
+          "historyDigest": "e524525271e3cc2078fac776088285f9289a606c848dfd78a69940a5d59bcb58",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "a5a79df15e601a0dbf1756e5be2264de5e8f297dfe9ebbcbbfe0dcfddb366a96",
+          "historyDigest": "9fc2e3ab6f7e4ef1dba6dcd654be95570c50c92ddddf5ace76eed4df260bb6c1",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 27,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 27,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "10b8028456ba8bc6da9f06fd8841db95fd4ce52c305c1618e51905fec1d01ac7",
+        "baseline": {
+          "rawDigest": "d4b58104f95398284bcfbe681dfa0698c2c556476df8384ab710e1658324e187",
+          "historyDigest": "f000dfbf33c0372a2b3e6e1e02151cd3d1f0cb7f411d1a68c5776e9e2979a705",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "dbc13c3a932b1e8b90d0d4a3415d6332c4b3e3c30f72a7295e737836286602a9",
+          "historyDigest": "5062eaa6a06766ff2abfbdbc732c9b75bc81247b5e3b37516bc64ae0c880daa9",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "10b8028456ba8bc6da9f06fd8841db95fd4ce52c305c1618e51905fec1d01ac7",
+        "baseline": {
+          "rawDigest": "d4b58104f95398284bcfbe681dfa0698c2c556476df8384ab710e1658324e187",
+          "historyDigest": "f000dfbf33c0372a2b3e6e1e02151cd3d1f0cb7f411d1a68c5776e9e2979a705",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "dbc13c3a932b1e8b90d0d4a3415d6332c4b3e3c30f72a7295e737836286602a9",
+          "historyDigest": "5062eaa6a06766ff2abfbdbc732c9b75bc81247b5e3b37516bc64ae0c880daa9",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 28,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 28,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "c5eb41759174030c79681da33a0be771319bdbcf79a310d3da167a97e2a55318",
+        "baseline": {
+          "rawDigest": "b7547e1d45e1e0351cc36ddbc52701da9211f3df4701d4f3515a572ed3d6c8fe",
+          "historyDigest": "a749e2dfd9db94f756ddd5bea72ba62f11fdc361e8770837f73b064fb821f568",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e8eee8ddcb89fe7eff08000589c7af47bd224330d103fb5421d0519c356646fe",
+          "historyDigest": "a6846e67f21ceffdf1d57a2518c046bab95034663f3d54344b9dea6b9537bb42",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "c5eb41759174030c79681da33a0be771319bdbcf79a310d3da167a97e2a55318",
+        "baseline": {
+          "rawDigest": "b7547e1d45e1e0351cc36ddbc52701da9211f3df4701d4f3515a572ed3d6c8fe",
+          "historyDigest": "a749e2dfd9db94f756ddd5bea72ba62f11fdc361e8770837f73b064fb821f568",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e8eee8ddcb89fe7eff08000589c7af47bd224330d103fb5421d0519c356646fe",
+          "historyDigest": "a6846e67f21ceffdf1d57a2518c046bab95034663f3d54344b9dea6b9537bb42",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 29,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 29,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "09f487d6a3ccbbe379eba1943622ff15edff480026187e7369676af174855efe",
+        "baseline": {
+          "rawDigest": "1131868fb318022b320b9e1540e2f6d9d798d4b657d9d00693bf15d4df056af4",
+          "historyDigest": "cc768577d1f8a174eedad2674bf00e4ebf161b1d63fb5a4c80a036a233f926c9",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "345a933e046d5fba4f646881b5054b2787c036e8e0abc075129a857619ced003",
+          "historyDigest": "34b1451392e530bb64eeb7eb8d5c1d8d4a82d545ee7f59c03cf6ae5090b14332",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "09f487d6a3ccbbe379eba1943622ff15edff480026187e7369676af174855efe",
+        "baseline": {
+          "rawDigest": "1131868fb318022b320b9e1540e2f6d9d798d4b657d9d00693bf15d4df056af4",
+          "historyDigest": "cc768577d1f8a174eedad2674bf00e4ebf161b1d63fb5a4c80a036a233f926c9",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "345a933e046d5fba4f646881b5054b2787c036e8e0abc075129a857619ced003",
+          "historyDigest": "34b1451392e530bb64eeb7eb8d5c1d8d4a82d545ee7f59c03cf6ae5090b14332",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 30,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 30,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "121d819d170f4bba14c3db14be73469d8f889881564aaa86fa187ca08ceaf72b",
+        "baseline": {
+          "rawDigest": "cfa0ef4954340cf0db82e3c8ad8bc1e465ce9d5869eade6c1588f5dcb064afcf",
+          "historyDigest": "9bcf328a470c27e4f4666b808575f989e6768c70c0995603314b5eba801f55ad",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e79b3e3f1b58c6c0d69c89298b835f27cc5ca17787a4fc199f6d043e4af0e021",
+          "historyDigest": "2d6188fd8f3ae101c925a6705ce9bc6f03560d0308392deda6e99cee8881cf5c",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "121d819d170f4bba14c3db14be73469d8f889881564aaa86fa187ca08ceaf72b",
+        "baseline": {
+          "rawDigest": "cfa0ef4954340cf0db82e3c8ad8bc1e465ce9d5869eade6c1588f5dcb064afcf",
+          "historyDigest": "9bcf328a470c27e4f4666b808575f989e6768c70c0995603314b5eba801f55ad",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e79b3e3f1b58c6c0d69c89298b835f27cc5ca17787a4fc199f6d043e4af0e021",
+          "historyDigest": "2d6188fd8f3ae101c925a6705ce9bc6f03560d0308392deda6e99cee8881cf5c",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 31,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 31,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "3f32daedcd611c091f7ebc3c73720eedf881ac977ba680c60e1c4190a7465931",
+        "baseline": {
+          "rawDigest": "b6f9b26adea6fc2f624379e996c67a20f19359145d7fcf97542353096c553d3c",
+          "historyDigest": "d5fe44fe8bc3288599e15f729a80302baf06bbead9053a925b35bf4c4052d5be",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "924439d94ed1540ae7033247d86bee9e743cf66b62aa7308ea130ee06bbacaca",
+          "historyDigest": "82dd47dcf8c346c84135f565bf266717cc1771b1b82c38b120f70173b1d70974",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "3f32daedcd611c091f7ebc3c73720eedf881ac977ba680c60e1c4190a7465931",
+        "baseline": {
+          "rawDigest": "b6f9b26adea6fc2f624379e996c67a20f19359145d7fcf97542353096c553d3c",
+          "historyDigest": "d5fe44fe8bc3288599e15f729a80302baf06bbead9053a925b35bf4c4052d5be",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "924439d94ed1540ae7033247d86bee9e743cf66b62aa7308ea130ee06bbacaca",
+          "historyDigest": "82dd47dcf8c346c84135f565bf266717cc1771b1b82c38b120f70173b1d70974",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 32,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 32,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "8f184725af81015f1b4ce0c5eabb88d765ae52ed5596fd04575f6b9efb2b3e56",
+        "baseline": {
+          "rawDigest": "3b347db0fd13bd87fd629c0d8f6dc2ed46e51e641fcd63b928bc91722b91ff37",
+          "historyDigest": "5aafd7b4976b06c1ffa79037dec7423252b96aae5c3c0ecd3903d6be3e83b88d",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c61d94e62f07830d5f432ec35a467012452eb3e273f8319960fe264e25d311bd",
+          "historyDigest": "cdaa891d68d1bb88d4887b6204294810a77639d81bd44552c506ae378b04f60e",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "8f184725af81015f1b4ce0c5eabb88d765ae52ed5596fd04575f6b9efb2b3e56",
+        "baseline": {
+          "rawDigest": "3b347db0fd13bd87fd629c0d8f6dc2ed46e51e641fcd63b928bc91722b91ff37",
+          "historyDigest": "5aafd7b4976b06c1ffa79037dec7423252b96aae5c3c0ecd3903d6be3e83b88d",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c61d94e62f07830d5f432ec35a467012452eb3e273f8319960fe264e25d311bd",
+          "historyDigest": "cdaa891d68d1bb88d4887b6204294810a77639d81bd44552c506ae378b04f60e",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 33,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 33,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "01968d81d40ec70d052f485ca14d4056a0736ce256a956cdf43cf2933ecce2d5",
+        "baseline": {
+          "rawDigest": "3419ac56651c0e3c15cdeff8b8e977b39015cb893fefd57188ef0dc7f5e3a99b",
+          "historyDigest": "fdbd4fa484b740a643d44c75a81e1db203ee0388ff4939b068cbfa67dfaba64b",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "389383806a80d7bf95a9548694260136cbdd5dc9ea13e1e4da3966e88c88c022",
+          "historyDigest": "f6c971c76c32044a5adb4c8ecf7c3ecebb50940da347e2d7795c2a3c18291ea7",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "01968d81d40ec70d052f485ca14d4056a0736ce256a956cdf43cf2933ecce2d5",
+        "baseline": {
+          "rawDigest": "3419ac56651c0e3c15cdeff8b8e977b39015cb893fefd57188ef0dc7f5e3a99b",
+          "historyDigest": "fdbd4fa484b740a643d44c75a81e1db203ee0388ff4939b068cbfa67dfaba64b",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "389383806a80d7bf95a9548694260136cbdd5dc9ea13e1e4da3966e88c88c022",
+          "historyDigest": "f6c971c76c32044a5adb4c8ecf7c3ecebb50940da347e2d7795c2a3c18291ea7",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 34,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 34,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "da27d9ca0d873873ef574acfc8efc18b5a5068fa21398c4293c705e38fac3e55",
+        "baseline": {
+          "rawDigest": "16d71904a2493bf17553ff70a04861c46fc0771ad10836a7d0d3e676a68c38eb",
+          "historyDigest": "5df9dcacd2e5f83a2399c6c663bbc5553f2b784a39267b64c669d6853a01f609",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "05309b79098cc4ba0035ffc1e35aa633f9d25738d285a0c5106ed0177e898f54",
+          "historyDigest": "e7ac3706b98e12dc36b5cfd79bbb512f3acf6fe291281bd85012dd0424736df2",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "da27d9ca0d873873ef574acfc8efc18b5a5068fa21398c4293c705e38fac3e55",
+        "baseline": {
+          "rawDigest": "16d71904a2493bf17553ff70a04861c46fc0771ad10836a7d0d3e676a68c38eb",
+          "historyDigest": "5df9dcacd2e5f83a2399c6c663bbc5553f2b784a39267b64c669d6853a01f609",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "05309b79098cc4ba0035ffc1e35aa633f9d25738d285a0c5106ed0177e898f54",
+          "historyDigest": "e7ac3706b98e12dc36b5cfd79bbb512f3acf6fe291281bd85012dd0424736df2",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 35,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 35,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "347cdb33049e3bc56cdaef286a68c45d0dad969398868a128c2916e30cd65ce2",
+        "baseline": {
+          "rawDigest": "b2e2c074ca95d4b1963cf4ef14477f8e71ce382f2e24f5d6501ee3e47faa0c3b",
+          "historyDigest": "48a65109a86cc8b4ca6f00b577f50430101504da0882653ad62876d2a7343b62",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "32a63b2543e046f2fbf1e41010ac8b3ea81480383dc392e93befe709a0777fdf",
+          "historyDigest": "ed7bba82f4589ba5e789279cfec92843e073a0d426b5baa8573bd9560123bff1",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "347cdb33049e3bc56cdaef286a68c45d0dad969398868a128c2916e30cd65ce2",
+        "baseline": {
+          "rawDigest": "b2e2c074ca95d4b1963cf4ef14477f8e71ce382f2e24f5d6501ee3e47faa0c3b",
+          "historyDigest": "48a65109a86cc8b4ca6f00b577f50430101504da0882653ad62876d2a7343b62",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "32a63b2543e046f2fbf1e41010ac8b3ea81480383dc392e93befe709a0777fdf",
+          "historyDigest": "ed7bba82f4589ba5e789279cfec92843e073a0d426b5baa8573bd9560123bff1",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 36,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 36,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "d699443bc4ec276c1d5341aee36ed0e2fb93c1652c04fa51d54172b5b173f0d0",
+        "baseline": {
+          "rawDigest": "8b6b558b37433e7c7af72926daf07f9b8c782fb0e2b88774e99be676c602e1be",
+          "historyDigest": "cc6dcb6a4e799cabbccb599ea7ff09e805bc4bea9700e572f36ae79d012406d3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "668bab4971e32f449aa3ca48144bdc28a8017e38a2bcc3b72a81aae228b9c1be",
+          "historyDigest": "3aa4ef71dcdaf283efc4494977fafca5a506e5b934d3b5236b11c0655a7f47f1",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "d699443bc4ec276c1d5341aee36ed0e2fb93c1652c04fa51d54172b5b173f0d0",
+        "baseline": {
+          "rawDigest": "8b6b558b37433e7c7af72926daf07f9b8c782fb0e2b88774e99be676c602e1be",
+          "historyDigest": "cc6dcb6a4e799cabbccb599ea7ff09e805bc4bea9700e572f36ae79d012406d3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "668bab4971e32f449aa3ca48144bdc28a8017e38a2bcc3b72a81aae228b9c1be",
+          "historyDigest": "3aa4ef71dcdaf283efc4494977fafca5a506e5b934d3b5236b11c0655a7f47f1",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 37,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 37,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "f431e486ddbbebfcf92a70eb34d1db65a0153ccb1d2531450e5b71d7b4626c9c",
+        "baseline": {
+          "rawDigest": "12e883eaa5712da02711f687628b0a7558713d0120152041ec5899a93eed4094",
+          "historyDigest": "742ec14ae5248c48e9f450c0076006fb13c163a63c6c2fe9b733a5d684729ae8",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "8ddb296a0b212cc5d5fa6192538ccba0c5d260cb404504b53a874cfaedfeea71",
+          "historyDigest": "24b4cc5310803f31b9c791d92effac05bbd3aa655052c813c7c5b5b0c9fed931",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "f431e486ddbbebfcf92a70eb34d1db65a0153ccb1d2531450e5b71d7b4626c9c",
+        "baseline": {
+          "rawDigest": "12e883eaa5712da02711f687628b0a7558713d0120152041ec5899a93eed4094",
+          "historyDigest": "742ec14ae5248c48e9f450c0076006fb13c163a63c6c2fe9b733a5d684729ae8",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "8ddb296a0b212cc5d5fa6192538ccba0c5d260cb404504b53a874cfaedfeea71",
+          "historyDigest": "24b4cc5310803f31b9c791d92effac05bbd3aa655052c813c7c5b5b0c9fed931",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 38,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 38,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "d81d7cc8bd339d29572c70cfd82a51a71346040e01186191f5eb28b2b27d8168",
+        "baseline": {
+          "rawDigest": "7a7c4e87cbde1931114ed64ebfc1bd8fee7c12f8a5380afcd1e9c4075fd27207",
+          "historyDigest": "9fcd1a9adc1264635f8ad13bfd0cf2622984ac46a1dda50e07f02ce1cff4e866",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b80a5b2f0c432d03be62a7d2cc7c43f42da10c30bac19500f5cb47d69f7bc886",
+          "historyDigest": "327210ce7ebb05f7b1fb745bedd738dc5a65fc026c62dcd45d40ddbb0c9d1783",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "d81d7cc8bd339d29572c70cfd82a51a71346040e01186191f5eb28b2b27d8168",
+        "baseline": {
+          "rawDigest": "7a7c4e87cbde1931114ed64ebfc1bd8fee7c12f8a5380afcd1e9c4075fd27207",
+          "historyDigest": "9fcd1a9adc1264635f8ad13bfd0cf2622984ac46a1dda50e07f02ce1cff4e866",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b80a5b2f0c432d03be62a7d2cc7c43f42da10c30bac19500f5cb47d69f7bc886",
+          "historyDigest": "327210ce7ebb05f7b1fb745bedd738dc5a65fc026c62dcd45d40ddbb0c9d1783",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 39,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 39,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "6caf5d9c964934b84f36763e88dc62d01626b27250a1e2b6061cb9374a7f89d9",
+        "baseline": {
+          "rawDigest": "752c0d4184b3e9f0ee04f322264dba560997195ceeb65a29b9cd80763694b3c7",
+          "historyDigest": "8598a7144a3c2acabacd390a60d5ac67de0638350de8b9a7b24f204fe7d4166f",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "dc1dc35f1435965f5764960dfe0557601773c86f12cc9e54be83876fc9b1dac4",
+          "historyDigest": "41483fb7a1ecedb55caaf4be825f89a6d01e4fa9ee7a94a6b961b88ecdefc7c3",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "6caf5d9c964934b84f36763e88dc62d01626b27250a1e2b6061cb9374a7f89d9",
+        "baseline": {
+          "rawDigest": "752c0d4184b3e9f0ee04f322264dba560997195ceeb65a29b9cd80763694b3c7",
+          "historyDigest": "8598a7144a3c2acabacd390a60d5ac67de0638350de8b9a7b24f204fe7d4166f",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "dc1dc35f1435965f5764960dfe0557601773c86f12cc9e54be83876fc9b1dac4",
+          "historyDigest": "41483fb7a1ecedb55caaf4be825f89a6d01e4fa9ee7a94a6b961b88ecdefc7c3",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 40,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 40,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "f9535dff132677b140064c4c14bd73371e047e29a2770a4f722138461122e432",
+        "baseline": {
+          "rawDigest": "e96de7d09372dbad3d13d39d2da9332ea54b85f3291210ac158c561abc6e9028",
+          "historyDigest": "d454632ac34c455d074fa10737bfa311b4dfcf5cab0c8d2f3d9e45054f8b68d9",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b5c727f7a3462144acd674d78003ee7d7b9a7683c373ca49c2bee64883faf761",
+          "historyDigest": "984b344b760d076c3fbb5200bab52f94909812f530d87b0479f03619626a9b96",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "f9535dff132677b140064c4c14bd73371e047e29a2770a4f722138461122e432",
+        "baseline": {
+          "rawDigest": "e96de7d09372dbad3d13d39d2da9332ea54b85f3291210ac158c561abc6e9028",
+          "historyDigest": "d454632ac34c455d074fa10737bfa311b4dfcf5cab0c8d2f3d9e45054f8b68d9",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b5c727f7a3462144acd674d78003ee7d7b9a7683c373ca49c2bee64883faf761",
+          "historyDigest": "984b344b760d076c3fbb5200bab52f94909812f530d87b0479f03619626a9b96",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 41,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 41,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "bb60198f5283f7285b4b51ceddfcaa5f6531303507fa5e82409ab04452929a35",
+        "baseline": {
+          "rawDigest": "faa313c7dd054ab99e0f6de1492534d92329029388275b48a4e1ce5965001e8e",
+          "historyDigest": "0e7cdb889b0e280c1e5a7af119c7c90814e015470a8f3d668c8ab5f83c62ff7a",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c23d75f97782214582a8646b7a6d933ae4ccf7669cfeafc101fab5dabbb09f16",
+          "historyDigest": "f17f75c046d12c3ab3902fbcc4a037520140f3c27fd28a61d68797bbed601676",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "bb60198f5283f7285b4b51ceddfcaa5f6531303507fa5e82409ab04452929a35",
+        "baseline": {
+          "rawDigest": "faa313c7dd054ab99e0f6de1492534d92329029388275b48a4e1ce5965001e8e",
+          "historyDigest": "0e7cdb889b0e280c1e5a7af119c7c90814e015470a8f3d668c8ab5f83c62ff7a",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c23d75f97782214582a8646b7a6d933ae4ccf7669cfeafc101fab5dabbb09f16",
+          "historyDigest": "f17f75c046d12c3ab3902fbcc4a037520140f3c27fd28a61d68797bbed601676",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 42,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 42,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe",
+        "baseline": {
+          "rawDigest": "9e42a3c26ff4da7e64cfdbfe5634ced86f2eeddbe875c5e0959488dadcdabdf2",
+          "historyDigest": "f62c2849fdcf0f44fee7e67c3bdceb18ea496bbd23f16d364e826d40182104f3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "6f4a95a36f19478b852b8e3b0dd9437dbe22e50700e61280632ca8071011e7fa",
+          "historyDigest": "1cf30649722c4192f0feb157d8c67bd34f8cbbd2e3272fb9195f5c6fa66ac581",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe",
+        "baseline": {
+          "rawDigest": "9e42a3c26ff4da7e64cfdbfe5634ced86f2eeddbe875c5e0959488dadcdabdf2",
+          "historyDigest": "f62c2849fdcf0f44fee7e67c3bdceb18ea496bbd23f16d364e826d40182104f3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "6f4a95a36f19478b852b8e3b0dd9437dbe22e50700e61280632ca8071011e7fa",
+          "historyDigest": "1cf30649722c4192f0feb157d8c67bd34f8cbbd2e3272fb9195f5c6fa66ac581",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 43,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 43,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "be051eedf143ca453531d1127d41c76a93a2f0e6e594b812a1dd41fbe488c876",
+        "baseline": {
+          "rawDigest": "b7bec2131daa5bb13113860c6332dd36521d19f907fd5ac81cc22227b47d9422",
+          "historyDigest": "6e9474a4df7c03dd6e3bead9be59da2fe80f11aa458c74dd031d15e938e403a2",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "8cbe60ba67cd26b93c34da3be1cb5c77ce0b78719dbf03242768d0ec968887ac",
+          "historyDigest": "e8ded98a605fe0a6e82757885728859bcaa714a83ed6727c59d7a1415feeab00",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "be051eedf143ca453531d1127d41c76a93a2f0e6e594b812a1dd41fbe488c876",
+        "baseline": {
+          "rawDigest": "b7bec2131daa5bb13113860c6332dd36521d19f907fd5ac81cc22227b47d9422",
+          "historyDigest": "6e9474a4df7c03dd6e3bead9be59da2fe80f11aa458c74dd031d15e938e403a2",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "8cbe60ba67cd26b93c34da3be1cb5c77ce0b78719dbf03242768d0ec968887ac",
+          "historyDigest": "e8ded98a605fe0a6e82757885728859bcaa714a83ed6727c59d7a1415feeab00",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 44,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 44,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "59786b54c27c9beb973644d14230e555d0ebffb068747853c2ae3331a22a36be",
+        "baseline": {
+          "rawDigest": "92e0614e17780a97700537eb08487bea2103579853f3ee4e078a14634213edf2",
+          "historyDigest": "fd656e53eafeb8f3862ca99b2670e73fd84b82fc4a03f0f4105ea90f1f57fc14",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "58eb8d958dae9d15eaf1d4ad991931d2225653d483ecccac07766206c2a79f0f",
+          "historyDigest": "f463f93182fcdaa37737dfbe721d5a05cd8f63fdaafaab620cf33e1d71947e39",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "59786b54c27c9beb973644d14230e555d0ebffb068747853c2ae3331a22a36be",
+        "baseline": {
+          "rawDigest": "92e0614e17780a97700537eb08487bea2103579853f3ee4e078a14634213edf2",
+          "historyDigest": "fd656e53eafeb8f3862ca99b2670e73fd84b82fc4a03f0f4105ea90f1f57fc14",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "58eb8d958dae9d15eaf1d4ad991931d2225653d483ecccac07766206c2a79f0f",
+          "historyDigest": "f463f93182fcdaa37737dfbe721d5a05cd8f63fdaafaab620cf33e1d71947e39",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 45,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 45,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "1e67b30caf5067c24a456046742a7c0256db2d7597e5265a8619ce6bd6cc2e38",
+        "baseline": {
+          "rawDigest": "11a401a9d075e8bd5040ecd4ca55980bb135e3e8471c626041369273f52922b9",
+          "historyDigest": "19e091ba4e1d618ae070938b030eddecb2482f60b277fb11d1ec4f220b26f737",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "16a63527c33ea65512bb3db6220d5eedcd2ae4823d7d1ccbb0df16bae325bdfa",
+          "historyDigest": "ae1485d540fb8b343c4cf3d857f3d64b6394c1d811cbdd9915f252fb9eacf47a",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "1e67b30caf5067c24a456046742a7c0256db2d7597e5265a8619ce6bd6cc2e38",
+        "baseline": {
+          "rawDigest": "11a401a9d075e8bd5040ecd4ca55980bb135e3e8471c626041369273f52922b9",
+          "historyDigest": "19e091ba4e1d618ae070938b030eddecb2482f60b277fb11d1ec4f220b26f737",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "16a63527c33ea65512bb3db6220d5eedcd2ae4823d7d1ccbb0df16bae325bdfa",
+          "historyDigest": "ae1485d540fb8b343c4cf3d857f3d64b6394c1d811cbdd9915f252fb9eacf47a",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 46,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 46,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "ec86690ae38da815543a546c10b8a19343902ff0260d1d457781755dabe8529f",
+        "baseline": {
+          "rawDigest": "3b21e4effa0616fc5bfc17cce2e93ad01623bcd004f2461698afe8e248e9b5de",
+          "historyDigest": "9e781b3e128e8f8edfdfb19f830cb57e8e346a42a122c3bd8cac82056437dc0f",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "f4be7b44867d97841faf6da640cf14ec4731c5d9335b889a7b1a5b5878c406a3",
+          "historyDigest": "fd4d459b225a1dc6e84b6e416003e93a153c99163c0ad53af07091718bb9de8e",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "ec86690ae38da815543a546c10b8a19343902ff0260d1d457781755dabe8529f",
+        "baseline": {
+          "rawDigest": "3b21e4effa0616fc5bfc17cce2e93ad01623bcd004f2461698afe8e248e9b5de",
+          "historyDigest": "9e781b3e128e8f8edfdfb19f830cb57e8e346a42a122c3bd8cac82056437dc0f",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "f4be7b44867d97841faf6da640cf14ec4731c5d9335b889a7b1a5b5878c406a3",
+          "historyDigest": "fd4d459b225a1dc6e84b6e416003e93a153c99163c0ad53af07091718bb9de8e",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 47,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 47,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "6032f13003d1f02a5b45d99bb73096c100ba53995203c64c07d081b41dbe4148",
+        "baseline": {
+          "rawDigest": "38d591670c7ebba4dd4586e4e5a9315f347856ed52a18f1588a1e76db08d7fa7",
+          "historyDigest": "73c403bc83c96317e33f352a1e20fa8a533ac17fcbf1c22ed48080de96b0b166",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e1c73e6f19acc061b9d30a52a3b49f2c62a8feb24ddc86ec7f1c9cb83b1b0b47",
+          "historyDigest": "8e4208cabcd9f1dbc0c88b540c580a442edfe89080f7e89e0631f93bb1f9bf92",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "6032f13003d1f02a5b45d99bb73096c100ba53995203c64c07d081b41dbe4148",
+        "baseline": {
+          "rawDigest": "38d591670c7ebba4dd4586e4e5a9315f347856ed52a18f1588a1e76db08d7fa7",
+          "historyDigest": "73c403bc83c96317e33f352a1e20fa8a533ac17fcbf1c22ed48080de96b0b166",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e1c73e6f19acc061b9d30a52a3b49f2c62a8feb24ddc86ec7f1c9cb83b1b0b47",
+          "historyDigest": "8e4208cabcd9f1dbc0c88b540c580a442edfe89080f7e89e0631f93bb1f9bf92",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 48,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 48,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "f345a70b5a6c326f9f74e4c94c196bc2d138788819464573786651fc7d5e10e0",
+        "baseline": {
+          "rawDigest": "df4eaef862dee78aead3b6a40ee3e92783c4633213ca3a3680e8c0dd8324a2e6",
+          "historyDigest": "be4397be2509d240f2ba40b063a4fbaa90989c9b017d4c439c7db012f3e50469",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "3d790d9ef0c38af19c47a113d29c407a4cccef0865d1f246581bb7c3bb360f97",
+          "historyDigest": "5c69341a10f7a89b343a649d542bf8f8eadb127155c3d484c550c399686f6b1d",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "f345a70b5a6c326f9f74e4c94c196bc2d138788819464573786651fc7d5e10e0",
+        "baseline": {
+          "rawDigest": "df4eaef862dee78aead3b6a40ee3e92783c4633213ca3a3680e8c0dd8324a2e6",
+          "historyDigest": "be4397be2509d240f2ba40b063a4fbaa90989c9b017d4c439c7db012f3e50469",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "3d790d9ef0c38af19c47a113d29c407a4cccef0865d1f246581bb7c3bb360f97",
+          "historyDigest": "5c69341a10f7a89b343a649d542bf8f8eadb127155c3d484c550c399686f6b1d",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 49,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 49,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "802bef3204145fa7209f350e2eb5099121f5d8aaac0c0283b41ccedd662bd6a8",
+        "baseline": {
+          "rawDigest": "55aaeb948dffaec36346e977fc742e6833f2453e8a680f06dbd69aadc61e5506",
+          "historyDigest": "10e4393d0afb1b40c16e97e458e8c9213d1891b98ad23857c714d13fb4e77150",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "2283c74f95889d651f63400fba555d646f16d4f25cf402cac7a536e3582d0e1d",
+          "historyDigest": "0c21c7529d386793b08a9e57e8a1b4be00d526217be480134984cb4aebb0c63e",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "802bef3204145fa7209f350e2eb5099121f5d8aaac0c0283b41ccedd662bd6a8",
+        "baseline": {
+          "rawDigest": "55aaeb948dffaec36346e977fc742e6833f2453e8a680f06dbd69aadc61e5506",
+          "historyDigest": "10e4393d0afb1b40c16e97e458e8c9213d1891b98ad23857c714d13fb4e77150",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "2283c74f95889d651f63400fba555d646f16d4f25cf402cac7a536e3582d0e1d",
+          "historyDigest": "0c21c7529d386793b08a9e57e8a1b4be00d526217be480134984cb4aebb0c63e",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 50,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 50,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "6b5df06b30856ef5b706abcb30bfc6d6f17ce8f798e0b095d741b207360e4eac",
+        "baseline": {
+          "rawDigest": "d1ebabf118f4480f81f590478f8ac06f9c05c6d0b54d2230bf6a62805b862684",
+          "historyDigest": "6e088009d4b23dcb3f7aa7ccf8f909d2c2af037c82b9b0363850ab54d839c093",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "00e3bd7965fba03c351c78c795c2ad91f26a0939930989c2791c75a314f98828",
+          "historyDigest": "d703db302e967603104cef825d30c054a44a5463ba78a77d49ac4ecf0092936e",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "6b5df06b30856ef5b706abcb30bfc6d6f17ce8f798e0b095d741b207360e4eac",
+        "baseline": {
+          "rawDigest": "d1ebabf118f4480f81f590478f8ac06f9c05c6d0b54d2230bf6a62805b862684",
+          "historyDigest": "6e088009d4b23dcb3f7aa7ccf8f909d2c2af037c82b9b0363850ab54d839c093",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "00e3bd7965fba03c351c78c795c2ad91f26a0939930989c2791c75a314f98828",
+          "historyDigest": "d703db302e967603104cef825d30c054a44a5463ba78a77d49ac4ecf0092936e",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 51,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 51,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "b89f2741d33aeda72bb7cfba9fe4821dbf9aca1795e1544ac070fbb094326ba6",
+        "baseline": {
+          "rawDigest": "6457cc05c66c17c6cc550da8eec97cc576ce2a386d49d5757b223fb4c1440442",
+          "historyDigest": "8bcea52a2ab30b1cd6eaa27ff9c7b2b4d1197c71d5824be59e1789c86d3ca850",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "9ff3d26b43883e857f96f6dcb177f0fc72473019297a08bcb4bbb7137ce8765b",
+          "historyDigest": "328c1b487dd71ac217b4ff466af96c842df3bf1b008607ed2fc23ec5ec2583e6",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "b89f2741d33aeda72bb7cfba9fe4821dbf9aca1795e1544ac070fbb094326ba6",
+        "baseline": {
+          "rawDigest": "6457cc05c66c17c6cc550da8eec97cc576ce2a386d49d5757b223fb4c1440442",
+          "historyDigest": "8bcea52a2ab30b1cd6eaa27ff9c7b2b4d1197c71d5824be59e1789c86d3ca850",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "9ff3d26b43883e857f96f6dcb177f0fc72473019297a08bcb4bbb7137ce8765b",
+          "historyDigest": "328c1b487dd71ac217b4ff466af96c842df3bf1b008607ed2fc23ec5ec2583e6",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 52,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 52,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "bc88a231e66eea564877dc5427d451dc6ab8faa6021dc5d7353309a1beb3a542",
+        "baseline": {
+          "rawDigest": "7536185733389714485bea702abf0f3f82191fb1a4a6bb4d8719501e31c8e5e7",
+          "historyDigest": "0321ac5be39536b91da3a053d5a3a986c50c0f4d08e6280e29d5027cb2279237",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "1755d112b4f66f974d0eff224f7d0c031785aac04e1144c05f8c5bd9eb382c28",
+          "historyDigest": "ea73f5a1333a2dda796dcacf0211181fd9a564e19c97366002f6dc7d195d6167",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "bc88a231e66eea564877dc5427d451dc6ab8faa6021dc5d7353309a1beb3a542",
+        "baseline": {
+          "rawDigest": "7536185733389714485bea702abf0f3f82191fb1a4a6bb4d8719501e31c8e5e7",
+          "historyDigest": "0321ac5be39536b91da3a053d5a3a986c50c0f4d08e6280e29d5027cb2279237",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "1755d112b4f66f974d0eff224f7d0c031785aac04e1144c05f8c5bd9eb382c28",
+          "historyDigest": "ea73f5a1333a2dda796dcacf0211181fd9a564e19c97366002f6dc7d195d6167",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 53,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 53,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "d38ca7a4febbea89a109e021aa6f53e2718000af9b970be42b2c6867d78f35cd",
+        "baseline": {
+          "rawDigest": "e3d77d67817b3b025feab4c86dac76fc45c0a5310cddbd63f7d8e12d90938610",
+          "historyDigest": "4d68884a7d6277779f13c9f5af150173f7f1be6e39999477ac164c102327f85b",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c64a51ffcd0d29fda6dfc072cbb4b228c26d244c3b0eb1e1cf7a18b5556c337c",
+          "historyDigest": "665c4d5e7315b2aae87f42c96ea3816836ed31fbca831da504f89a7bff4e9b23",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "d38ca7a4febbea89a109e021aa6f53e2718000af9b970be42b2c6867d78f35cd",
+        "baseline": {
+          "rawDigest": "e3d77d67817b3b025feab4c86dac76fc45c0a5310cddbd63f7d8e12d90938610",
+          "historyDigest": "4d68884a7d6277779f13c9f5af150173f7f1be6e39999477ac164c102327f85b",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c64a51ffcd0d29fda6dfc072cbb4b228c26d244c3b0eb1e1cf7a18b5556c337c",
+          "historyDigest": "665c4d5e7315b2aae87f42c96ea3816836ed31fbca831da504f89a7bff4e9b23",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 54,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 54,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "729737d3b0a2b9b967bb5edc23a928ad7d021a6c26deafd842ade3e1d8b88c31",
+        "baseline": {
+          "rawDigest": "cebce4102b93932fed1afdc7f5d6e1f26e7de204c768940f71bf5140f215fb38",
+          "historyDigest": "3379cc9c9725762650b6bcbdb73d675104ce32fa8a314e039717e61e0b284400",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "f7f6b29be03044c3fa5e2a4d49aabebf80be1bb3c7e22e0d1a5192f0c1ffb935",
+          "historyDigest": "b6106db366b8ec49999094ea8ad0b1d27ac698fbfce6166264db97d27cd41186",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "729737d3b0a2b9b967bb5edc23a928ad7d021a6c26deafd842ade3e1d8b88c31",
+        "baseline": {
+          "rawDigest": "cebce4102b93932fed1afdc7f5d6e1f26e7de204c768940f71bf5140f215fb38",
+          "historyDigest": "3379cc9c9725762650b6bcbdb73d675104ce32fa8a314e039717e61e0b284400",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "f7f6b29be03044c3fa5e2a4d49aabebf80be1bb3c7e22e0d1a5192f0c1ffb935",
+          "historyDigest": "b6106db366b8ec49999094ea8ad0b1d27ac698fbfce6166264db97d27cd41186",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 55,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 55,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "67d365b03a5c5f6b6b76038eb539ccdc23708f79371b3a886ce703e7801bf3a4",
+        "baseline": {
+          "rawDigest": "e564d8ffd2d60bec710c33b652f55d1a078a8ff3a0dc4c0df9601cc32b58aba8",
+          "historyDigest": "3d9acb179df457e162668cd4c606bd68939b9c86986e11eddb730dd4d9fdbd13",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b400b3968ba1b5f50a1836d00d420bec517a2147581de383ab3edb03e1fe53ca",
+          "historyDigest": "dd2f4979ce8ea3a0db7264ecd66b0ba68b5b968e0eaa792e3fbb307c4310b10b",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "67d365b03a5c5f6b6b76038eb539ccdc23708f79371b3a886ce703e7801bf3a4",
+        "baseline": {
+          "rawDigest": "e564d8ffd2d60bec710c33b652f55d1a078a8ff3a0dc4c0df9601cc32b58aba8",
+          "historyDigest": "3d9acb179df457e162668cd4c606bd68939b9c86986e11eddb730dd4d9fdbd13",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b400b3968ba1b5f50a1836d00d420bec517a2147581de383ab3edb03e1fe53ca",
+          "historyDigest": "dd2f4979ce8ea3a0db7264ecd66b0ba68b5b968e0eaa792e3fbb307c4310b10b",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 56,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 56,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "238972750cbe3088190141bf210784bb500dc31b3993a5b76296087405881b1a",
+        "baseline": {
+          "rawDigest": "273b859d20eea627b4da5bda04abbacf26a191d37fa4665aeb29dba5e85709ce",
+          "historyDigest": "3ab800e5a478c1ce13f2c029cfd37ac83fe27a3759b33dc1b25adb2a0056d034",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "93e91b0f54c1c85dc50aee45e68f08bf342d0828bead08debb693dd11d089f12",
+          "historyDigest": "42cd26c0205c0f34711e7d7806660b3987e8971c8148d1e3ec3fa374566f0573",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "238972750cbe3088190141bf210784bb500dc31b3993a5b76296087405881b1a",
+        "baseline": {
+          "rawDigest": "273b859d20eea627b4da5bda04abbacf26a191d37fa4665aeb29dba5e85709ce",
+          "historyDigest": "3ab800e5a478c1ce13f2c029cfd37ac83fe27a3759b33dc1b25adb2a0056d034",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "93e91b0f54c1c85dc50aee45e68f08bf342d0828bead08debb693dd11d089f12",
+          "historyDigest": "42cd26c0205c0f34711e7d7806660b3987e8971c8148d1e3ec3fa374566f0573",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 57,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 57,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "d9fbd1a60cb28270d086f04122156d9bb29b69254cb58ce2c5f674f6ecedab9a",
+        "baseline": {
+          "rawDigest": "2916ca6f460f49eff07aa77186756c555e7c49cb35cda019936c01bf0f5a34b4",
+          "historyDigest": "9f5bc8593a3d1be36149c171b009e46b277a88e36bfbbc75653063335e4e1ad1",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "2eb2cf517144d4beb1272dbcfc82eb4c50bd9325760f6be2a9d42c9ac489e05e",
+          "historyDigest": "65085e4c6ab9b16d0322184786412c0144a939a8ecacea73dfcccd92e23053a6",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "d9fbd1a60cb28270d086f04122156d9bb29b69254cb58ce2c5f674f6ecedab9a",
+        "baseline": {
+          "rawDigest": "2916ca6f460f49eff07aa77186756c555e7c49cb35cda019936c01bf0f5a34b4",
+          "historyDigest": "9f5bc8593a3d1be36149c171b009e46b277a88e36bfbbc75653063335e4e1ad1",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "2eb2cf517144d4beb1272dbcfc82eb4c50bd9325760f6be2a9d42c9ac489e05e",
+          "historyDigest": "65085e4c6ab9b16d0322184786412c0144a939a8ecacea73dfcccd92e23053a6",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 58,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 58,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "89cbd028560b724fedf11da3ac0cacfc54d8e849dba5582443c42c0d726e1a15",
+        "baseline": {
+          "rawDigest": "9618b425f874a8d1031fa85417ccaafd61cea0d4c0b0d12e76be07ecb78471e5",
+          "historyDigest": "5329d9a5db85480eb2632368d3a152edb466618f722c1fc59a7ef43bdf5d5cf9",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "68ad381156f798096272a29a6046bcc19b00a789bf543b4f1c4845e6d09b664c",
+          "historyDigest": "c17dc6562da576380b34d6f9f188cd3bc759119e70c2bf6773da35ca7ad71fc7",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "89cbd028560b724fedf11da3ac0cacfc54d8e849dba5582443c42c0d726e1a15",
+        "baseline": {
+          "rawDigest": "9618b425f874a8d1031fa85417ccaafd61cea0d4c0b0d12e76be07ecb78471e5",
+          "historyDigest": "5329d9a5db85480eb2632368d3a152edb466618f722c1fc59a7ef43bdf5d5cf9",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "68ad381156f798096272a29a6046bcc19b00a789bf543b4f1c4845e6d09b664c",
+          "historyDigest": "c17dc6562da576380b34d6f9f188cd3bc759119e70c2bf6773da35ca7ad71fc7",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 59,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 59,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "a3b5aebdd302d059d7081202efd9752b2abedccc0da797c008b0aeb2bd94c96a",
+        "baseline": {
+          "rawDigest": "8dc1b7c0769d8ac5c2d01aa9ab7ddf4db2d751c5e9c7ff86efccb917d853c49d",
+          "historyDigest": "3c5335928f6762acd0d813adddd65c5b5d2e34584fac17b8997258ed2833fe5e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "9a381621b5b531b3239bb907f9341b1e244941c85a9fbf3826c950c7c3282a00",
+          "historyDigest": "2f15de2a283afca8eb1d5b1293dabf46bf5c61570c8d86da5396b25a05ac4ef0",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "a3b5aebdd302d059d7081202efd9752b2abedccc0da797c008b0aeb2bd94c96a",
+        "baseline": {
+          "rawDigest": "8dc1b7c0769d8ac5c2d01aa9ab7ddf4db2d751c5e9c7ff86efccb917d853c49d",
+          "historyDigest": "3c5335928f6762acd0d813adddd65c5b5d2e34584fac17b8997258ed2833fe5e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "9a381621b5b531b3239bb907f9341b1e244941c85a9fbf3826c950c7c3282a00",
+          "historyDigest": "2f15de2a283afca8eb1d5b1293dabf46bf5c61570c8d86da5396b25a05ac4ef0",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 60,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 60,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "463f07f1fb54ac6a8a9892545a0ddaddf15040786ff7113772f694256bb370b8",
+        "baseline": {
+          "rawDigest": "0775886912c65f0d7f9a80b87c47f0c1b45ace37106b61b1a733fb74811b810f",
+          "historyDigest": "e93ed8a60a6a4592e5e023357513c9a17a8c072fce59cba8e184abfbff22e407",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "43d86161092782b21ab57034214bad7c7ebbb64ac4173d71907d04f97a12fb62",
+          "historyDigest": "4deb63e5b4605dce2ba250b43fd985efe1e0a6ac8cbf2fbbeb9a1cc51ab8021d",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "463f07f1fb54ac6a8a9892545a0ddaddf15040786ff7113772f694256bb370b8",
+        "baseline": {
+          "rawDigest": "0775886912c65f0d7f9a80b87c47f0c1b45ace37106b61b1a733fb74811b810f",
+          "historyDigest": "e93ed8a60a6a4592e5e023357513c9a17a8c072fce59cba8e184abfbff22e407",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "43d86161092782b21ab57034214bad7c7ebbb64ac4173d71907d04f97a12fb62",
+          "historyDigest": "4deb63e5b4605dce2ba250b43fd985efe1e0a6ac8cbf2fbbeb9a1cc51ab8021d",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 61,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 61,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "45c3bd43e4ef49894f229e8460af3075980e87bc4bed210d8138b35fd352cd0f",
+        "baseline": {
+          "rawDigest": "e250aca64df99cbf9c44bc8687090b645184f8a0d347ecec392ef52f5755a800",
+          "historyDigest": "dc4fd4e5804b78b98678ac56011e03113971e627e01f7544e7842cdf0a33c8df",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "9acd93a919fb8cb8cf0191cb3a4ad63dbbf9fc690469311bc8f21bedcf34cb76",
+          "historyDigest": "72d27b50b9c5c5aa6c5d7da2028132bbbcf5be0b639954f5ba7a506950b8305b",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "45c3bd43e4ef49894f229e8460af3075980e87bc4bed210d8138b35fd352cd0f",
+        "baseline": {
+          "rawDigest": "e250aca64df99cbf9c44bc8687090b645184f8a0d347ecec392ef52f5755a800",
+          "historyDigest": "dc4fd4e5804b78b98678ac56011e03113971e627e01f7544e7842cdf0a33c8df",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "9acd93a919fb8cb8cf0191cb3a4ad63dbbf9fc690469311bc8f21bedcf34cb76",
+          "historyDigest": "72d27b50b9c5c5aa6c5d7da2028132bbbcf5be0b639954f5ba7a506950b8305b",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 62,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 62,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "e3ea6996b395e33093feebea385bb9948a5bce7da2b1de307804f928cb463f25",
+        "baseline": {
+          "rawDigest": "e164492391d22d6e9679cc6f98f356202a1c454b670de7d3cb9f1ba39d767c20",
+          "historyDigest": "5c871ca6347db96729d3050ac3a7f1f210983907cb0f5a12a24a708295de520e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "89146da7225e406a18c64fdd6655ab31353fc8b7dffe4cab45cbd47110ac5f10",
+          "historyDigest": "59cd96bead3fc20ed927df87957a9f0b6c73cf0e63d4b72357cd525a2eb6c168",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "e3ea6996b395e33093feebea385bb9948a5bce7da2b1de307804f928cb463f25",
+        "baseline": {
+          "rawDigest": "e164492391d22d6e9679cc6f98f356202a1c454b670de7d3cb9f1ba39d767c20",
+          "historyDigest": "5c871ca6347db96729d3050ac3a7f1f210983907cb0f5a12a24a708295de520e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "89146da7225e406a18c64fdd6655ab31353fc8b7dffe4cab45cbd47110ac5f10",
+          "historyDigest": "59cd96bead3fc20ed927df87957a9f0b6c73cf0e63d4b72357cd525a2eb6c168",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 63,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 63,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "a7ba67cf1c2ccb05bfb07b2c20f715ee4d69e01b14bd32f9ca0e0e896d3d7135",
+        "baseline": {
+          "rawDigest": "1c696b589ba92d391d0120962e54d9a52c13a15885b761f7a40b896292128197",
+          "historyDigest": "cdea1dfda95cbf95292be66b513276e466f45c8b3e382b37890d277b420fe384",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "723ef274a2601ba0a5425ceda60eefc3ddb4a96866263890547a79bb8e20f93a",
+          "historyDigest": "e14224c2cdbe28d8f02ec5e56d8ff51578f5ac25e6f6c1b7871bba2de6d90fcb",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "a7ba67cf1c2ccb05bfb07b2c20f715ee4d69e01b14bd32f9ca0e0e896d3d7135",
+        "baseline": {
+          "rawDigest": "1c696b589ba92d391d0120962e54d9a52c13a15885b761f7a40b896292128197",
+          "historyDigest": "cdea1dfda95cbf95292be66b513276e466f45c8b3e382b37890d277b420fe384",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "723ef274a2601ba0a5425ceda60eefc3ddb4a96866263890547a79bb8e20f93a",
+          "historyDigest": "e14224c2cdbe28d8f02ec5e56d8ff51578f5ac25e6f6c1b7871bba2de6d90fcb",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 64,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 64,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "1c64f286ba9313af4be79e8aa8198667066f74f3e1f9f1cf49e5edec61f2ac34",
+        "baseline": {
+          "rawDigest": "ec101b95519484b527801b39fe220a06131656480d49f8bfa046ba85974d0ee3",
+          "historyDigest": "ab7219871fc2f3584ec609d04196f62b9ecb830844b30a977bb0d80cbb9ab36c",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "35274ed7391d3dabf47adb5bc7bd7f1c116b85c8b541a34eb68fe22dd3286fcf",
+          "historyDigest": "aa154ad6705c526bd13f61e9faedaf69b95e396fd39e4454c59c4efcdba9a014",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "1c64f286ba9313af4be79e8aa8198667066f74f3e1f9f1cf49e5edec61f2ac34",
+        "baseline": {
+          "rawDigest": "ec101b95519484b527801b39fe220a06131656480d49f8bfa046ba85974d0ee3",
+          "historyDigest": "ab7219871fc2f3584ec609d04196f62b9ecb830844b30a977bb0d80cbb9ab36c",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "35274ed7391d3dabf47adb5bc7bd7f1c116b85c8b541a34eb68fe22dd3286fcf",
+          "historyDigest": "aa154ad6705c526bd13f61e9faedaf69b95e396fd39e4454c59c4efcdba9a014",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 65,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 65,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "0c8ed0fa8f453b46148639306720ce2466dd5bb12cee3483cf971ea3ae0f0965",
+        "baseline": {
+          "rawDigest": "d3dc8050e16d5cb1381ec30f734dd85f1d8780a6f08d65652f24c6b715406d29",
+          "historyDigest": "18fcef18fb761eaa35b8791ee2389866c3a83b98eab5a6f62c65fad996494e0a",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "36610d88458e750a714e6757a1223e98ca6ecd02b113a8d57665ab24c43d3595",
+          "historyDigest": "2af5acff64f89a6768aced1ca1dfcfe57d469bfa0180ebc2539e545eb9c28a6f",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "0c8ed0fa8f453b46148639306720ce2466dd5bb12cee3483cf971ea3ae0f0965",
+        "baseline": {
+          "rawDigest": "d3dc8050e16d5cb1381ec30f734dd85f1d8780a6f08d65652f24c6b715406d29",
+          "historyDigest": "18fcef18fb761eaa35b8791ee2389866c3a83b98eab5a6f62c65fad996494e0a",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "36610d88458e750a714e6757a1223e98ca6ecd02b113a8d57665ab24c43d3595",
+          "historyDigest": "2af5acff64f89a6768aced1ca1dfcfe57d469bfa0180ebc2539e545eb9c28a6f",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 66,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 66,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "38201ec64835e7f8a84b66e0cefeb2c122f1de482df2da726636b111eba6543e",
+        "baseline": {
+          "rawDigest": "20fb2fd2aa401cb3497f3aba6ae45f07c091256e30143f3ad439cf310f05fcf8",
+          "historyDigest": "01d9b27e81e644b49a185154b452149d11eb6672e20236b42126105a1b8d2ea5",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "32cf411995fa4535bec3627352bebd7102612c9105659fba352943786ca15cb0",
+          "historyDigest": "38b524a885fe42648edf2fc16d6917583db9ecf3649731a2cedf2a6e63f48a4c",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "38201ec64835e7f8a84b66e0cefeb2c122f1de482df2da726636b111eba6543e",
+        "baseline": {
+          "rawDigest": "20fb2fd2aa401cb3497f3aba6ae45f07c091256e30143f3ad439cf310f05fcf8",
+          "historyDigest": "01d9b27e81e644b49a185154b452149d11eb6672e20236b42126105a1b8d2ea5",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "32cf411995fa4535bec3627352bebd7102612c9105659fba352943786ca15cb0",
+          "historyDigest": "38b524a885fe42648edf2fc16d6917583db9ecf3649731a2cedf2a6e63f48a4c",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 67,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 67,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "12ff14ecd89ec1d343b286288b676ecb573cc9de23c7a8139ef5ce4f7030ef46",
+        "baseline": {
+          "rawDigest": "07ab32b8acc970cc6c2f1e3c0b992544940b439eb2f094bf1d00e4f9624a4b9c",
+          "historyDigest": "1656eede9842eb0ee52822aa7e8ee205103192b099981d86cef43b4d657c859d",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ca8ec24033310971fd06574d3f8dabc6535c84195b02b826a08fffc5cadbde14",
+          "historyDigest": "68d7d1954003cd7b4f307579c9df06dd976d70bf74f7740d6cb6b3d3136c0bd0",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "12ff14ecd89ec1d343b286288b676ecb573cc9de23c7a8139ef5ce4f7030ef46",
+        "baseline": {
+          "rawDigest": "07ab32b8acc970cc6c2f1e3c0b992544940b439eb2f094bf1d00e4f9624a4b9c",
+          "historyDigest": "1656eede9842eb0ee52822aa7e8ee205103192b099981d86cef43b4d657c859d",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ca8ec24033310971fd06574d3f8dabc6535c84195b02b826a08fffc5cadbde14",
+          "historyDigest": "68d7d1954003cd7b4f307579c9df06dd976d70bf74f7740d6cb6b3d3136c0bd0",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 68,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 68,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "25683e0ec34b8b322b2fe613ba4affd128df931b2aa577e168a7585b928b2b79",
+        "baseline": {
+          "rawDigest": "3eb0fb61ff96a9e7147f4a6aa406ccd0774e8615dca2d2f737580ec38e13bc70",
+          "historyDigest": "accf14e43d1b473df6116f7eb29b321a8754c4fad92b4ee227f838cf5a702273",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "6abceb4e85b54ebe10ebe8ec90d2f1874380df82b95249effaeb68206c3d4ffd",
+          "historyDigest": "109405109023702b09843b99079972f765a016a4be16e3c66a1bac4f0775e504",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "25683e0ec34b8b322b2fe613ba4affd128df931b2aa577e168a7585b928b2b79",
+        "baseline": {
+          "rawDigest": "3eb0fb61ff96a9e7147f4a6aa406ccd0774e8615dca2d2f737580ec38e13bc70",
+          "historyDigest": "accf14e43d1b473df6116f7eb29b321a8754c4fad92b4ee227f838cf5a702273",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "6abceb4e85b54ebe10ebe8ec90d2f1874380df82b95249effaeb68206c3d4ffd",
+          "historyDigest": "109405109023702b09843b99079972f765a016a4be16e3c66a1bac4f0775e504",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 69,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 69,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "784b9c63e727d8f1b44a0f43431b7b496876139c4e99e11626d21e625927241f",
+        "baseline": {
+          "rawDigest": "c74c836f9a8d0f74a89315da87a4c134771a85c6944fc3161ac67020f17275b5",
+          "historyDigest": "95b8752648a0f8a21530b3121e6a7bc5e37811f723a9f0b76b3783b857c5f0e2",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b7f3a31b528d00249637e253333bbc34a1d1e00f8e07e06357a918a53343996f",
+          "historyDigest": "78141c48504ed5541ce2401e43b9361baaa48b29909b21c8c4b0dddb72a136a7",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "784b9c63e727d8f1b44a0f43431b7b496876139c4e99e11626d21e625927241f",
+        "baseline": {
+          "rawDigest": "c74c836f9a8d0f74a89315da87a4c134771a85c6944fc3161ac67020f17275b5",
+          "historyDigest": "95b8752648a0f8a21530b3121e6a7bc5e37811f723a9f0b76b3783b857c5f0e2",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b7f3a31b528d00249637e253333bbc34a1d1e00f8e07e06357a918a53343996f",
+          "historyDigest": "78141c48504ed5541ce2401e43b9361baaa48b29909b21c8c4b0dddb72a136a7",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 70,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 70,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "b94c02338d9f19a3e414f25b199c5dd1964711924e08a5adb6b6640b6e7c78ae",
+        "baseline": {
+          "rawDigest": "67734c725fd6ead8ebe36a160f86d11daf6933944c36a217e9a2a155efb199aa",
+          "historyDigest": "97fd444007c001e4dc2412f84af7a99899ddf59ea69b547a1700ddc74f8f55d9",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ce861c99eea53bd6b6d5e93d5236d0e7930b909910023c5bd2e960fbaf6ad2b0",
+          "historyDigest": "25ff51258e7bd934a6c975958eb1440865146898655224d39c513e7e63cbdfd4",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "b94c02338d9f19a3e414f25b199c5dd1964711924e08a5adb6b6640b6e7c78ae",
+        "baseline": {
+          "rawDigest": "67734c725fd6ead8ebe36a160f86d11daf6933944c36a217e9a2a155efb199aa",
+          "historyDigest": "97fd444007c001e4dc2412f84af7a99899ddf59ea69b547a1700ddc74f8f55d9",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ce861c99eea53bd6b6d5e93d5236d0e7930b909910023c5bd2e960fbaf6ad2b0",
+          "historyDigest": "25ff51258e7bd934a6c975958eb1440865146898655224d39c513e7e63cbdfd4",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 71,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 71,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "499611b04d0fd4c155be4c9eb4a1235797c17046599d9cb575536b0ebe028468",
+        "baseline": {
+          "rawDigest": "2ac46344d165c172077f27eb3ba2a8519642b65693fa1578d3fc4a89936726fc",
+          "historyDigest": "5bf7723fe20f3cb6f5066b5baa22023ad1c6cb38ef36b84d3d9d9d51678f4dc3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "27994faca189645c73484ed8218d232603a65fa3e1f1ed49dd55dede1ec5993d",
+          "historyDigest": "812842b100aed7ff4b49794d93ef8ff842b6dcc0cb38c17c797b39e51fe92b1b",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "499611b04d0fd4c155be4c9eb4a1235797c17046599d9cb575536b0ebe028468",
+        "baseline": {
+          "rawDigest": "2ac46344d165c172077f27eb3ba2a8519642b65693fa1578d3fc4a89936726fc",
+          "historyDigest": "5bf7723fe20f3cb6f5066b5baa22023ad1c6cb38ef36b84d3d9d9d51678f4dc3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "27994faca189645c73484ed8218d232603a65fa3e1f1ed49dd55dede1ec5993d",
+          "historyDigest": "812842b100aed7ff4b49794d93ef8ff842b6dcc0cb38c17c797b39e51fe92b1b",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 72,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 72,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "481acc753c1d9c37597c0e03bacf025b6576abcf620651efaad6b161c080b948",
+        "baseline": {
+          "rawDigest": "03c4e1c41095b19deb9ce1e301210f6d5cc028d81a4f25f97dbde55f204e8097",
+          "historyDigest": "af3d2e79cd4a7a5006cb8458cf170644df2df909586f9d241ab06cfb229a0429",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "aeb2eefa7c4a2a0ca761f90c89d5e65deee00ca8e0ff803fbd2226f89a17ba10",
+          "historyDigest": "6af77afee0b6def75fecd1aef7bd078d88b29280b2edf44e888368bfd9b7e464",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "481acc753c1d9c37597c0e03bacf025b6576abcf620651efaad6b161c080b948",
+        "baseline": {
+          "rawDigest": "03c4e1c41095b19deb9ce1e301210f6d5cc028d81a4f25f97dbde55f204e8097",
+          "historyDigest": "af3d2e79cd4a7a5006cb8458cf170644df2df909586f9d241ab06cfb229a0429",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "aeb2eefa7c4a2a0ca761f90c89d5e65deee00ca8e0ff803fbd2226f89a17ba10",
+          "historyDigest": "6af77afee0b6def75fecd1aef7bd078d88b29280b2edf44e888368bfd9b7e464",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 73,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 73,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "1050c2c1ecd448da4113e87e00b624caadefe3998aacf57d6f0755ce3a98af57",
+        "baseline": {
+          "rawDigest": "bbb0e7ba8ebabba15743919c490ac5c9ac466f9e3649d26115406195db7633aa",
+          "historyDigest": "d4eee976f9101b1cc79194339b0e22e63cc7f420b49c85168235dfa42edf47a0",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "80befc482150245380849463f820f7843f71c3ccbdfa63ab36322716bc370533",
+          "historyDigest": "e51837bb986553c630b4ff4e84c464e78e4e648fd533b7c637bfab34f92c5d52",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "1050c2c1ecd448da4113e87e00b624caadefe3998aacf57d6f0755ce3a98af57",
+        "baseline": {
+          "rawDigest": "bbb0e7ba8ebabba15743919c490ac5c9ac466f9e3649d26115406195db7633aa",
+          "historyDigest": "d4eee976f9101b1cc79194339b0e22e63cc7f420b49c85168235dfa42edf47a0",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "80befc482150245380849463f820f7843f71c3ccbdfa63ab36322716bc370533",
+          "historyDigest": "e51837bb986553c630b4ff4e84c464e78e4e648fd533b7c637bfab34f92c5d52",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 74,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 74,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "e69c9ce883f78dbf97617311e2145bccb5da06db982c3ebf6d904e5936e5b27f",
+        "baseline": {
+          "rawDigest": "b177c83c7ad31c31e4b1a770cc59e260bf2fc36712ef3ad7ea7edf8d9eca7ece",
+          "historyDigest": "182f481d07b45a1faeb99b8939843b16421e0f5dd4a1098788b69061c4dc1227",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "5b74d6d0eaa7b1c7cf4fb3b66b3724b895bf9ea24469a34e3163daf1917cc6c9",
+          "historyDigest": "3b251c77b6ca4221c28e1b721a4dd59832a8bce23ba2effcd743ac3e74ed3b90",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "e69c9ce883f78dbf97617311e2145bccb5da06db982c3ebf6d904e5936e5b27f",
+        "baseline": {
+          "rawDigest": "b177c83c7ad31c31e4b1a770cc59e260bf2fc36712ef3ad7ea7edf8d9eca7ece",
+          "historyDigest": "182f481d07b45a1faeb99b8939843b16421e0f5dd4a1098788b69061c4dc1227",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "5b74d6d0eaa7b1c7cf4fb3b66b3724b895bf9ea24469a34e3163daf1917cc6c9",
+          "historyDigest": "3b251c77b6ca4221c28e1b721a4dd59832a8bce23ba2effcd743ac3e74ed3b90",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 75,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 75,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "c0c122b722e203bf9c660a6becb163f4639083517e89e1f5f6c4f29c6abfec3f",
+        "baseline": {
+          "rawDigest": "ea333ce6c74706b8ae38113d9184ef60af1a24dc4b2cb644e0f418edca0a36d3",
+          "historyDigest": "4b9b1b6f6500e8007e5cb0c9f10e15256837532fdefec586dede644b6a6e943c",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "21b40fc18e9d8ac3ca61f0be1cc788feaaf952fb35368d63a2c389130070180c",
+          "historyDigest": "2ecf39f49e14ad63c8fd432114fe69339a00246d0a044737e13a604d888880b4",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "c0c122b722e203bf9c660a6becb163f4639083517e89e1f5f6c4f29c6abfec3f",
+        "baseline": {
+          "rawDigest": "ea333ce6c74706b8ae38113d9184ef60af1a24dc4b2cb644e0f418edca0a36d3",
+          "historyDigest": "4b9b1b6f6500e8007e5cb0c9f10e15256837532fdefec586dede644b6a6e943c",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "21b40fc18e9d8ac3ca61f0be1cc788feaaf952fb35368d63a2c389130070180c",
+          "historyDigest": "2ecf39f49e14ad63c8fd432114fe69339a00246d0a044737e13a604d888880b4",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 76,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 76,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "8a616d5177de6aec300d8be6ba806e4dbea2b5174efb35927fc70d74aaa0eacc",
+        "baseline": {
+          "rawDigest": "ba0b33baf7b6dbe44cbe2072ee532f86a4085c45e21b8401bc1f047736499f90",
+          "historyDigest": "ef4dcc2d8c78a5beaf13294e03eb303a413a5cc156a4b9872cd03b663a60a429",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "f51afdc3a4237eab822897f46c1656b532ff4c09cf4a8ceaa804d70728e10ca8",
+          "historyDigest": "08f93e77119694476b10825661533c2fc7e51ed4e3363c26f107173db6406fb1",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "8a616d5177de6aec300d8be6ba806e4dbea2b5174efb35927fc70d74aaa0eacc",
+        "baseline": {
+          "rawDigest": "ba0b33baf7b6dbe44cbe2072ee532f86a4085c45e21b8401bc1f047736499f90",
+          "historyDigest": "ef4dcc2d8c78a5beaf13294e03eb303a413a5cc156a4b9872cd03b663a60a429",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "f51afdc3a4237eab822897f46c1656b532ff4c09cf4a8ceaa804d70728e10ca8",
+          "historyDigest": "08f93e77119694476b10825661533c2fc7e51ed4e3363c26f107173db6406fb1",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 77,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 77,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "fe1db6654e0efd3f2453de9f98918aaef59fb1ea44f64fbff073e876fea8c00c",
+        "baseline": {
+          "rawDigest": "9b4d270201afc74ca8752003a6ebed1862fc789a3716ff169fddc7ac0d404353",
+          "historyDigest": "4d397ad972d15f36d631e7bed2125445041a05c68f21c3b752ae993c6abbc092",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "68a0fdb59189f8681984ae3ad1b9607237bd7ca1a3c26b44b0894f7353d09231",
+          "historyDigest": "b7e6d1a33ee555973bf790c7fadbe0867a2110403b642d95a869adf9fd3eece1",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "fe1db6654e0efd3f2453de9f98918aaef59fb1ea44f64fbff073e876fea8c00c",
+        "baseline": {
+          "rawDigest": "9b4d270201afc74ca8752003a6ebed1862fc789a3716ff169fddc7ac0d404353",
+          "historyDigest": "4d397ad972d15f36d631e7bed2125445041a05c68f21c3b752ae993c6abbc092",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "68a0fdb59189f8681984ae3ad1b9607237bd7ca1a3c26b44b0894f7353d09231",
+          "historyDigest": "b7e6d1a33ee555973bf790c7fadbe0867a2110403b642d95a869adf9fd3eece1",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 78,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 78,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "d3d448f37ce572b5447d1260970628c12e025f2cf2940e80b767de12ba91418c",
+        "baseline": {
+          "rawDigest": "ccf5e070db4498c2f1105c72de7000d12770dca5dc7f9a3f4f6cf028a601b2f8",
+          "historyDigest": "4703683e0243394d80d59931975f63510ee954beab420d595d8c5b4b46033e60",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ac32dfe95b1bdbc9567bd05642aa40273bd59a5af6fb977ae3b353b4561ddbde",
+          "historyDigest": "c362ce6c1186df0ffe2cd69c1ee5a4627cfe09d9a5b1bfaba7de55d46b8f452a",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "d3d448f37ce572b5447d1260970628c12e025f2cf2940e80b767de12ba91418c",
+        "baseline": {
+          "rawDigest": "ccf5e070db4498c2f1105c72de7000d12770dca5dc7f9a3f4f6cf028a601b2f8",
+          "historyDigest": "4703683e0243394d80d59931975f63510ee954beab420d595d8c5b4b46033e60",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ac32dfe95b1bdbc9567bd05642aa40273bd59a5af6fb977ae3b353b4561ddbde",
+          "historyDigest": "c362ce6c1186df0ffe2cd69c1ee5a4627cfe09d9a5b1bfaba7de55d46b8f452a",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 79,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 79,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "2b8c968d9041288b116d5bb6de2c872eb88fe49a8352a27565be2bb05fc7eb9c",
+        "baseline": {
+          "rawDigest": "8a05ae979c387a757292ebd8c30a4d7852a7eb22211ed6c94fd90084e3b9ae44",
+          "historyDigest": "068491453234cec6ef94f95021d572e476f50dbbe6b941ed1ccc14c97b19534e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "3e8c1924f6b4185ebe35f88150add61ab7af761cc52bd089da5ebdb0058fbc28",
+          "historyDigest": "09b9c3e9faefcfd90f5a72bafaf5cae0b3c9a13b3b6e1892e7915d30e6fc5176",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "2b8c968d9041288b116d5bb6de2c872eb88fe49a8352a27565be2bb05fc7eb9c",
+        "baseline": {
+          "rawDigest": "8a05ae979c387a757292ebd8c30a4d7852a7eb22211ed6c94fd90084e3b9ae44",
+          "historyDigest": "068491453234cec6ef94f95021d572e476f50dbbe6b941ed1ccc14c97b19534e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "3e8c1924f6b4185ebe35f88150add61ab7af761cc52bd089da5ebdb0058fbc28",
+          "historyDigest": "09b9c3e9faefcfd90f5a72bafaf5cae0b3c9a13b3b6e1892e7915d30e6fc5176",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 80,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 80,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "7d81604ceaec8cb56f517e85a92f4a4a4ae75f96142ef7571ac4e9e464a36fc3",
+        "baseline": {
+          "rawDigest": "fc22b97f2407879f5b9d07b9fc1d518f05af6baa04cee01e57d489c7272cd436",
+          "historyDigest": "a7522c86874693c83b0d90ccf9afdd215ec093ca4938e99433908f07bfb9ddb6",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ffe849d45210c813df5c5ef7b66d358d9427cde381736b11a91044cbbc5ace9b",
+          "historyDigest": "785faaf442c239fe38404a2b246a6369953193351bf231141d5147e141933200",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "7d81604ceaec8cb56f517e85a92f4a4a4ae75f96142ef7571ac4e9e464a36fc3",
+        "baseline": {
+          "rawDigest": "fc22b97f2407879f5b9d07b9fc1d518f05af6baa04cee01e57d489c7272cd436",
+          "historyDigest": "a7522c86874693c83b0d90ccf9afdd215ec093ca4938e99433908f07bfb9ddb6",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ffe849d45210c813df5c5ef7b66d358d9427cde381736b11a91044cbbc5ace9b",
+          "historyDigest": "785faaf442c239fe38404a2b246a6369953193351bf231141d5147e141933200",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 81,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 81,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "cf3b49c5d37c2e94756e9ebd7acf435dd16e1bcd1829d1a272035dca03a9056d",
+        "baseline": {
+          "rawDigest": "a9a141b9167bca236addb101fd3b60c5ea0764468ebcbda8e6741309e71826b1",
+          "historyDigest": "9c7ea6fd7ec4556f5edf0010e5712cb4ef603549859cf378c7f706c66a3e01fb",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c9431b97004ce25261058465511e51088d0605ef62ce0981637ecf8bd68cf9e2",
+          "historyDigest": "a810b91191366ffdd88f840861e5bf64528748eb0c4bccc3e3ca927063b1c9d2",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "cf3b49c5d37c2e94756e9ebd7acf435dd16e1bcd1829d1a272035dca03a9056d",
+        "baseline": {
+          "rawDigest": "a9a141b9167bca236addb101fd3b60c5ea0764468ebcbda8e6741309e71826b1",
+          "historyDigest": "9c7ea6fd7ec4556f5edf0010e5712cb4ef603549859cf378c7f706c66a3e01fb",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c9431b97004ce25261058465511e51088d0605ef62ce0981637ecf8bd68cf9e2",
+          "historyDigest": "a810b91191366ffdd88f840861e5bf64528748eb0c4bccc3e3ca927063b1c9d2",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 82,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 82,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "6f8f100d436a7528af81cde4cde768b000bf3e541950a38d64de6e1617702af9",
+        "baseline": {
+          "rawDigest": "c176483b3e88f3f85373e2a7d4b97029b37cb00c926720cf68e52ea7ff0d4adf",
+          "historyDigest": "cad25ee3eceeeade21be8d75b658457acf053be61182936f2212798a97867318",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "bb65d8d731d1d81d8c158e7ab2936c8467a4b158b8b8fdbf40992c0d70e6e141",
+          "historyDigest": "d34c4ae31659d4ea8e06b3c1bdecc5d198ce876654f538f57dd74c23bcec7840",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "6f8f100d436a7528af81cde4cde768b000bf3e541950a38d64de6e1617702af9",
+        "baseline": {
+          "rawDigest": "c176483b3e88f3f85373e2a7d4b97029b37cb00c926720cf68e52ea7ff0d4adf",
+          "historyDigest": "cad25ee3eceeeade21be8d75b658457acf053be61182936f2212798a97867318",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "bb65d8d731d1d81d8c158e7ab2936c8467a4b158b8b8fdbf40992c0d70e6e141",
+          "historyDigest": "d34c4ae31659d4ea8e06b3c1bdecc5d198ce876654f538f57dd74c23bcec7840",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 83,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 83,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "7784baa2051f591b8e3b41e4d8fab6d745977d9f5c089196de59163b36f2aa46",
+        "baseline": {
+          "rawDigest": "b0e21e22ef7962d5cb9fcab517df9778ad385473af10ff05d5b9459326475841",
+          "historyDigest": "1eceab6267221b6ac04573de72490fbeffa5e93364ecf6ca2eaf1941939a956e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "77a28ab080770d55eff0d318cd1b94a28a8300c2835b53e6e96c1c0d4f164ec1",
+          "historyDigest": "3f97a13361f63244f0d94b7b6e9a92bd16c646d3516e9794580abe28ac9fbb4e",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "7784baa2051f591b8e3b41e4d8fab6d745977d9f5c089196de59163b36f2aa46",
+        "baseline": {
+          "rawDigest": "b0e21e22ef7962d5cb9fcab517df9778ad385473af10ff05d5b9459326475841",
+          "historyDigest": "1eceab6267221b6ac04573de72490fbeffa5e93364ecf6ca2eaf1941939a956e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "77a28ab080770d55eff0d318cd1b94a28a8300c2835b53e6e96c1c0d4f164ec1",
+          "historyDigest": "3f97a13361f63244f0d94b7b6e9a92bd16c646d3516e9794580abe28ac9fbb4e",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 84,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 84,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "671d80b532fd614fb50e598e96e86e5414443d6376107937555c41cc388261a3",
+        "baseline": {
+          "rawDigest": "d77407da0c92b8cff7291a0ac472de5ba21592ac628b3b495ba5590836a0dfcd",
+          "historyDigest": "23ab5665cad89ebee31bc2c47ab450c490aba16dc76a617013e2a85f067b5b10",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "0262c58c7f28f0f4693eff6827b99bfc614e4fb2a196812e321559956a60ef2e",
+          "historyDigest": "061e1a84f2aca2bf489afb9c3981b63656d84ba55bdd916cc161555e0c87306f",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "671d80b532fd614fb50e598e96e86e5414443d6376107937555c41cc388261a3",
+        "baseline": {
+          "rawDigest": "d77407da0c92b8cff7291a0ac472de5ba21592ac628b3b495ba5590836a0dfcd",
+          "historyDigest": "23ab5665cad89ebee31bc2c47ab450c490aba16dc76a617013e2a85f067b5b10",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "0262c58c7f28f0f4693eff6827b99bfc614e4fb2a196812e321559956a60ef2e",
+          "historyDigest": "061e1a84f2aca2bf489afb9c3981b63656d84ba55bdd916cc161555e0c87306f",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 85,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 85,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "9ec650c2530d6210e02a94ccc1754368db632a7740120e65e899d2c25311085c",
+        "baseline": {
+          "rawDigest": "10db1542aa450f0f8843ec12022c11751f63367d547b078144b4ea941abc23f0",
+          "historyDigest": "0d10c6dc65297089a27d553c1a052895499e960c12fc3b8761874a8282b443a3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "6fd6ee30fa70ba6e0a590ab166c6ec9773efe2bcff88d76ffdc204a5de54da9e",
+          "historyDigest": "351e2fc809901f97a87ccd229bc172dd70660016c0474dcccf5669adf62a78cb",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "9ec650c2530d6210e02a94ccc1754368db632a7740120e65e899d2c25311085c",
+        "baseline": {
+          "rawDigest": "10db1542aa450f0f8843ec12022c11751f63367d547b078144b4ea941abc23f0",
+          "historyDigest": "0d10c6dc65297089a27d553c1a052895499e960c12fc3b8761874a8282b443a3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "6fd6ee30fa70ba6e0a590ab166c6ec9773efe2bcff88d76ffdc204a5de54da9e",
+          "historyDigest": "351e2fc809901f97a87ccd229bc172dd70660016c0474dcccf5669adf62a78cb",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 86,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 86,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "32e302678665daafac8df1a40d47ce4304aa9f7408a8ffa3394c3002ffe76cac",
+        "baseline": {
+          "rawDigest": "7371aa3f7702d09aef62a5151b99cf6f5851bbd0c639a35c1b1746808864f01a",
+          "historyDigest": "90351afb3f1e4bb68cfd98d9f6f7b72e62af56b92afd7d60be48f0cd0e483090",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "648f82fd8a5a9e1340273f3dc198a0a17a56757469ab6aa8f53d7fb2ef041c77",
+          "historyDigest": "1e1a0e805e99efcb67a7a07798e0d81a4c648f8ce616650417b785ee807edb06",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "32e302678665daafac8df1a40d47ce4304aa9f7408a8ffa3394c3002ffe76cac",
+        "baseline": {
+          "rawDigest": "7371aa3f7702d09aef62a5151b99cf6f5851bbd0c639a35c1b1746808864f01a",
+          "historyDigest": "90351afb3f1e4bb68cfd98d9f6f7b72e62af56b92afd7d60be48f0cd0e483090",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "648f82fd8a5a9e1340273f3dc198a0a17a56757469ab6aa8f53d7fb2ef041c77",
+          "historyDigest": "1e1a0e805e99efcb67a7a07798e0d81a4c648f8ce616650417b785ee807edb06",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 87,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 87,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "62d147653917ea01d46e35d0b0f218b2453c2f63d8ef45717f215e134015dcf6",
+        "baseline": {
+          "rawDigest": "300f86652798b4f8c69611409844034aa56ad88f2c562519139a1560fe9c0559",
+          "historyDigest": "c24b3028d70cf571bcebb5d29b0ab955b798756bbafe3a4fb380ee2d0820b6f7",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ff7e0708cab31f73a45098f843ce774692f62248ae5a387c15675f825aafb388",
+          "historyDigest": "cbd235d19c9b835470ff275b85485f8f2f32a0facb2b6a6235d10c44f7ffb5a0",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "62d147653917ea01d46e35d0b0f218b2453c2f63d8ef45717f215e134015dcf6",
+        "baseline": {
+          "rawDigest": "300f86652798b4f8c69611409844034aa56ad88f2c562519139a1560fe9c0559",
+          "historyDigest": "c24b3028d70cf571bcebb5d29b0ab955b798756bbafe3a4fb380ee2d0820b6f7",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "ff7e0708cab31f73a45098f843ce774692f62248ae5a387c15675f825aafb388",
+          "historyDigest": "cbd235d19c9b835470ff275b85485f8f2f32a0facb2b6a6235d10c44f7ffb5a0",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 88,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 88,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "dc2bca0502e2241bad6d3657d595fb779769a80421babefeba554a893d68d639",
+        "baseline": {
+          "rawDigest": "474624b54e61f6d8bd55d1faba6c431fb75137938dec5214a08888ce54fae399",
+          "historyDigest": "59e6030b8034bb5a20b1fee5169a54a4d0b66230d67a126c700c9110bc2ce4ab",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b4056322e0d6e6505f648b7911f59050e7d32bc302708fb15a366a2434d0cc27",
+          "historyDigest": "69efde1a9b108f9b9d4555876ee3efbde3d7cb70e54e354c23349f582bfe78ec",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "dc2bca0502e2241bad6d3657d595fb779769a80421babefeba554a893d68d639",
+        "baseline": {
+          "rawDigest": "474624b54e61f6d8bd55d1faba6c431fb75137938dec5214a08888ce54fae399",
+          "historyDigest": "59e6030b8034bb5a20b1fee5169a54a4d0b66230d67a126c700c9110bc2ce4ab",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b4056322e0d6e6505f648b7911f59050e7d32bc302708fb15a366a2434d0cc27",
+          "historyDigest": "69efde1a9b108f9b9d4555876ee3efbde3d7cb70e54e354c23349f582bfe78ec",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 89,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 89,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "930cd11c7617337a2164348e215a123ba8289b02cee23dd587e323643e9e8f4c",
+        "baseline": {
+          "rawDigest": "d610bd92ad9682892a8f0617053f94c8a700f2bf35889191d747d5810f9baca3",
+          "historyDigest": "fe0519ddfed7b14027a1b952c0a608d15bf54142dd8f55cd90cacdc559228e76",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "86f5c76e3c9598b16042548c13ebca719d38cbf4c8ccf15e90a5c9d835be81d8",
+          "historyDigest": "9a123b6a1f097648154ba849bf9dab533f0d39db887aa07aa79c293c636bc37a",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "930cd11c7617337a2164348e215a123ba8289b02cee23dd587e323643e9e8f4c",
+        "baseline": {
+          "rawDigest": "d610bd92ad9682892a8f0617053f94c8a700f2bf35889191d747d5810f9baca3",
+          "historyDigest": "fe0519ddfed7b14027a1b952c0a608d15bf54142dd8f55cd90cacdc559228e76",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "86f5c76e3c9598b16042548c13ebca719d38cbf4c8ccf15e90a5c9d835be81d8",
+          "historyDigest": "9a123b6a1f097648154ba849bf9dab533f0d39db887aa07aa79c293c636bc37a",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 90,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 90,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "f84b3eefb3b4d7f8f687dd857de2556b03b955315afc6a8dd30798b9eef4a753",
+        "baseline": {
+          "rawDigest": "3ae8538ba5af7ed97e9c2d03957fa7ed9a071c754a7c5f0512d78081e4f6321c",
+          "historyDigest": "989b2ae3f4f520e09e918f7095951e11c6919001900655bca3cb4a45bce8d668",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c8416371e5adea01f09a628b97099215a7278051a74a33a874aeb8b20b1b95ce",
+          "historyDigest": "ea3dd0332994b574790f40fe0147f2802ce3698383df7b173a567f5197bde820",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "f84b3eefb3b4d7f8f687dd857de2556b03b955315afc6a8dd30798b9eef4a753",
+        "baseline": {
+          "rawDigest": "3ae8538ba5af7ed97e9c2d03957fa7ed9a071c754a7c5f0512d78081e4f6321c",
+          "historyDigest": "989b2ae3f4f520e09e918f7095951e11c6919001900655bca3cb4a45bce8d668",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c8416371e5adea01f09a628b97099215a7278051a74a33a874aeb8b20b1b95ce",
+          "historyDigest": "ea3dd0332994b574790f40fe0147f2802ce3698383df7b173a567f5197bde820",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 91,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 91,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "25aaa81128a970a08e4d4ea823cc37aa223b214be439b31c233faccc279b17cc",
+        "baseline": {
+          "rawDigest": "2dc48a5cc4a80ef487ae02df46bfe14ad4c63bbd77bb471c2caa2feda3c1dfd3",
+          "historyDigest": "831863ef93805cf77d86c72ecfb48f00fbd33353862c848b631fdf08dc53ea70",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b54e07fb04e92dc88d22cf5bd9bf3fc5cbbcf3fc4a3d0ac4d753a505f6704cbe",
+          "historyDigest": "14a7d3a87649a5ff52e452c5cd5ddc38115d3a17ee955358ce98aa8da0213ae1",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "25aaa81128a970a08e4d4ea823cc37aa223b214be439b31c233faccc279b17cc",
+        "baseline": {
+          "rawDigest": "2dc48a5cc4a80ef487ae02df46bfe14ad4c63bbd77bb471c2caa2feda3c1dfd3",
+          "historyDigest": "831863ef93805cf77d86c72ecfb48f00fbd33353862c848b631fdf08dc53ea70",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b54e07fb04e92dc88d22cf5bd9bf3fc5cbbcf3fc4a3d0ac4d753a505f6704cbe",
+          "historyDigest": "14a7d3a87649a5ff52e452c5cd5ddc38115d3a17ee955358ce98aa8da0213ae1",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 92,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 92,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "fc3afaee3b40b95e3e01822bfec37e6a03325a6c092e59b430e7859d6fefc939",
+        "baseline": {
+          "rawDigest": "871acbdc6c238e7c63e5aa47be956630a5028be37840d5b5019b9de495c496b5",
+          "historyDigest": "e1cc70719d772efacaf6314cc15b589d17929b365b7a1d7c41fedd9c8d4fc1a3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e54ed252214cb20f4f001f81c9e8f78d5cdd73d378b9d82e75088222d90088e4",
+          "historyDigest": "86ca797be0c19262e008d3d7ff33c63d5957c0e1b3e910ddaf4ef98f88928b0c",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "fc3afaee3b40b95e3e01822bfec37e6a03325a6c092e59b430e7859d6fefc939",
+        "baseline": {
+          "rawDigest": "871acbdc6c238e7c63e5aa47be956630a5028be37840d5b5019b9de495c496b5",
+          "historyDigest": "e1cc70719d772efacaf6314cc15b589d17929b365b7a1d7c41fedd9c8d4fc1a3",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "e54ed252214cb20f4f001f81c9e8f78d5cdd73d378b9d82e75088222d90088e4",
+          "historyDigest": "86ca797be0c19262e008d3d7ff33c63d5957c0e1b3e910ddaf4ef98f88928b0c",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 93,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 93,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "fe6972427d004d1d43c3633bad39e6ddbe0702442e960b01aa58995c0b4c26a0",
+        "baseline": {
+          "rawDigest": "8039f5c2758a52bc0ccbcea28ba9f80346297dd50d744464530657e3eb5e480b",
+          "historyDigest": "65deabd4fb274a26523b8ff58b9a5b0649ca3e7e3d678604cc492a1ead9e96ab",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "7c4dfd3d3880757c680b47e14d8e2eed8fcab0a6c0209b1951c7ffb109bb6de4",
+          "historyDigest": "cbc4a4b0d7d09f3e63a34cead1ef20e1306fca77917ee704ef67004b7586435d",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "fe6972427d004d1d43c3633bad39e6ddbe0702442e960b01aa58995c0b4c26a0",
+        "baseline": {
+          "rawDigest": "8039f5c2758a52bc0ccbcea28ba9f80346297dd50d744464530657e3eb5e480b",
+          "historyDigest": "65deabd4fb274a26523b8ff58b9a5b0649ca3e7e3d678604cc492a1ead9e96ab",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "7c4dfd3d3880757c680b47e14d8e2eed8fcab0a6c0209b1951c7ffb109bb6de4",
+          "historyDigest": "cbc4a4b0d7d09f3e63a34cead1ef20e1306fca77917ee704ef67004b7586435d",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 94,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 94,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "13f2b37a7abaf7c3720d079599a4280b9a5e5309e0684dbf189d236ddd4f3f03",
+        "baseline": {
+          "rawDigest": "5f4c94d4cf886bcebc5b1a574c49b5e1fd5bba20320bacf021557e907cffc114",
+          "historyDigest": "66c1773c717f04f6977d1ed5db8a54ee7cf5d05f5c04ed31f437b86e3a27ef40",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "4a7b6a20ecd1bce9f473c0f57e9268a00bc23e528eea785f93ed8bbfef0eec15",
+          "historyDigest": "aba4c5189b18b1381bd5fb0648ed984e1aa84e197b97dc146f1e35043c28f863",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "13f2b37a7abaf7c3720d079599a4280b9a5e5309e0684dbf189d236ddd4f3f03",
+        "baseline": {
+          "rawDigest": "5f4c94d4cf886bcebc5b1a574c49b5e1fd5bba20320bacf021557e907cffc114",
+          "historyDigest": "66c1773c717f04f6977d1ed5db8a54ee7cf5d05f5c04ed31f437b86e3a27ef40",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "4a7b6a20ecd1bce9f473c0f57e9268a00bc23e528eea785f93ed8bbfef0eec15",
+          "historyDigest": "aba4c5189b18b1381bd5fb0648ed984e1aa84e197b97dc146f1e35043c28f863",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 95,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 95,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "2de6d0283748e9eca8e765a0a4249a10a618b7f331a4607414451b84fe7466bd",
+        "baseline": {
+          "rawDigest": "2e5ed42d45c3b1058518d3e6d9b0cdc0911bfd4a174417c44428153536752678",
+          "historyDigest": "7907c2a0093d611ad7489d8bb3ab94381e70cdae2da47e126f331476eba84a6a",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "2dd49b4a113a7860df27e2e887f77103926b4ff46504af73075cf76fe7ed0ce7",
+          "historyDigest": "22ffca2233fd9e4a31b0e3952abe4c742ade73911b3587726adc0b69424d0b66",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "2de6d0283748e9eca8e765a0a4249a10a618b7f331a4607414451b84fe7466bd",
+        "baseline": {
+          "rawDigest": "2e5ed42d45c3b1058518d3e6d9b0cdc0911bfd4a174417c44428153536752678",
+          "historyDigest": "7907c2a0093d611ad7489d8bb3ab94381e70cdae2da47e126f331476eba84a6a",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "2dd49b4a113a7860df27e2e887f77103926b4ff46504af73075cf76fe7ed0ce7",
+          "historyDigest": "22ffca2233fd9e4a31b0e3952abe4c742ade73911b3587726adc0b69424d0b66",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 96,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 96,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "a856002adfdfde879a3541e8c690a52592e8f1fa0b535777a044f733ef616516",
+        "baseline": {
+          "rawDigest": "74b65993f083c4dcdcd6a0a5204f7a30aaa82698ccbe291560efb3460ddad4bd",
+          "historyDigest": "614b48360133ff2615824c084a1a35b8cd51632795dbf763e4581e2841c3df9b",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "0895c356c89439f65b7a9a1f535f4be6125e974e4a24be6c0930577ced7e0373",
+          "historyDigest": "ac533b8c1b4d535c64d933d9666b352120aec06187bbd7a7e43ee9cc5ac09dfe",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "a856002adfdfde879a3541e8c690a52592e8f1fa0b535777a044f733ef616516",
+        "baseline": {
+          "rawDigest": "74b65993f083c4dcdcd6a0a5204f7a30aaa82698ccbe291560efb3460ddad4bd",
+          "historyDigest": "614b48360133ff2615824c084a1a35b8cd51632795dbf763e4581e2841c3df9b",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "0895c356c89439f65b7a9a1f535f4be6125e974e4a24be6c0930577ced7e0373",
+          "historyDigest": "ac533b8c1b4d535c64d933d9666b352120aec06187bbd7a7e43ee9cc5ac09dfe",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 97,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 97,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "9a23b81a41cb3a80b82c9d3d67b6480b3336edc9fdbabe21a7e57e33361e67fd",
+        "baseline": {
+          "rawDigest": "08a9a0e165f8e56db8f91e6aead95138d89302a6d1fd4405e7460ad05b64d8f8",
+          "historyDigest": "d107dab8c258395962e4b364369e94a2d6726d608d936b3ee70b205169c38ded",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "da0f28c447dc8771e16523895ea413c53231193318cccf85c8408b0e1e3da951",
+          "historyDigest": "7527e157bc6c135db8e67ebd693dad72964343ba46bc275ac66a82514e9ab7aa",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "9a23b81a41cb3a80b82c9d3d67b6480b3336edc9fdbabe21a7e57e33361e67fd",
+        "baseline": {
+          "rawDigest": "08a9a0e165f8e56db8f91e6aead95138d89302a6d1fd4405e7460ad05b64d8f8",
+          "historyDigest": "d107dab8c258395962e4b364369e94a2d6726d608d936b3ee70b205169c38ded",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "da0f28c447dc8771e16523895ea413c53231193318cccf85c8408b0e1e3da951",
+          "historyDigest": "7527e157bc6c135db8e67ebd693dad72964343ba46bc275ac66a82514e9ab7aa",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 98,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 98,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "e8606eb0fa1cc22c877dc9f5804a8432d1ce3c787400672e8710a8dc36c0fc88",
+        "baseline": {
+          "rawDigest": "9ff2c391033b801fa9ee70576dce826cd1b17122f1b84296ed363cc7bc4658b4",
+          "historyDigest": "ef8a4ff08a0108ad9c55bf48664f1bc1466b09a9e39f077aea9a4ad776cafe65",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "613795e380d6c443b9f4174a033c8e6c4e2633133876868f06afa8c7bd81ff69",
+          "historyDigest": "4f58d297ee2205ab6284741ef74faf10d57310336fc87260f2eeb926aaf1d9d9",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "e8606eb0fa1cc22c877dc9f5804a8432d1ce3c787400672e8710a8dc36c0fc88",
+        "baseline": {
+          "rawDigest": "9ff2c391033b801fa9ee70576dce826cd1b17122f1b84296ed363cc7bc4658b4",
+          "historyDigest": "ef8a4ff08a0108ad9c55bf48664f1bc1466b09a9e39f077aea9a4ad776cafe65",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "613795e380d6c443b9f4174a033c8e6c4e2633133876868f06afa8c7bd81ff69",
+          "historyDigest": "4f58d297ee2205ab6284741ef74faf10d57310336fc87260f2eeb926aaf1d9d9",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 99,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 99,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "8b66630fd238ed11db1c9b367d641066e2d51c3b59d09362128a62314b52f56b",
+        "baseline": {
+          "rawDigest": "5b2cad94899e675d13ce514e3626547dea0469f13eca04c8f1c6cf94af079cee",
+          "historyDigest": "e9657e8dcc6001abad030a75e7f2139959c4aa2764b8341654a39c6d6cf3ee41",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c84602b6d92de227f51c92fd5ace040a966dc9328e978e17bbacc40c6c8aa7d1",
+          "historyDigest": "d4d44fbc607f29f470017d6cf908b7e5cfd6d6db65d7ade31cf93e6427e91f53",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "8b66630fd238ed11db1c9b367d641066e2d51c3b59d09362128a62314b52f56b",
+        "baseline": {
+          "rawDigest": "5b2cad94899e675d13ce514e3626547dea0469f13eca04c8f1c6cf94af079cee",
+          "historyDigest": "e9657e8dcc6001abad030a75e7f2139959c4aa2764b8341654a39c6d6cf3ee41",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "c84602b6d92de227f51c92fd5ace040a966dc9328e978e17bbacc40c6c8aa7d1",
+          "historyDigest": "d4d44fbc607f29f470017d6cf908b7e5cfd6d6db65d7ade31cf93e6427e91f53",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 100,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 2147483647,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "b9cf701c084729776e5c08d4cf22d9466af1399c673e7f259f23ed69f931fd1a",
+        "baseline": {
+          "rawDigest": "3771d520f86d06d1e85cc9cf1abedd0c595c092ff59b1acc2f04ea35af21a551",
+          "historyDigest": "1e868a9f03e06f743ffbc88332b3c05a9731e75118c53cfc14195f3d1d757be5",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "2aa2870bdbedbcb1bdaae79bf2abc39b6b708aba6e1991fd4df04ec1f6197f3e",
+          "historyDigest": "de257d9aa95b8f1e78f6df393c7d8a34a9e2a252bd2c75de63e8d668a6a76b7a",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "b9cf701c084729776e5c08d4cf22d9466af1399c673e7f259f23ed69f931fd1a",
+        "baseline": {
+          "rawDigest": "3771d520f86d06d1e85cc9cf1abedd0c595c092ff59b1acc2f04ea35af21a551",
+          "historyDigest": "1e868a9f03e06f743ffbc88332b3c05a9731e75118c53cfc14195f3d1d757be5",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "2aa2870bdbedbcb1bdaae79bf2abc39b6b708aba6e1991fd4df04ec1f6197f3e",
+          "historyDigest": "de257d9aa95b8f1e78f6df393c7d8a34a9e2a252bd2c75de63e8d668a6a76b7a",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 101,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 2147483648,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "45cff7d07dafdc7d1cc1c59b0c10b1509971a960504419aec9593a1f06734b15",
+        "baseline": {
+          "rawDigest": "898d495e924a495949516b1dfe916973d5573dcc65855ee035c717473c1a9acb",
+          "historyDigest": "64ad3c79f0d211fe8143caa6cb99472daa4d9736f6d872896af06c9f13b7d8e1",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "601dce8fe70b0d0c68d7d2be3a0649c702197c68d39ad0edda8d0ee87a7c41a5",
+          "historyDigest": "8fe59aca7c203a3910290b36e2f9876afd290c29f7ebeafe54e62f83707a1d4d",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "45cff7d07dafdc7d1cc1c59b0c10b1509971a960504419aec9593a1f06734b15",
+        "baseline": {
+          "rawDigest": "898d495e924a495949516b1dfe916973d5573dcc65855ee035c717473c1a9acb",
+          "historyDigest": "64ad3c79f0d211fe8143caa6cb99472daa4d9736f6d872896af06c9f13b7d8e1",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "601dce8fe70b0d0c68d7d2be3a0649c702197c68d39ad0edda8d0ee87a7c41a5",
+          "historyDigest": "8fe59aca7c203a3910290b36e2f9876afd290c29f7ebeafe54e62f83707a1d4d",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 102,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 4294967294,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "98ead86b820cb614d4facfc20495776e331f354339745b13df4c9611818bc208",
+        "baseline": {
+          "rawDigest": "1ed7eac634a305172193b5e450e26e06b881b1026e17b4d673911c48d08c4d7b",
+          "historyDigest": "b2072f73b3e4c8739b80c773338c87cdb6655c2e66cd4fe99808672dbbd4251f",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b148d535012b53b59b2354e105af045c73562fb4185a367e2817dad9121ee763",
+          "historyDigest": "4b84d6107b88369245f593797b1ee2f73fe95bdb6cffeeadc3e4340b92c03c5a",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "98ead86b820cb614d4facfc20495776e331f354339745b13df4c9611818bc208",
+        "baseline": {
+          "rawDigest": "1ed7eac634a305172193b5e450e26e06b881b1026e17b4d673911c48d08c4d7b",
+          "historyDigest": "b2072f73b3e4c8739b80c773338c87cdb6655c2e66cd4fe99808672dbbd4251f",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "b148d535012b53b59b2354e105af045c73562fb4185a367e2817dad9121ee763",
+          "historyDigest": "4b84d6107b88369245f593797b1ee2f73fe95bdb6cffeeadc3e4340b92c03c5a",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 103,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 4294967295,
+        "households": 30,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 24,
+          "cost": 1000000,
+          "delay": 0,
+          "compliance": 1
+        }
+      },
+      "actual": {
+        "initialDigest": "643d4b0396befbef4e24a09ec3fd061739ff5d591a4e45072ae657b7b13451b9",
+        "baseline": {
+          "rawDigest": "c6887f2c85080af4bc62b89e5a606caa6c502f7ff05d73aea31a456841fa385b",
+          "historyDigest": "69e6406634549c46be6839f163b29acfa447e8ee4963586f33c67c47b9322812",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "49264ddbb6cb2306147b5d7280dca99db9eef80db80dd7f6cac152c9bfc29418",
+          "historyDigest": "033ddeff0a1f878fe619f813caa979ef709939eb539c76ac78eb8f7aa75992ab",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "643d4b0396befbef4e24a09ec3fd061739ff5d591a4e45072ae657b7b13451b9",
+        "baseline": {
+          "rawDigest": "c6887f2c85080af4bc62b89e5a606caa6c502f7ff05d73aea31a456841fa385b",
+          "historyDigest": "69e6406634549c46be6839f163b29acfa447e8ee4963586f33c67c47b9322812",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "49264ddbb6cb2306147b5d7280dca99db9eef80db80dd7f6cac152c9bfc29418",
+          "historyDigest": "033ddeff0a1f878fe619f813caa979ef709939eb539c76ac78eb8f7aa75992ab",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 104,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 0,
+        "households": 1,
+        "months": 120,
+        "intervention": null
+      },
+      "actual": {
+        "initialDigest": "e96af34a4d7ea1d0292dd64a33801e31390c6cfa50473a85e73242f92379cf54",
+        "baseline": {
+          "rawDigest": "30a52552a0f4a99f98cb86b6cb4714e307a30899d53011a63335eb67590a6b36",
+          "historyDigest": "7021cd9ae82e0dc761d9a999e665a4e02a3cf3f6cac87f93dc78fd7d5f09ce21",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "30a52552a0f4a99f98cb86b6cb4714e307a30899d53011a63335eb67590a6b36",
+          "historyDigest": "7021cd9ae82e0dc761d9a999e665a4e02a3cf3f6cac87f93dc78fd7d5f09ce21",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "e96af34a4d7ea1d0292dd64a33801e31390c6cfa50473a85e73242f92379cf54",
+        "baseline": {
+          "rawDigest": "30a52552a0f4a99f98cb86b6cb4714e307a30899d53011a63335eb67590a6b36",
+          "historyDigest": "7021cd9ae82e0dc761d9a999e665a4e02a3cf3f6cac87f93dc78fd7d5f09ce21",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "30a52552a0f4a99f98cb86b6cb4714e307a30899d53011a63335eb67590a6b36",
+          "historyDigest": "7021cd9ae82e0dc761d9a999e665a4e02a3cf3f6cac87f93dc78fd7d5f09ce21",
+          "frames": 121
+        }
+      }
+    },
+    {
+      "index": 105,
+      "recipe": {
+        "schemaVersion": "future-machine.v1",
+        "modelVersion": "city-systems.1.0.0",
+        "seed": 4294967295,
+        "households": 120,
+        "months": 120,
+        "intervention": {
+          "type": "housing",
+          "districtId": "d1",
+          "amount": 120,
+          "cost": 0,
+          "delay": 120,
+          "compliance": 0
+        }
+      },
+      "actual": {
+        "initialDigest": "dfacb3cd08c7a11daf01b94f49c595024329ce9d742f7ea714b39dd36c1c869d",
+        "baseline": {
+          "rawDigest": "7f45d590a0dc76d2677902defdf2b9ec02bfbdffc0b1b72c883dc20aa2782c9a",
+          "historyDigest": "4ee6885c9132b0bc4c2862c624171e4978f08802e898fccdba893cc22279b98e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "071d3bdd85bfec8762a5a6bed7bb218565242b6c33d0355aace49805c7f2d282",
+          "historyDigest": "2760cb0b52810bd542c4e1c94d07c261aecf44898ca1c06d4ff861c9273c537e",
+          "frames": 121
+        }
+      },
+      "replay": {
+        "initialDigest": "dfacb3cd08c7a11daf01b94f49c595024329ce9d742f7ea714b39dd36c1c869d",
+        "baseline": {
+          "rawDigest": "7f45d590a0dc76d2677902defdf2b9ec02bfbdffc0b1b72c883dc20aa2782c9a",
+          "historyDigest": "4ee6885c9132b0bc4c2862c624171e4978f08802e898fccdba893cc22279b98e",
+          "frames": 121
+        },
+        "plan": {
+          "rawDigest": "071d3bdd85bfec8762a5a6bed7bb218565242b6c33d0355aace49805c7f2d282",
+          "historyDigest": "2760cb0b52810bd542c4e1c94d07c261aecf44898ca1c06d4ff861c9273c537e",
+          "frames": 121
+        }
+      }
+    }
+  ],
+  "mismatches": [],
+  "command": "bun scripts/verify-city-seed-replay.mjs",
+  "sourceSHA": "870c0ca2ab9c9061ed1056de87731b3664474d48",
+  "sourceHashes": {
+    "world/city/contracts.js": "9d28e125c0acd8505cc1fb419b221bc8d1ef2c69ef3a83b4add78f19fbe1b547",
+    "world/city/engine.js": "043c9e8ebc1d1e578c09dca5ae489480577498349adfdada3001b442a4f06c42",
+    "world/city/seed.js": "8d09a18d52f949cdad0a41e8d9c4170131f86943ed389090f1d7210533043d78",
+    "world/city/systems.js": "0ef444f19f3f3303482c97099f7e1e3f3f0b525a16d75b511c17b0947f10909c",
+    "world/future-machine/contracts.js": "e59a52be8e3152c10c7b49f238bf5bebd41bac653431c7d9d6195fb696726a40",
+    "world/future-machine/data/index.js": "b6104933ba8fb8579796fd3ce739773627329fea02880410ded6ad0f95918fa4",
+    "world/future-machine/data/core.js": "55dd95b3b700c261a9a879227ad655c9c40acb776839d7bed091425ec9f86228",
+    "scripts/verify-city-seed-replay.mjs": "0352ce9adeed85cb56a55f64c6a1368b4d66c3a6e0a72d9b21ca89ff45c16528"
+  },
+  "runtime": "1.4.2",
+  "concurrency": 1,
+  "modelVersion": "city-systems.1.0.0",
+  "rules": [
+    {
+      "id": "environment",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": []
+    },
+    {
+      "id": "governance",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": [
+        "environment"
+      ]
+    },
+    {
+      "id": "utilities",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": [
+        "governance"
+      ]
+    },
+    {
+      "id": "development",
+      "version": "city-systems.1.0.0",
+      "cadence": 3,
+      "dependencies": [
+        "utilities"
+      ]
+    },
+    {
+      "id": "construction",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": [
+        "development"
+      ]
+    },
+    {
+      "id": "transport",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": [
+        "construction"
+      ]
+    },
+    {
+      "id": "businesses",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": [
+        "transport"
+      ]
+    },
+    {
+      "id": "jobs",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": [
+        "businesses"
+      ]
+    },
+    {
+      "id": "housing",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": [
+        "jobs"
+      ]
+    },
+    {
+      "id": "services",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": [
+        "housing"
+      ]
+    },
+    {
+      "id": "demographics",
+      "version": "city-systems.1.0.0",
+      "cadence": 12,
+      "dependencies": [
+        "services"
+      ]
+    },
+    {
+      "id": "finance",
+      "version": "city-systems.1.0.0",
+      "cadence": 1,
+      "dependencies": [
+        "demographics"
+      ]
+    }
+  ],
+  "generator": "future-machine-synthetic.v1",
+  "limitations": [
+    "Synthetic inventory, illustrative uncalibrated monthly equations; no empirical or geographic forecast.",
+    "Independent recomputation verifies deterministic replay, not saved-checkpoint equivalence or causal validity.",
+    "Only monthly City identities/time; no Population/House mapping.",
+    "Engine-only acceptance; excludes API, persistence, browser and performance guarantees."
+  ]
+}

@@ -1,3 +1,4 @@
+import { withRecoveryDeadline } from "./recovery-deadline.js";
 /** Orchestrates existing scene/worker operations; owns no simulation or model mapping.
  * Hooks receive {runId, signal, reducedMotion, onProgress, markWorkerReady}.
  * Async hooks must check signal before mutating scene/UI after an await.
@@ -14,7 +15,7 @@ function freezeResult(value) {
 export function createQuickDemoController({
   waitForReady = () => {}, observeResident = () => null, runComparison, revealComparison = () => {},
   onState = () => {}, reducedMotion = () => false,
-  now = () => performance.now(),
+  now = () => performance.now(), operationTimeoutMs = 120000,
 } = {}) {
   if (typeof runComparison !== 'function') throw new TypeError('runComparison is required');
   let serial = 0, active = null, replayInputs, hasReplayInputs = false, disposed = false;
@@ -31,13 +32,9 @@ export function createQuickDemoController({
   }
   // Abort settles the public run even if an injected worker ignores cancellation.
   function wait(run, operation) {
-    return new Promise((resolve, reject) => {
-      const signal = run.abort.signal;
-      const abort = () => { cleanup(); reject(new DOMException('Demo stopped', 'AbortError')); };
-      const cleanup = () => signal.removeEventListener('abort', abort);
-      if (signal.aborted) return abort();
-      signal.addEventListener('abort', abort, { once: true });
-      Promise.resolve(operation).then(value => { cleanup(); resolve(value); }, error => { cleanup(); reject(error); });
+    return withRecoveryDeadline(() => operation, {
+      signal: run.abort.signal, timeoutMs: operationTimeoutMs,
+      message: 'Comparison timed out. Retry comparison or continue exploring the loaded city. No completed run was produced.',
     });
   }
   function stop(reason = 'stopped') {

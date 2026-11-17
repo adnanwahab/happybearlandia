@@ -1,3 +1,4 @@
+import {advanceResidents} from './residents.js';
 import {VERSION, clamp, housingProjectBuildingId, sum} from './contracts.js';
 const pack=(id,dependencies,resolve,{cadence=1,proposeStep=()=>({})}={})=>({id,version:VERSION,cadence,dependencies,
   initialize(s){s.systems[id]||={schemaVersion:'SystemState.v1',modelVersion:VERSION};},proposeStep,
@@ -9,6 +10,7 @@ const local=(rows,id)=>rows.filter(r=>r.districtId===id);
 function releaseJob(s,j) {const w=s.workers.find(w=>w.id===j.workerId);if(w)w.jobId=null;j.workerId=null;}
 function vacate(s,u) {const h=s.households.find(h=>h.id===u.householdId);if(h)h.unitId=null;u.householdId=null;u.status='available';}
 export function createSystemPacks() {return [
+  pack('residents',['finance'],(old,p,s,c)=>{advanceResidents(old,s,c);return {active:s.residents.filter(r=>r.status==='active').length,departed:s.residents.filter(r=>r.status==='departed').length};}),
   pack('environment',[],(old,p,s,c)=>{
     let damage=0;
     s.activeShocks=old.shocks.filter(x=>c.time>=x.start&&c.time<x.start+x.duration);

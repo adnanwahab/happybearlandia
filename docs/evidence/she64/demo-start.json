@@ -1,0 +1,6223 @@
+{
+  "schemaVersion": "two-futures-browser-evidence.v1",
+  "selectedMonth": 0,
+  "seed": 42,
+  "modelVersion": "city-systems.1.0.0",
+  "experimentId": "city_705bdf23e7e64d3b8d6b51f1665d11f6",
+  "initialHash": "e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe",
+  "recipe": {
+    "schemaVersion": "future-machine.v1",
+    "modelVersion": "city-systems.1.0.0",
+    "seed": 42,
+    "households": 30,
+    "months": 120,
+    "intervention": {
+      "type": "housing",
+      "districtId": "d1",
+      "amount": 24,
+      "cost": 1000000,
+      "delay": 0,
+      "compliance": 1
+    }
+  },
+  "scenario": {
+    "schemaVersion": "future-machine.v1",
+    "modelVersion": "city-systems.1.0.0",
+    "seed": 42,
+    "households": 30,
+    "months": 120,
+    "intervention": {
+      "type": "housing",
+      "districtId": "d1",
+      "amount": 24,
+      "cost": 1000000,
+      "delay": 0,
+      "compliance": 1
+    }
+  },
+  "firstDivergence": {
+    "month": 16,
+    "collection": "buildings",
+    "id": "building-project-policy-1-0"
+  },
+  "metrics": [
+    {
+      "metricId": "population",
+      "baseline": 90,
+      "plan": 90,
+      "delta": 0,
+      "unit": "people",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "households",
+      "baseline": 30,
+      "plan": 30,
+      "delta": 0,
+      "unit": "households",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "housingUnits",
+      "baseline": 36,
+      "plan": 36,
+      "delta": 0,
+      "unit": "homes",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "availableUnits",
+      "baseline": 6,
+      "plan": 6,
+      "delta": 0,
+      "unit": "homes",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "meanRent",
+      "baseline": 1150,
+      "plan": 1150,
+      "delta": 0,
+      "unit": "USD/month",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "unhoused",
+      "baseline": 0,
+      "plan": 0,
+      "delta": 0,
+      "unit": "households",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "employed",
+      "baseline": 0,
+      "plan": 0,
+      "delta": 0,
+      "unit": "workers",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "jobs",
+      "baseline": 24,
+      "plan": 24,
+      "delta": 0,
+      "unit": "jobs",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "businesses",
+      "baseline": 3,
+      "plan": 3,
+      "delta": 0,
+      "unit": "businesses",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "meanTravelMinutes",
+      "baseline": 15,
+      "plan": 15,
+      "delta": 0,
+      "unit": "minutes/link",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "balance",
+      "baseline": 10000000,
+      "plan": 10000000,
+      "delta": 0,
+      "unit": "USD",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "debt",
+      "baseline": 0,
+      "plan": 0,
+      "delta": 0,
+      "unit": "USD",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "capitalSpending",
+      "baseline": 0,
+      "plan": 0,
+      "delta": 0,
+      "unit": "USD cumulative",
+      "status": "available",
+      "missing": []
+    },
+    {
+      "metricId": "completedProjects",
+      "baseline": 0,
+      "plan": 0,
+      "delta": 0,
+      "unit": "projects",
+      "status": "available",
+      "missing": []
+    }
+  ],
+  "evidenceRecords": [],
+  "provenance": {
+    "type": "synthetic-assumption",
+    "datasetVersion": "future-machine-synthetic.v1",
+    "populationSnapshot": "synthetic-42-30",
+    "worldRevision": "seed.v1",
+    "confidence": "low",
+    "assumptions": "Illustrative uncalibrated coefficients; district transport and coarse monthly markets. Not an empirical forecast.",
+    "modelManifest": [
+      {
+        "id": "environment",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": []
+      },
+      {
+        "id": "governance",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": [
+          "environment"
+        ]
+      },
+      {
+        "id": "utilities",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": [
+          "governance"
+        ]
+      },
+      {
+        "id": "development",
+        "version": "city-systems.1.0.0",
+        "cadence": 3,
+        "dependencies": [
+          "utilities"
+        ]
+      },
+      {
+        "id": "construction",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": [
+          "development"
+        ]
+      },
+      {
+        "id": "transport",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": [
+          "construction"
+        ]
+      },
+      {
+        "id": "businesses",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": [
+          "transport"
+        ]
+      },
+      {
+        "id": "jobs",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": [
+          "businesses"
+        ]
+      },
+      {
+        "id": "housing",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": [
+          "jobs"
+        ]
+      },
+      {
+        "id": "services",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": [
+          "housing"
+        ]
+      },
+      {
+        "id": "demographics",
+        "version": "city-systems.1.0.0",
+        "cadence": 12,
+        "dependencies": [
+          "services"
+        ]
+      },
+      {
+        "id": "finance",
+        "version": "city-systems.1.0.0",
+        "cadence": 1,
+        "dependencies": [
+          "demographics"
+        ]
+      }
+    ],
+    "initialHash": "e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe",
+    "replay": "Recomputed from saved City manifest; not independently verified recorded checkpoints.",
+    "authority": "monthly City only"
+  },
+  "baseline": {
+    "month": 0,
+    "state": {
+      "schemaVersion": "CityState.v1",
+      "version": "city-systems.1.0.0",
+      "seed": 42,
+      "month": 0,
+      "revision": 0,
+      "provenance": {
+        "type": "synthetic-assumption",
+        "datasetVersion": "future-machine-synthetic.v1",
+        "populationSnapshot": "synthetic-42-30",
+        "worldRevision": "seed.v1",
+        "confidence": "low",
+        "assumptions": [
+          "Synthetic City inventory; no geographic coordinates.",
+          "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+          "Illustrative monthly equations, not an empirical forecast."
+        ]
+      },
+      "districts": [
+        {
+          "id": "d0",
+          "name": "Center",
+          "floodRisk": 0.1,
+          "accessibility": 1,
+          "parkingPrice": 8
+        },
+        {
+          "id": "d1",
+          "name": "Riverside",
+          "floodRisk": 0.7,
+          "accessibility": 1,
+          "parkingPrice": 2
+        },
+        {
+          "id": "d2",
+          "name": "Uptown",
+          "floodRisk": 0.1,
+          "accessibility": 1,
+          "parkingPrice": 2
+        }
+      ],
+      "parcels": [
+        {
+          "id": "parcel-d0",
+          "districtId": "d0",
+          "landArea": 20000,
+          "currentUse": "residential",
+          "far": 8,
+          "heightLimit": 12,
+          "existingFloors": 1,
+          "landValue": 1000000,
+          "capacity": 0
+        },
+        {
+          "id": "parcel-d1",
+          "districtId": "d1",
+          "landArea": 20000,
+          "currentUse": "residential",
+          "far": 8,
+          "heightLimit": 12,
+          "existingFloors": 1,
+          "landValue": 1000000,
+          "capacity": 0
+        },
+        {
+          "id": "parcel-d2",
+          "districtId": "d2",
+          "landArea": 20000,
+          "currentUse": "residential",
+          "far": 8,
+          "heightLimit": 12,
+          "existingFloors": 1,
+          "landValue": 1000000,
+          "capacity": 0
+        }
+      ],
+      "buildings": [
+        {
+          "id": "building-d0",
+          "parcelId": "parcel-d0",
+          "districtId": "d0",
+          "floors": 1
+        },
+        {
+          "id": "building-d1",
+          "parcelId": "parcel-d1",
+          "districtId": "d1",
+          "floors": 1
+        },
+        {
+          "id": "building-d2",
+          "parcelId": "parcel-d2",
+          "districtId": "d2",
+          "floors": 1
+        }
+      ],
+      "units": [
+        {
+          "id": "unit-d0-0",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-0",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-1",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-3",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-2",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-6",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-3",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-9",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-4",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-12",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-5",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-15",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-6",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-18",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-7",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-21",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-8",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-24",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-9",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-27",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-10",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-11",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-0",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-1",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-1",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-4",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-2",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-7",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-3",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-10",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-4",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-13",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-5",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-16",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-6",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-19",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-7",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-22",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-8",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-25",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-9",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-28",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-10",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-11",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-0",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-2",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-1",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-5",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-2",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-8",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-3",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-11",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-4",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-14",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-5",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-17",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-6",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-20",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-7",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-23",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-8",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-26",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-9",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-29",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-10",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-11",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        }
+      ],
+      "households": [
+        {
+          "id": "household-0",
+          "districtId": "d0",
+          "unitId": "unit-d0-0",
+          "size": 2,
+          "children": 1,
+          "income": 5346.323733218014,
+          "otherIncome": 1603.8971199654043,
+          "bedrooms": 1,
+          "leaseUntil": 1,
+          "age": 25,
+          "savings": 16038.971199654043
+        },
+        {
+          "id": "household-1",
+          "districtId": "d1",
+          "unitId": "unit-d1-0",
+          "size": 3,
+          "children": 0,
+          "income": 5688.635645899922,
+          "otherIncome": 1706.5906937699765,
+          "bedrooms": 2,
+          "leaseUntil": 2,
+          "age": 26,
+          "savings": 17065.906937699765
+        },
+        {
+          "id": "household-2",
+          "districtId": "d2",
+          "unitId": "unit-d2-0",
+          "size": 4,
+          "children": 0,
+          "income": 5708.70512817055,
+          "otherIncome": 1712.611538451165,
+          "bedrooms": 1,
+          "leaseUntil": 3,
+          "age": 27,
+          "savings": 17126.11538451165
+        },
+        {
+          "id": "household-3",
+          "districtId": "d0",
+          "unitId": "unit-d0-1",
+          "size": 2,
+          "children": 1,
+          "income": 7729.656015988439,
+          "otherIncome": 2318.896804796532,
+          "bedrooms": 2,
+          "leaseUntil": 4,
+          "age": 28,
+          "savings": 23188.968047965318
+        },
+        {
+          "id": "household-4",
+          "districtId": "d1",
+          "unitId": "unit-d1-1",
+          "size": 3,
+          "children": 0,
+          "income": 3778.2561774365604,
+          "otherIncome": 1133.4768532309681,
+          "bedrooms": 1,
+          "leaseUntil": 5,
+          "age": 29,
+          "savings": 11334.768532309681
+        },
+        {
+          "id": "household-5",
+          "districtId": "d2",
+          "unitId": "unit-d2-1",
+          "size": 4,
+          "children": 0,
+          "income": 6231.333119329065,
+          "otherIncome": 1869.3999357987195,
+          "bedrooms": 2,
+          "leaseUntil": 6,
+          "age": 30,
+          "savings": 18693.999357987195
+        },
+        {
+          "id": "household-6",
+          "districtId": "d0",
+          "unitId": "unit-d0-2",
+          "size": 2,
+          "children": 1,
+          "income": 4966.069010086358,
+          "otherIncome": 1489.8207030259073,
+          "bedrooms": 1,
+          "leaseUntil": 7,
+          "age": 31,
+          "savings": 14898.207030259073
+        },
+        {
+          "id": "household-7",
+          "districtId": "d1",
+          "unitId": "unit-d1-2",
+          "size": 3,
+          "children": 0,
+          "income": 4701.066999230534,
+          "otherIncome": 1410.3200997691602,
+          "bedrooms": 2,
+          "leaseUntil": 8,
+          "age": 32,
+          "savings": 14103.200997691602
+        },
+        {
+          "id": "household-8",
+          "districtId": "d2",
+          "unitId": "unit-d2-2",
+          "size": 4,
+          "children": 0,
+          "income": 4032.6640715356916,
+          "otherIncome": 1209.7992214607075,
+          "bedrooms": 1,
+          "leaseUntil": 9,
+          "age": 33,
+          "savings": 12097.992214607075
+        },
+        {
+          "id": "household-9",
+          "districtId": "d0",
+          "unitId": "unit-d0-3",
+          "size": 2,
+          "children": 1,
+          "income": 5545.940716518089,
+          "otherIncome": 1663.7822149554268,
+          "bedrooms": 2,
+          "leaseUntil": 10,
+          "age": 34,
+          "savings": 16637.822149554268
+        },
+        {
+          "id": "household-10",
+          "districtId": "d1",
+          "unitId": "unit-d1-3",
+          "size": 3,
+          "children": 0,
+          "income": 4437.2833468951285,
+          "otherIncome": 1331.1850040685385,
+          "bedrooms": 1,
+          "leaseUntil": 11,
+          "age": 35,
+          "savings": 13311.850040685385
+        },
+        {
+          "id": "household-11",
+          "districtId": "d2",
+          "unitId": "unit-d2-3",
+          "size": 4,
+          "children": 0,
+          "income": 6316.545154666528,
+          "otherIncome": 1894.9635463999584,
+          "bedrooms": 2,
+          "leaseUntil": 12,
+          "age": 36,
+          "savings": 18949.635463999584
+        },
+        {
+          "id": "household-12",
+          "districtId": "d0",
+          "unitId": "unit-d0-4",
+          "size": 2,
+          "children": 1,
+          "income": 7963.070357916877,
+          "otherIncome": 2388.921107375063,
+          "bedrooms": 1,
+          "leaseUntil": 1,
+          "age": 37,
+          "savings": 23889.21107375063
+        },
+        {
+          "id": "household-13",
+          "districtId": "d1",
+          "unitId": "unit-d1-4",
+          "size": 3,
+          "children": 0,
+          "income": 7017.587116686627,
+          "otherIncome": 2105.276135005988,
+          "bedrooms": 2,
+          "leaseUntil": 2,
+          "age": 38,
+          "savings": 21052.76135005988
+        },
+        {
+          "id": "household-14",
+          "districtId": "d2",
+          "unitId": "unit-d2-4",
+          "size": 4,
+          "children": 0,
+          "income": 6094.018452102318,
+          "otherIncome": 1828.2055356306955,
+          "bedrooms": 1,
+          "leaseUntil": 3,
+          "age": 39,
+          "savings": 18282.055356306955
+        },
+        {
+          "id": "household-15",
+          "districtId": "d0",
+          "unitId": "unit-d0-5",
+          "size": 2,
+          "children": 1,
+          "income": 4439.873327035457,
+          "otherIncome": 1331.961998110637,
+          "bedrooms": 2,
+          "leaseUntil": 4,
+          "age": 40,
+          "savings": 13319.61998110637
+        },
+        {
+          "id": "household-16",
+          "districtId": "d1",
+          "unitId": "unit-d1-5",
+          "size": 3,
+          "children": 0,
+          "income": 4706.387011799961,
+          "otherIncome": 1411.9161035399884,
+          "bedrooms": 1,
+          "leaseUntil": 5,
+          "age": 41,
+          "savings": 14119.161035399884
+        },
+        {
+          "id": "household-17",
+          "districtId": "d2",
+          "unitId": "unit-d2-5",
+          "size": 4,
+          "children": 0,
+          "income": 3298.879196634516,
+          "otherIncome": 989.6637589903548,
+          "bedrooms": 2,
+          "leaseUntil": 6,
+          "age": 42,
+          "savings": 9896.637589903548
+        },
+        {
+          "id": "household-18",
+          "districtId": "d0",
+          "unitId": "unit-d0-6",
+          "size": 2,
+          "children": 1,
+          "income": 3724.6878393925726,
+          "otherIncome": 1117.4063518177718,
+          "bedrooms": 1,
+          "leaseUntil": 7,
+          "age": 43,
+          "savings": 11174.063518177718
+        },
+        {
+          "id": "household-19",
+          "districtId": "d1",
+          "unitId": "unit-d1-6",
+          "size": 3,
+          "children": 0,
+          "income": 3916.14973731339,
+          "otherIncome": 1174.844921194017,
+          "bedrooms": 2,
+          "leaseUntil": 8,
+          "age": 44,
+          "savings": 11748.44921194017
+        },
+        {
+          "id": "household-20",
+          "districtId": "d2",
+          "unitId": "unit-d2-6",
+          "size": 4,
+          "children": 0,
+          "income": 4747.45028372854,
+          "otherIncome": 1424.235085118562,
+          "bedrooms": 1,
+          "leaseUntil": 9,
+          "age": 45,
+          "savings": 14242.35085118562
+        },
+        {
+          "id": "household-21",
+          "districtId": "d0",
+          "unitId": "unit-d0-7",
+          "size": 2,
+          "children": 1,
+          "income": 4863.027851795778,
+          "otherIncome": 1458.9083555387333,
+          "bedrooms": 2,
+          "leaseUntil": 10,
+          "age": 46,
+          "savings": 14589.083555387333
+        },
+        {
+          "id": "household-22",
+          "districtId": "d1",
+          "unitId": "unit-d1-7",
+          "size": 3,
+          "children": 0,
+          "income": 5938.38293175213,
+          "otherIncome": 1781.5148795256391,
+          "bedrooms": 1,
+          "leaseUntil": 11,
+          "age": 47,
+          "savings": 17815.14879525639
+        },
+        {
+          "id": "household-23",
+          "districtId": "d2",
+          "unitId": "unit-d2-7",
+          "size": 4,
+          "children": 0,
+          "income": 3213.7251081876457,
+          "otherIncome": 964.1175324562937,
+          "bedrooms": 2,
+          "leaseUntil": 12,
+          "age": 48,
+          "savings": 9641.175324562937
+        },
+        {
+          "id": "household-24",
+          "districtId": "d0",
+          "unitId": "unit-d0-8",
+          "size": 2,
+          "children": 1,
+          "income": 7304.154439596459,
+          "otherIncome": 2191.246331878938,
+          "bedrooms": 1,
+          "leaseUntil": 1,
+          "age": 49,
+          "savings": 21912.463318789378
+        },
+        {
+          "id": "household-25",
+          "districtId": "d1",
+          "unitId": "unit-d1-8",
+          "size": 3,
+          "children": 0,
+          "income": 4328.537912340835,
+          "otherIncome": 1298.5613737022504,
+          "bedrooms": 2,
+          "leaseUntil": 2,
+          "age": 50,
+          "savings": 12985.613737022504
+        },
+        {
+          "id": "household-26",
+          "districtId": "d2",
+          "unitId": "unit-d2-8",
+          "size": 4,
+          "children": 0,
+          "income": 6457.588634919375,
+          "otherIncome": 1937.2765904758126,
+          "bedrooms": 1,
+          "leaseUntil": 3,
+          "age": 51,
+          "savings": 19372.765904758126
+        },
+        {
+          "id": "household-27",
+          "districtId": "d0",
+          "unitId": "unit-d0-9",
+          "size": 2,
+          "children": 1,
+          "income": 3750.3742713015527,
+          "otherIncome": 1125.1122813904658,
+          "bedrooms": 2,
+          "leaseUntil": 4,
+          "age": 52,
+          "savings": 11251.122813904658
+        },
+        {
+          "id": "household-28",
+          "districtId": "d1",
+          "unitId": "unit-d1-9",
+          "size": 3,
+          "children": 0,
+          "income": 3925.6806480698287,
+          "otherIncome": 1177.7041944209486,
+          "bedrooms": 1,
+          "leaseUntil": 5,
+          "age": 53,
+          "savings": 11777.041944209486
+        },
+        {
+          "id": "household-29",
+          "districtId": "d2",
+          "unitId": "unit-d2-9",
+          "size": 4,
+          "children": 0,
+          "income": 4218.833802267909,
+          "otherIncome": 1265.6501406803727,
+          "bedrooms": 2,
+          "leaseUntil": 6,
+          "age": 54,
+          "savings": 12656.501406803727
+        }
+      ],
+      "workers": [
+        {
+          "id": "worker-0",
+          "householdId": "household-0",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 25
+        },
+        {
+          "id": "worker-1",
+          "householdId": "household-1",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 26
+        },
+        {
+          "id": "worker-2",
+          "householdId": "household-2",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 27
+        },
+        {
+          "id": "worker-3",
+          "householdId": "household-3",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 28
+        },
+        {
+          "id": "worker-4",
+          "householdId": "household-4",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 29
+        },
+        {
+          "id": "worker-5",
+          "householdId": "household-5",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 30
+        },
+        {
+          "id": "worker-6",
+          "householdId": "household-6",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 31
+        },
+        {
+          "id": "worker-7",
+          "householdId": "household-7",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 32
+        },
+        {
+          "id": "worker-8",
+          "householdId": "household-8",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 33
+        },
+        {
+          "id": "worker-9",
+          "householdId": "household-9",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 34
+        },
+        {
+          "id": "worker-10",
+          "householdId": "household-10",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 35
+        },
+        {
+          "id": "worker-11",
+          "householdId": "household-11",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 36
+        },
+        {
+          "id": "worker-12",
+          "householdId": "household-12",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 37
+        },
+        {
+          "id": "worker-13",
+          "householdId": "household-13",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 38
+        },
+        {
+          "id": "worker-14",
+          "householdId": "household-14",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 39
+        },
+        {
+          "id": "worker-15",
+          "householdId": "household-15",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 40
+        },
+        {
+          "id": "worker-16",
+          "householdId": "household-16",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 41
+        },
+        {
+          "id": "worker-17",
+          "householdId": "household-17",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 42
+        },
+        {
+          "id": "worker-18",
+          "householdId": "household-18",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 43
+        },
+        {
+          "id": "worker-19",
+          "householdId": "household-19",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 44
+        },
+        {
+          "id": "worker-20",
+          "householdId": "household-20",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 45
+        },
+        {
+          "id": "worker-21",
+          "householdId": "household-21",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 46
+        },
+        {
+          "id": "worker-22",
+          "householdId": "household-22",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 47
+        },
+        {
+          "id": "worker-23",
+          "householdId": "household-23",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 48
+        },
+        {
+          "id": "worker-24",
+          "householdId": "household-24",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 49
+        },
+        {
+          "id": "worker-25",
+          "householdId": "household-25",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 50
+        },
+        {
+          "id": "worker-26",
+          "householdId": "household-26",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 51
+        },
+        {
+          "id": "worker-27",
+          "householdId": "household-27",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 52
+        },
+        {
+          "id": "worker-28",
+          "householdId": "household-28",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 53
+        },
+        {
+          "id": "worker-29",
+          "householdId": "household-29",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 54
+        }
+      ],
+      "businesses": [
+        {
+          "id": "business-d0",
+          "districtId": "d0",
+          "type": "services",
+          "status": "open",
+          "badMonths": 0,
+          "commercialRent": 1000,
+          "operatingCost": 1000,
+          "viability": 0,
+          "demand": 0
+        },
+        {
+          "id": "business-d1",
+          "districtId": "d1",
+          "type": "services",
+          "status": "open",
+          "badMonths": 0,
+          "commercialRent": 1000,
+          "operatingCost": 1000,
+          "viability": 0,
+          "demand": 0
+        },
+        {
+          "id": "business-d2",
+          "districtId": "d2",
+          "type": "services",
+          "status": "open",
+          "badMonths": 0,
+          "commercialRent": 1000,
+          "operatingCost": 1000,
+          "viability": 0,
+          "demand": 0
+        }
+      ],
+      "jobs": [
+        {
+          "id": "job-d0-0",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-1",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-2",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-3",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-4",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-5",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-6",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-7",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-0",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-1",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-2",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-3",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-4",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-5",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-6",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-7",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-0",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-1",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-2",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-3",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-4",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-5",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-6",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-7",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        }
+      ],
+      "links": [
+        {
+          "id": "road-d0-d1",
+          "from": "d0",
+          "to": "d1",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d0-d1",
+          "from": "d0",
+          "to": "d1",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d0-d2",
+          "from": "d0",
+          "to": "d2",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d0-d2",
+          "from": "d0",
+          "to": "d2",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d1-d0",
+          "from": "d1",
+          "to": "d0",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d1-d0",
+          "from": "d1",
+          "to": "d0",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d1-d2",
+          "from": "d1",
+          "to": "d2",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d1-d2",
+          "from": "d1",
+          "to": "d2",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d2-d0",
+          "from": "d2",
+          "to": "d0",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d2-d0",
+          "from": "d2",
+          "to": "d0",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d2-d1",
+          "from": "d2",
+          "to": "d1",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d2-d1",
+          "from": "d2",
+          "to": "d1",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        }
+      ],
+      "facilities": [
+        {
+          "id": "school-d0",
+          "districtId": "d0",
+          "type": "school",
+          "capacity": 5,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "park-d0",
+          "districtId": "d0",
+          "type": "park",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "healthcare-d0",
+          "districtId": "d0",
+          "type": "healthcare",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "emergency-d0",
+          "districtId": "d0",
+          "type": "emergency",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "library-d0",
+          "districtId": "d0",
+          "type": "library",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "school-d1",
+          "districtId": "d1",
+          "type": "school",
+          "capacity": 5,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "park-d1",
+          "districtId": "d1",
+          "type": "park",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "healthcare-d1",
+          "districtId": "d1",
+          "type": "healthcare",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "emergency-d1",
+          "districtId": "d1",
+          "type": "emergency",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "library-d1",
+          "districtId": "d1",
+          "type": "library",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "school-d2",
+          "districtId": "d2",
+          "type": "school",
+          "capacity": 5,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "park-d2",
+          "districtId": "d2",
+          "type": "park",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "healthcare-d2",
+          "districtId": "d2",
+          "type": "healthcare",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "emergency-d2",
+          "districtId": "d2",
+          "type": "emergency",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "library-d2",
+          "districtId": "d2",
+          "type": "library",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        }
+      ],
+      "utilities": [
+        {
+          "id": "electric-d0",
+          "districtId": "d0",
+          "type": "electric",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "water-d0",
+          "districtId": "d0",
+          "type": "water",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "sewer-d0",
+          "districtId": "d0",
+          "type": "sewer",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "stormwater-d0",
+          "districtId": "d0",
+          "type": "stormwater",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "electric-d1",
+          "districtId": "d1",
+          "type": "electric",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "water-d1",
+          "districtId": "d1",
+          "type": "water",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "sewer-d1",
+          "districtId": "d1",
+          "type": "sewer",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "stormwater-d1",
+          "districtId": "d1",
+          "type": "stormwater",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "electric-d2",
+          "districtId": "d2",
+          "type": "electric",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "water-d2",
+          "districtId": "d2",
+          "type": "water",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "sewer-d2",
+          "districtId": "d2",
+          "type": "sewer",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "stormwater-d2",
+          "districtId": "d2",
+          "type": "stormwater",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        }
+      ],
+      "projects": [],
+      "policies": [],
+      "shocks": [],
+      "finance": {
+        "balance": 10000000,
+        "debt": 0,
+        "allowDebt": false,
+        "maxDebt": 50000000,
+        "revenue": 0,
+        "operatingExpense": 0,
+        "capitalExpense": 0
+      },
+      "parameters": {
+        "contractors": 100,
+        "labor": 80,
+        "materials": 90,
+        "equipment": 100,
+        "permits": 3,
+        "administration": 3,
+        "interestRate": 0.05,
+        "constructionCost": 140000,
+        "annualGrowth": 0
+      },
+      "systems": {
+        "environment": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "governance": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "utilities": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "development": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "construction": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "transport": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "businesses": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "jobs": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "housing": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "services": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "demographics": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "finance": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        }
+      },
+      "flows": []
+    },
+    "events": [],
+    "observations": [],
+    "decisions": [],
+    "moves": [],
+    "trips": [],
+    "flows": [],
+    "diagnostics": [],
+    "metrics": {
+      "population": 90,
+      "households": 30,
+      "housingUnits": 36,
+      "availableUnits": 6,
+      "meanRent": 1150,
+      "unhoused": 0,
+      "employed": 0,
+      "jobs": 24,
+      "businesses": 3,
+      "meanTravelMinutes": 15,
+      "overloadedServices": 0,
+      "utilityFailures": 0,
+      "balance": 10000000,
+      "debt": 0,
+      "completedProjects": 0,
+      "capitalSpending": 0
+    },
+    "causalRecords": []
+  },
+  "plan": {
+    "month": 0,
+    "state": {
+      "schemaVersion": "CityState.v1",
+      "version": "city-systems.1.0.0",
+      "seed": 42,
+      "month": 0,
+      "revision": 0,
+      "provenance": {
+        "type": "synthetic-assumption",
+        "datasetVersion": "future-machine-synthetic.v1",
+        "populationSnapshot": "synthetic-42-30",
+        "worldRevision": "seed.v1",
+        "confidence": "low",
+        "assumptions": [
+          "Synthetic City inventory; no geographic coordinates.",
+          "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+          "Illustrative monthly equations, not an empirical forecast."
+        ]
+      },
+      "districts": [
+        {
+          "id": "d0",
+          "name": "Center",
+          "floodRisk": 0.1,
+          "accessibility": 1,
+          "parkingPrice": 8
+        },
+        {
+          "id": "d1",
+          "name": "Riverside",
+          "floodRisk": 0.7,
+          "accessibility": 1,
+          "parkingPrice": 2
+        },
+        {
+          "id": "d2",
+          "name": "Uptown",
+          "floodRisk": 0.1,
+          "accessibility": 1,
+          "parkingPrice": 2
+        }
+      ],
+      "parcels": [
+        {
+          "id": "parcel-d0",
+          "districtId": "d0",
+          "landArea": 20000,
+          "currentUse": "residential",
+          "far": 8,
+          "heightLimit": 12,
+          "existingFloors": 1,
+          "landValue": 1000000,
+          "capacity": 0
+        },
+        {
+          "id": "parcel-d1",
+          "districtId": "d1",
+          "landArea": 20000,
+          "currentUse": "residential",
+          "far": 8,
+          "heightLimit": 12,
+          "existingFloors": 1,
+          "landValue": 1000000,
+          "capacity": 0
+        },
+        {
+          "id": "parcel-d2",
+          "districtId": "d2",
+          "landArea": 20000,
+          "currentUse": "residential",
+          "far": 8,
+          "heightLimit": 12,
+          "existingFloors": 1,
+          "landValue": 1000000,
+          "capacity": 0
+        }
+      ],
+      "buildings": [
+        {
+          "id": "building-d0",
+          "parcelId": "parcel-d0",
+          "districtId": "d0",
+          "floors": 1
+        },
+        {
+          "id": "building-d1",
+          "parcelId": "parcel-d1",
+          "districtId": "d1",
+          "floors": 1
+        },
+        {
+          "id": "building-d2",
+          "parcelId": "parcel-d2",
+          "districtId": "d2",
+          "floors": 1
+        }
+      ],
+      "units": [
+        {
+          "id": "unit-d0-0",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-0",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-1",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-3",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-2",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-6",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-3",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-9",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-4",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-12",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-5",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-15",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-6",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-18",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-7",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-21",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-8",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-24",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-9",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-27",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-10",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d0-11",
+          "buildingId": "building-d0",
+          "districtId": "d0",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1000,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-0",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-1",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-1",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-4",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-2",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-7",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-3",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-10",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-4",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-13",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-5",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-16",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-6",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-19",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-7",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-22",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-8",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-25",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-9",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-28",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-10",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d1-11",
+          "buildingId": "building-d1",
+          "districtId": "d1",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1150,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-0",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-2",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-1",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-5",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-2",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-8",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-3",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-11",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-4",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-14",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-5",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-17",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-6",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-20",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-7",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-23",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-8",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-26",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-9",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 1,
+          "floorArea": 50,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "occupied",
+          "householdId": "household-29",
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-10",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 2,
+          "floorArea": 70,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        },
+        {
+          "id": "unit-d2-11",
+          "buildingId": "building-d2",
+          "districtId": "d2",
+          "bedrooms": 3,
+          "floorArea": 90,
+          "quality": 1,
+          "rent": 1300,
+          "tenure": "rental",
+          "status": "available",
+          "householdId": null,
+          "daysVacant": 0
+        }
+      ],
+      "households": [
+        {
+          "id": "household-0",
+          "districtId": "d0",
+          "unitId": "unit-d0-0",
+          "size": 2,
+          "children": 1,
+          "income": 5346.323733218014,
+          "otherIncome": 1603.8971199654043,
+          "bedrooms": 1,
+          "leaseUntil": 1,
+          "age": 25,
+          "savings": 16038.971199654043
+        },
+        {
+          "id": "household-1",
+          "districtId": "d1",
+          "unitId": "unit-d1-0",
+          "size": 3,
+          "children": 0,
+          "income": 5688.635645899922,
+          "otherIncome": 1706.5906937699765,
+          "bedrooms": 2,
+          "leaseUntil": 2,
+          "age": 26,
+          "savings": 17065.906937699765
+        },
+        {
+          "id": "household-2",
+          "districtId": "d2",
+          "unitId": "unit-d2-0",
+          "size": 4,
+          "children": 0,
+          "income": 5708.70512817055,
+          "otherIncome": 1712.611538451165,
+          "bedrooms": 1,
+          "leaseUntil": 3,
+          "age": 27,
+          "savings": 17126.11538451165
+        },
+        {
+          "id": "household-3",
+          "districtId": "d0",
+          "unitId": "unit-d0-1",
+          "size": 2,
+          "children": 1,
+          "income": 7729.656015988439,
+          "otherIncome": 2318.896804796532,
+          "bedrooms": 2,
+          "leaseUntil": 4,
+          "age": 28,
+          "savings": 23188.968047965318
+        },
+        {
+          "id": "household-4",
+          "districtId": "d1",
+          "unitId": "unit-d1-1",
+          "size": 3,
+          "children": 0,
+          "income": 3778.2561774365604,
+          "otherIncome": 1133.4768532309681,
+          "bedrooms": 1,
+          "leaseUntil": 5,
+          "age": 29,
+          "savings": 11334.768532309681
+        },
+        {
+          "id": "household-5",
+          "districtId": "d2",
+          "unitId": "unit-d2-1",
+          "size": 4,
+          "children": 0,
+          "income": 6231.333119329065,
+          "otherIncome": 1869.3999357987195,
+          "bedrooms": 2,
+          "leaseUntil": 6,
+          "age": 30,
+          "savings": 18693.999357987195
+        },
+        {
+          "id": "household-6",
+          "districtId": "d0",
+          "unitId": "unit-d0-2",
+          "size": 2,
+          "children": 1,
+          "income": 4966.069010086358,
+          "otherIncome": 1489.8207030259073,
+          "bedrooms": 1,
+          "leaseUntil": 7,
+          "age": 31,
+          "savings": 14898.207030259073
+        },
+        {
+          "id": "household-7",
+          "districtId": "d1",
+          "unitId": "unit-d1-2",
+          "size": 3,
+          "children": 0,
+          "income": 4701.066999230534,
+          "otherIncome": 1410.3200997691602,
+          "bedrooms": 2,
+          "leaseUntil": 8,
+          "age": 32,
+          "savings": 14103.200997691602
+        },
+        {
+          "id": "household-8",
+          "districtId": "d2",
+          "unitId": "unit-d2-2",
+          "size": 4,
+          "children": 0,
+          "income": 4032.6640715356916,
+          "otherIncome": 1209.7992214607075,
+          "bedrooms": 1,
+          "leaseUntil": 9,
+          "age": 33,
+          "savings": 12097.992214607075
+        },
+        {
+          "id": "household-9",
+          "districtId": "d0",
+          "unitId": "unit-d0-3",
+          "size": 2,
+          "children": 1,
+          "income": 5545.940716518089,
+          "otherIncome": 1663.7822149554268,
+          "bedrooms": 2,
+          "leaseUntil": 10,
+          "age": 34,
+          "savings": 16637.822149554268
+        },
+        {
+          "id": "household-10",
+          "districtId": "d1",
+          "unitId": "unit-d1-3",
+          "size": 3,
+          "children": 0,
+          "income": 4437.2833468951285,
+          "otherIncome": 1331.1850040685385,
+          "bedrooms": 1,
+          "leaseUntil": 11,
+          "age": 35,
+          "savings": 13311.850040685385
+        },
+        {
+          "id": "household-11",
+          "districtId": "d2",
+          "unitId": "unit-d2-3",
+          "size": 4,
+          "children": 0,
+          "income": 6316.545154666528,
+          "otherIncome": 1894.9635463999584,
+          "bedrooms": 2,
+          "leaseUntil": 12,
+          "age": 36,
+          "savings": 18949.635463999584
+        },
+        {
+          "id": "household-12",
+          "districtId": "d0",
+          "unitId": "unit-d0-4",
+          "size": 2,
+          "children": 1,
+          "income": 7963.070357916877,
+          "otherIncome": 2388.921107375063,
+          "bedrooms": 1,
+          "leaseUntil": 1,
+          "age": 37,
+          "savings": 23889.21107375063
+        },
+        {
+          "id": "household-13",
+          "districtId": "d1",
+          "unitId": "unit-d1-4",
+          "size": 3,
+          "children": 0,
+          "income": 7017.587116686627,
+          "otherIncome": 2105.276135005988,
+          "bedrooms": 2,
+          "leaseUntil": 2,
+          "age": 38,
+          "savings": 21052.76135005988
+        },
+        {
+          "id": "household-14",
+          "districtId": "d2",
+          "unitId": "unit-d2-4",
+          "size": 4,
+          "children": 0,
+          "income": 6094.018452102318,
+          "otherIncome": 1828.2055356306955,
+          "bedrooms": 1,
+          "leaseUntil": 3,
+          "age": 39,
+          "savings": 18282.055356306955
+        },
+        {
+          "id": "household-15",
+          "districtId": "d0",
+          "unitId": "unit-d0-5",
+          "size": 2,
+          "children": 1,
+          "income": 4439.873327035457,
+          "otherIncome": 1331.961998110637,
+          "bedrooms": 2,
+          "leaseUntil": 4,
+          "age": 40,
+          "savings": 13319.61998110637
+        },
+        {
+          "id": "household-16",
+          "districtId": "d1",
+          "unitId": "unit-d1-5",
+          "size": 3,
+          "children": 0,
+          "income": 4706.387011799961,
+          "otherIncome": 1411.9161035399884,
+          "bedrooms": 1,
+          "leaseUntil": 5,
+          "age": 41,
+          "savings": 14119.161035399884
+        },
+        {
+          "id": "household-17",
+          "districtId": "d2",
+          "unitId": "unit-d2-5",
+          "size": 4,
+          "children": 0,
+          "income": 3298.879196634516,
+          "otherIncome": 989.6637589903548,
+          "bedrooms": 2,
+          "leaseUntil": 6,
+          "age": 42,
+          "savings": 9896.637589903548
+        },
+        {
+          "id": "household-18",
+          "districtId": "d0",
+          "unitId": "unit-d0-6",
+          "size": 2,
+          "children": 1,
+          "income": 3724.6878393925726,
+          "otherIncome": 1117.4063518177718,
+          "bedrooms": 1,
+          "leaseUntil": 7,
+          "age": 43,
+          "savings": 11174.063518177718
+        },
+        {
+          "id": "household-19",
+          "districtId": "d1",
+          "unitId": "unit-d1-6",
+          "size": 3,
+          "children": 0,
+          "income": 3916.14973731339,
+          "otherIncome": 1174.844921194017,
+          "bedrooms": 2,
+          "leaseUntil": 8,
+          "age": 44,
+          "savings": 11748.44921194017
+        },
+        {
+          "id": "household-20",
+          "districtId": "d2",
+          "unitId": "unit-d2-6",
+          "size": 4,
+          "children": 0,
+          "income": 4747.45028372854,
+          "otherIncome": 1424.235085118562,
+          "bedrooms": 1,
+          "leaseUntil": 9,
+          "age": 45,
+          "savings": 14242.35085118562
+        },
+        {
+          "id": "household-21",
+          "districtId": "d0",
+          "unitId": "unit-d0-7",
+          "size": 2,
+          "children": 1,
+          "income": 4863.027851795778,
+          "otherIncome": 1458.9083555387333,
+          "bedrooms": 2,
+          "leaseUntil": 10,
+          "age": 46,
+          "savings": 14589.083555387333
+        },
+        {
+          "id": "household-22",
+          "districtId": "d1",
+          "unitId": "unit-d1-7",
+          "size": 3,
+          "children": 0,
+          "income": 5938.38293175213,
+          "otherIncome": 1781.5148795256391,
+          "bedrooms": 1,
+          "leaseUntil": 11,
+          "age": 47,
+          "savings": 17815.14879525639
+        },
+        {
+          "id": "household-23",
+          "districtId": "d2",
+          "unitId": "unit-d2-7",
+          "size": 4,
+          "children": 0,
+          "income": 3213.7251081876457,
+          "otherIncome": 964.1175324562937,
+          "bedrooms": 2,
+          "leaseUntil": 12,
+          "age": 48,
+          "savings": 9641.175324562937
+        },
+        {
+          "id": "household-24",
+          "districtId": "d0",
+          "unitId": "unit-d0-8",
+          "size": 2,
+          "children": 1,
+          "income": 7304.154439596459,
+          "otherIncome": 2191.246331878938,
+          "bedrooms": 1,
+          "leaseUntil": 1,
+          "age": 49,
+          "savings": 21912.463318789378
+        },
+        {
+          "id": "household-25",
+          "districtId": "d1",
+          "unitId": "unit-d1-8",
+          "size": 3,
+          "children": 0,
+          "income": 4328.537912340835,
+          "otherIncome": 1298.5613737022504,
+          "bedrooms": 2,
+          "leaseUntil": 2,
+          "age": 50,
+          "savings": 12985.613737022504
+        },
+        {
+          "id": "household-26",
+          "districtId": "d2",
+          "unitId": "unit-d2-8",
+          "size": 4,
+          "children": 0,
+          "income": 6457.588634919375,
+          "otherIncome": 1937.2765904758126,
+          "bedrooms": 1,
+          "leaseUntil": 3,
+          "age": 51,
+          "savings": 19372.765904758126
+        },
+        {
+          "id": "household-27",
+          "districtId": "d0",
+          "unitId": "unit-d0-9",
+          "size": 2,
+          "children": 1,
+          "income": 3750.3742713015527,
+          "otherIncome": 1125.1122813904658,
+          "bedrooms": 2,
+          "leaseUntil": 4,
+          "age": 52,
+          "savings": 11251.122813904658
+        },
+        {
+          "id": "household-28",
+          "districtId": "d1",
+          "unitId": "unit-d1-9",
+          "size": 3,
+          "children": 0,
+          "income": 3925.6806480698287,
+          "otherIncome": 1177.7041944209486,
+          "bedrooms": 1,
+          "leaseUntil": 5,
+          "age": 53,
+          "savings": 11777.041944209486
+        },
+        {
+          "id": "household-29",
+          "districtId": "d2",
+          "unitId": "unit-d2-9",
+          "size": 4,
+          "children": 0,
+          "income": 4218.833802267909,
+          "otherIncome": 1265.6501406803727,
+          "bedrooms": 2,
+          "leaseUntil": 6,
+          "age": 54,
+          "savings": 12656.501406803727
+        }
+      ],
+      "workers": [
+        {
+          "id": "worker-0",
+          "householdId": "household-0",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 25
+        },
+        {
+          "id": "worker-1",
+          "householdId": "household-1",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 26
+        },
+        {
+          "id": "worker-2",
+          "householdId": "household-2",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 27
+        },
+        {
+          "id": "worker-3",
+          "householdId": "household-3",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 28
+        },
+        {
+          "id": "worker-4",
+          "householdId": "household-4",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 29
+        },
+        {
+          "id": "worker-5",
+          "householdId": "household-5",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 30
+        },
+        {
+          "id": "worker-6",
+          "householdId": "household-6",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 31
+        },
+        {
+          "id": "worker-7",
+          "householdId": "household-7",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 32
+        },
+        {
+          "id": "worker-8",
+          "householdId": "household-8",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 33
+        },
+        {
+          "id": "worker-9",
+          "householdId": "household-9",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 34
+        },
+        {
+          "id": "worker-10",
+          "householdId": "household-10",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 35
+        },
+        {
+          "id": "worker-11",
+          "householdId": "household-11",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 36
+        },
+        {
+          "id": "worker-12",
+          "householdId": "household-12",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 37
+        },
+        {
+          "id": "worker-13",
+          "householdId": "household-13",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 38
+        },
+        {
+          "id": "worker-14",
+          "householdId": "household-14",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 39
+        },
+        {
+          "id": "worker-15",
+          "householdId": "household-15",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 40
+        },
+        {
+          "id": "worker-16",
+          "householdId": "household-16",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 41
+        },
+        {
+          "id": "worker-17",
+          "householdId": "household-17",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 42
+        },
+        {
+          "id": "worker-18",
+          "householdId": "household-18",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 43
+        },
+        {
+          "id": "worker-19",
+          "householdId": "household-19",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 44
+        },
+        {
+          "id": "worker-20",
+          "householdId": "household-20",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 45
+        },
+        {
+          "id": "worker-21",
+          "householdId": "household-21",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 46
+        },
+        {
+          "id": "worker-22",
+          "householdId": "household-22",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 47
+        },
+        {
+          "id": "worker-23",
+          "householdId": "household-23",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 48
+        },
+        {
+          "id": "worker-24",
+          "householdId": "household-24",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 49
+        },
+        {
+          "id": "worker-25",
+          "householdId": "household-25",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 50
+        },
+        {
+          "id": "worker-26",
+          "householdId": "household-26",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 51
+        },
+        {
+          "id": "worker-27",
+          "householdId": "household-27",
+          "districtId": "d0",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 52
+        },
+        {
+          "id": "worker-28",
+          "householdId": "household-28",
+          "districtId": "d1",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 53
+        },
+        {
+          "id": "worker-29",
+          "householdId": "household-29",
+          "districtId": "d2",
+          "occupation": "general",
+          "jobId": null,
+          "available": true,
+          "age": 54
+        }
+      ],
+      "businesses": [
+        {
+          "id": "business-d0",
+          "districtId": "d0",
+          "type": "services",
+          "status": "open",
+          "badMonths": 0,
+          "commercialRent": 1000,
+          "operatingCost": 1000,
+          "viability": 0,
+          "demand": 0
+        },
+        {
+          "id": "business-d1",
+          "districtId": "d1",
+          "type": "services",
+          "status": "open",
+          "badMonths": 0,
+          "commercialRent": 1000,
+          "operatingCost": 1000,
+          "viability": 0,
+          "demand": 0
+        },
+        {
+          "id": "business-d2",
+          "districtId": "d2",
+          "type": "services",
+          "status": "open",
+          "badMonths": 0,
+          "commercialRent": 1000,
+          "operatingCost": 1000,
+          "viability": 0,
+          "demand": 0
+        }
+      ],
+      "jobs": [
+        {
+          "id": "job-d0-0",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-1",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-2",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-3",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-4",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-5",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-6",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d0-7",
+          "businessId": "business-d0",
+          "districtId": "d0",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-0",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-1",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-2",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-3",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-4",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-5",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-6",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d1-7",
+          "businessId": "business-d1",
+          "districtId": "d1",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-0",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-1",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-2",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-3",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-4",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-5",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-6",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        },
+        {
+          "id": "job-d2-7",
+          "businessId": "business-d2",
+          "districtId": "d2",
+          "occupation": "general",
+          "wage": 4000,
+          "workerId": null
+        }
+      ],
+      "links": [
+        {
+          "id": "road-d0-d1",
+          "from": "d0",
+          "to": "d1",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d0-d1",
+          "from": "d0",
+          "to": "d1",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d0-d2",
+          "from": "d0",
+          "to": "d2",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d0-d2",
+          "from": "d0",
+          "to": "d2",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d1-d0",
+          "from": "d1",
+          "to": "d0",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d1-d0",
+          "from": "d1",
+          "to": "d0",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d1-d2",
+          "from": "d1",
+          "to": "d2",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d1-d2",
+          "from": "d1",
+          "to": "d2",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d2-d0",
+          "from": "d2",
+          "to": "d0",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d2-d0",
+          "from": "d2",
+          "to": "d0",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        },
+        {
+          "id": "road-d2-d1",
+          "from": "d2",
+          "to": "d1",
+          "mode": "road",
+          "capacity": 25,
+          "freeTime": 12,
+          "flow": 0,
+          "travelTime": 12
+        },
+        {
+          "id": "transit-d2-d1",
+          "from": "d2",
+          "to": "d1",
+          "mode": "transit",
+          "capacity": 15,
+          "freeTime": 18,
+          "flow": 0,
+          "travelTime": 18
+        }
+      ],
+      "facilities": [
+        {
+          "id": "school-d0",
+          "districtId": "d0",
+          "type": "school",
+          "capacity": 5,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "park-d0",
+          "districtId": "d0",
+          "type": "park",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "healthcare-d0",
+          "districtId": "d0",
+          "type": "healthcare",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "emergency-d0",
+          "districtId": "d0",
+          "type": "emergency",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "library-d0",
+          "districtId": "d0",
+          "type": "library",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "school-d1",
+          "districtId": "d1",
+          "type": "school",
+          "capacity": 5,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "park-d1",
+          "districtId": "d1",
+          "type": "park",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "healthcare-d1",
+          "districtId": "d1",
+          "type": "healthcare",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "emergency-d1",
+          "districtId": "d1",
+          "type": "emergency",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "library-d1",
+          "districtId": "d1",
+          "type": "library",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "school-d2",
+          "districtId": "d2",
+          "type": "school",
+          "capacity": 5,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "park-d2",
+          "districtId": "d2",
+          "type": "park",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "healthcare-d2",
+          "districtId": "d2",
+          "type": "healthcare",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "emergency-d2",
+          "districtId": "d2",
+          "type": "emergency",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        },
+        {
+          "id": "library-d2",
+          "districtId": "d2",
+          "type": "library",
+          "capacity": 30,
+          "demand": 0,
+          "utilization": 0
+        }
+      ],
+      "utilities": [
+        {
+          "id": "electric-d0",
+          "districtId": "d0",
+          "type": "electric",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "water-d0",
+          "districtId": "d0",
+          "type": "water",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "sewer-d0",
+          "districtId": "d0",
+          "type": "sewer",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "stormwater-d0",
+          "districtId": "d0",
+          "type": "stormwater",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "electric-d1",
+          "districtId": "d1",
+          "type": "electric",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "water-d1",
+          "districtId": "d1",
+          "type": "water",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "sewer-d1",
+          "districtId": "d1",
+          "type": "sewer",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "stormwater-d1",
+          "districtId": "d1",
+          "type": "stormwater",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "electric-d2",
+          "districtId": "d2",
+          "type": "electric",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "water-d2",
+          "districtId": "d2",
+          "type": "water",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "sewer-d2",
+          "districtId": "d2",
+          "type": "sewer",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        },
+        {
+          "id": "stormwater-d2",
+          "districtId": "d2",
+          "type": "stormwater",
+          "capacity": 200,
+          "demand": 0,
+          "serviceLevel": 1
+        }
+      ],
+      "projects": [],
+      "policies": [],
+      "shocks": [],
+      "finance": {
+        "balance": 10000000,
+        "debt": 0,
+        "allowDebt": false,
+        "maxDebt": 50000000,
+        "revenue": 0,
+        "operatingExpense": 0,
+        "capitalExpense": 0
+      },
+      "parameters": {
+        "contractors": 100,
+        "labor": 80,
+        "materials": 90,
+        "equipment": 100,
+        "permits": 3,
+        "administration": 3,
+        "interestRate": 0.05,
+        "constructionCost": 140000,
+        "annualGrowth": 0
+      },
+      "systems": {
+        "environment": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "governance": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "utilities": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "development": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "construction": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "transport": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "businesses": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "jobs": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "housing": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "services": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "demographics": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        },
+        "finance": {
+          "schemaVersion": "SystemState.v1",
+          "modelVersion": "city-systems.1.0.0"
+        }
+      },
+      "flows": []
+    },
+    "events": [],
+    "observations": [],
+    "decisions": [],
+    "moves": [],
+    "trips": [],
+    "flows": [],
+    "diagnostics": [],
+    "metrics": {
+      "population": 90,
+      "households": 30,
+      "housingUnits": 36,
+      "availableUnits": 6,
+      "meanRent": 1150,
+      "unhoused": 0,
+      "employed": 0,
+      "jobs": 24,
+      "businesses": 3,
+      "meanTravelMinutes": 15,
+      "overloadedServices": 0,
+      "utilityFailures": 0,
+      "balance": 10000000,
+      "debt": 0,
+      "completedProjects": 0,
+      "capitalSpending": 0
+    },
+    "causalRecords": []
+  },
+  "diff": {
+    "month": 0,
+    "available": true,
+    "entities": [],
+    "metrics": {
+      "population": {
+        "baseline": 90,
+        "plan": 90,
+        "delta": 0,
+        "unit": "people",
+        "status": "available",
+        "missing": []
+      },
+      "households": {
+        "baseline": 30,
+        "plan": 30,
+        "delta": 0,
+        "unit": "households",
+        "status": "available",
+        "missing": []
+      },
+      "housingUnits": {
+        "baseline": 36,
+        "plan": 36,
+        "delta": 0,
+        "unit": "homes",
+        "status": "available",
+        "missing": []
+      },
+      "availableUnits": {
+        "baseline": 6,
+        "plan": 6,
+        "delta": 0,
+        "unit": "homes",
+        "status": "available",
+        "missing": []
+      },
+      "meanRent": {
+        "baseline": 1150,
+        "plan": 1150,
+        "delta": 0,
+        "unit": "USD/month",
+        "status": "available",
+        "missing": []
+      },
+      "unhoused": {
+        "baseline": 0,
+        "plan": 0,
+        "delta": 0,
+        "unit": "households",
+        "status": "available",
+        "missing": []
+      },
+      "employed": {
+        "baseline": 0,
+        "plan": 0,
+        "delta": 0,
+        "unit": "workers",
+        "status": "available",
+        "missing": []
+      },
+      "jobs": {
+        "baseline": 24,
+        "plan": 24,
+        "delta": 0,
+        "unit": "jobs",
+        "status": "available",
+        "missing": []
+      },
+      "businesses": {
+        "baseline": 3,
+        "plan": 3,
+        "delta": 0,
+        "unit": "businesses",
+        "status": "available",
+        "missing": []
+      },
+      "meanTravelMinutes": {
+        "baseline": 15,
+        "plan": 15,
+        "delta": 0,
+        "unit": "minutes/link",
+        "status": "available",
+        "missing": []
+      },
+      "balance": {
+        "baseline": 10000000,
+        "plan": 10000000,
+        "delta": 0,
+        "unit": "USD",
+        "status": "available",
+        "missing": []
+      },
+      "debt": {
+        "baseline": 0,
+        "plan": 0,
+        "delta": 0,
+        "unit": "USD",
+        "status": "available",
+        "missing": []
+      },
+      "capitalSpending": {
+        "baseline": 0,
+        "plan": 0,
+        "delta": 0,
+        "unit": "USD cumulative",
+        "status": "available",
+        "missing": []
+      },
+      "completedProjects": {
+        "baseline": 0,
+        "plan": 0,
+        "delta": 0,
+        "unit": "projects",
+        "status": "available",
+        "missing": []
+      }
+    },
+    "physicalCount": 0,
+    "changedCount": 0,
+    "households": {
+      "status": "available",
+      "identityAuthority": "monthly-city",
+      "rows": [
+        {
+          "id": "household-0",
+          "status": "matched",
+          "baseline": {
+            "id": "household-0",
+            "districtId": "d0",
+            "unitId": "unit-d0-0",
+            "size": 2,
+            "children": 1,
+            "income": 5346.323733218014,
+            "otherIncome": 1603.8971199654043,
+            "bedrooms": 1,
+            "leaseUntil": 1,
+            "age": 25,
+            "savings": 16038.971199654043
+          },
+          "plan": {
+            "id": "household-0",
+            "districtId": "d0",
+            "unitId": "unit-d0-0",
+            "size": 2,
+            "children": 1,
+            "income": 5346.323733218014,
+            "otherIncome": 1603.8971199654043,
+            "bedrooms": 1,
+            "leaseUntil": 1,
+            "age": 25,
+            "savings": 16038.971199654043
+          },
+          "income": {
+            "baseline": 5346.323733218014,
+            "plan": 5346.323733218014,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 16038.971199654043,
+            "plan": 16038.971199654043,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-0",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-0",
+              "buildingId": "building-d0"
+            }
+          }
+        },
+        {
+          "id": "household-1",
+          "status": "matched",
+          "baseline": {
+            "id": "household-1",
+            "districtId": "d1",
+            "unitId": "unit-d1-0",
+            "size": 3,
+            "children": 0,
+            "income": 5688.635645899922,
+            "otherIncome": 1706.5906937699765,
+            "bedrooms": 2,
+            "leaseUntil": 2,
+            "age": 26,
+            "savings": 17065.906937699765
+          },
+          "plan": {
+            "id": "household-1",
+            "districtId": "d1",
+            "unitId": "unit-d1-0",
+            "size": 3,
+            "children": 0,
+            "income": 5688.635645899922,
+            "otherIncome": 1706.5906937699765,
+            "bedrooms": 2,
+            "leaseUntil": 2,
+            "age": 26,
+            "savings": 17065.906937699765
+          },
+          "income": {
+            "baseline": 5688.635645899922,
+            "plan": 5688.635645899922,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 17065.906937699765,
+            "plan": 17065.906937699765,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-0",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-0",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-10",
+          "status": "matched",
+          "baseline": {
+            "id": "household-10",
+            "districtId": "d1",
+            "unitId": "unit-d1-3",
+            "size": 3,
+            "children": 0,
+            "income": 4437.2833468951285,
+            "otherIncome": 1331.1850040685385,
+            "bedrooms": 1,
+            "leaseUntil": 11,
+            "age": 35,
+            "savings": 13311.850040685385
+          },
+          "plan": {
+            "id": "household-10",
+            "districtId": "d1",
+            "unitId": "unit-d1-3",
+            "size": 3,
+            "children": 0,
+            "income": 4437.2833468951285,
+            "otherIncome": 1331.1850040685385,
+            "bedrooms": 1,
+            "leaseUntil": 11,
+            "age": 35,
+            "savings": 13311.850040685385
+          },
+          "income": {
+            "baseline": 4437.2833468951285,
+            "plan": 4437.2833468951285,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 13311.850040685385,
+            "plan": 13311.850040685385,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-3",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-3",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-11",
+          "status": "matched",
+          "baseline": {
+            "id": "household-11",
+            "districtId": "d2",
+            "unitId": "unit-d2-3",
+            "size": 4,
+            "children": 0,
+            "income": 6316.545154666528,
+            "otherIncome": 1894.9635463999584,
+            "bedrooms": 2,
+            "leaseUntil": 12,
+            "age": 36,
+            "savings": 18949.635463999584
+          },
+          "plan": {
+            "id": "household-11",
+            "districtId": "d2",
+            "unitId": "unit-d2-3",
+            "size": 4,
+            "children": 0,
+            "income": 6316.545154666528,
+            "otherIncome": 1894.9635463999584,
+            "bedrooms": 2,
+            "leaseUntil": 12,
+            "age": 36,
+            "savings": 18949.635463999584
+          },
+          "income": {
+            "baseline": 6316.545154666528,
+            "plan": 6316.545154666528,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 18949.635463999584,
+            "plan": 18949.635463999584,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-3",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-3",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-12",
+          "status": "matched",
+          "baseline": {
+            "id": "household-12",
+            "districtId": "d0",
+            "unitId": "unit-d0-4",
+            "size": 2,
+            "children": 1,
+            "income": 7963.070357916877,
+            "otherIncome": 2388.921107375063,
+            "bedrooms": 1,
+            "leaseUntil": 1,
+            "age": 37,
+            "savings": 23889.21107375063
+          },
+          "plan": {
+            "id": "household-12",
+            "districtId": "d0",
+            "unitId": "unit-d0-4",
+            "size": 2,
+            "children": 1,
+            "income": 7963.070357916877,
+            "otherIncome": 2388.921107375063,
+            "bedrooms": 1,
+            "leaseUntil": 1,
+            "age": 37,
+            "savings": 23889.21107375063
+          },
+          "income": {
+            "baseline": 7963.070357916877,
+            "plan": 7963.070357916877,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 23889.21107375063,
+            "plan": 23889.21107375063,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-4",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-4",
+              "buildingId": "building-d0"
+            }
+          }
+        },
+        {
+          "id": "household-13",
+          "status": "matched",
+          "baseline": {
+            "id": "household-13",
+            "districtId": "d1",
+            "unitId": "unit-d1-4",
+            "size": 3,
+            "children": 0,
+            "income": 7017.587116686627,
+            "otherIncome": 2105.276135005988,
+            "bedrooms": 2,
+            "leaseUntil": 2,
+            "age": 38,
+            "savings": 21052.76135005988
+          },
+          "plan": {
+            "id": "household-13",
+            "districtId": "d1",
+            "unitId": "unit-d1-4",
+            "size": 3,
+            "children": 0,
+            "income": 7017.587116686627,
+            "otherIncome": 2105.276135005988,
+            "bedrooms": 2,
+            "leaseUntil": 2,
+            "age": 38,
+            "savings": 21052.76135005988
+          },
+          "income": {
+            "baseline": 7017.587116686627,
+            "plan": 7017.587116686627,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 21052.76135005988,
+            "plan": 21052.76135005988,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-4",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-4",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-14",
+          "status": "matched",
+          "baseline": {
+            "id": "household-14",
+            "districtId": "d2",
+            "unitId": "unit-d2-4",
+            "size": 4,
+            "children": 0,
+            "income": 6094.018452102318,
+            "otherIncome": 1828.2055356306955,
+            "bedrooms": 1,
+            "leaseUntil": 3,
+            "age": 39,
+            "savings": 18282.055356306955
+          },
+          "plan": {
+            "id": "household-14",
+            "districtId": "d2",
+            "unitId": "unit-d2-4",
+            "size": 4,
+            "children": 0,
+            "income": 6094.018452102318,
+            "otherIncome": 1828.2055356306955,
+            "bedrooms": 1,
+            "leaseUntil": 3,
+            "age": 39,
+            "savings": 18282.055356306955
+          },
+          "income": {
+            "baseline": 6094.018452102318,
+            "plan": 6094.018452102318,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 18282.055356306955,
+            "plan": 18282.055356306955,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-4",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-4",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-15",
+          "status": "matched",
+          "baseline": {
+            "id": "household-15",
+            "districtId": "d0",
+            "unitId": "unit-d0-5",
+            "size": 2,
+            "children": 1,
+            "income": 4439.873327035457,
+            "otherIncome": 1331.961998110637,
+            "bedrooms": 2,
+            "leaseUntil": 4,
+            "age": 40,
+            "savings": 13319.61998110637
+          },
+          "plan": {
+            "id": "household-15",
+            "districtId": "d0",
+            "unitId": "unit-d0-5",
+            "size": 2,
+            "children": 1,
+            "income": 4439.873327035457,
+            "otherIncome": 1331.961998110637,
+            "bedrooms": 2,
+            "leaseUntil": 4,
+            "age": 40,
+            "savings": 13319.61998110637
+          },
+          "income": {
+            "baseline": 4439.873327035457,
+            "plan": 4439.873327035457,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 13319.61998110637,
+            "plan": 13319.61998110637,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-5",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-5",
+              "buildingId": "building-d0"
+            }
+          }
+        },
+        {
+          "id": "household-16",
+          "status": "matched",
+          "baseline": {
+            "id": "household-16",
+            "districtId": "d1",
+            "unitId": "unit-d1-5",
+            "size": 3,
+            "children": 0,
+            "income": 4706.387011799961,
+            "otherIncome": 1411.9161035399884,
+            "bedrooms": 1,
+            "leaseUntil": 5,
+            "age": 41,
+            "savings": 14119.161035399884
+          },
+          "plan": {
+            "id": "household-16",
+            "districtId": "d1",
+            "unitId": "unit-d1-5",
+            "size": 3,
+            "children": 0,
+            "income": 4706.387011799961,
+            "otherIncome": 1411.9161035399884,
+            "bedrooms": 1,
+            "leaseUntil": 5,
+            "age": 41,
+            "savings": 14119.161035399884
+          },
+          "income": {
+            "baseline": 4706.387011799961,
+            "plan": 4706.387011799961,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 14119.161035399884,
+            "plan": 14119.161035399884,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-5",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-5",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-17",
+          "status": "matched",
+          "baseline": {
+            "id": "household-17",
+            "districtId": "d2",
+            "unitId": "unit-d2-5",
+            "size": 4,
+            "children": 0,
+            "income": 3298.879196634516,
+            "otherIncome": 989.6637589903548,
+            "bedrooms": 2,
+            "leaseUntil": 6,
+            "age": 42,
+            "savings": 9896.637589903548
+          },
+          "plan": {
+            "id": "household-17",
+            "districtId": "d2",
+            "unitId": "unit-d2-5",
+            "size": 4,
+            "children": 0,
+            "income": 3298.879196634516,
+            "otherIncome": 989.6637589903548,
+            "bedrooms": 2,
+            "leaseUntil": 6,
+            "age": 42,
+            "savings": 9896.637589903548
+          },
+          "income": {
+            "baseline": 3298.879196634516,
+            "plan": 3298.879196634516,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 9896.637589903548,
+            "plan": 9896.637589903548,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-5",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-5",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-18",
+          "status": "matched",
+          "baseline": {
+            "id": "household-18",
+            "districtId": "d0",
+            "unitId": "unit-d0-6",
+            "size": 2,
+            "children": 1,
+            "income": 3724.6878393925726,
+            "otherIncome": 1117.4063518177718,
+            "bedrooms": 1,
+            "leaseUntil": 7,
+            "age": 43,
+            "savings": 11174.063518177718
+          },
+          "plan": {
+            "id": "household-18",
+            "districtId": "d0",
+            "unitId": "unit-d0-6",
+            "size": 2,
+            "children": 1,
+            "income": 3724.6878393925726,
+            "otherIncome": 1117.4063518177718,
+            "bedrooms": 1,
+            "leaseUntil": 7,
+            "age": 43,
+            "savings": 11174.063518177718
+          },
+          "income": {
+            "baseline": 3724.6878393925726,
+            "plan": 3724.6878393925726,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 11174.063518177718,
+            "plan": 11174.063518177718,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-6",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-6",
+              "buildingId": "building-d0"
+            }
+          }
+        },
+        {
+          "id": "household-19",
+          "status": "matched",
+          "baseline": {
+            "id": "household-19",
+            "districtId": "d1",
+            "unitId": "unit-d1-6",
+            "size": 3,
+            "children": 0,
+            "income": 3916.14973731339,
+            "otherIncome": 1174.844921194017,
+            "bedrooms": 2,
+            "leaseUntil": 8,
+            "age": 44,
+            "savings": 11748.44921194017
+          },
+          "plan": {
+            "id": "household-19",
+            "districtId": "d1",
+            "unitId": "unit-d1-6",
+            "size": 3,
+            "children": 0,
+            "income": 3916.14973731339,
+            "otherIncome": 1174.844921194017,
+            "bedrooms": 2,
+            "leaseUntil": 8,
+            "age": 44,
+            "savings": 11748.44921194017
+          },
+          "income": {
+            "baseline": 3916.14973731339,
+            "plan": 3916.14973731339,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 11748.44921194017,
+            "plan": 11748.44921194017,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-6",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-6",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-2",
+          "status": "matched",
+          "baseline": {
+            "id": "household-2",
+            "districtId": "d2",
+            "unitId": "unit-d2-0",
+            "size": 4,
+            "children": 0,
+            "income": 5708.70512817055,
+            "otherIncome": 1712.611538451165,
+            "bedrooms": 1,
+            "leaseUntil": 3,
+            "age": 27,
+            "savings": 17126.11538451165
+          },
+          "plan": {
+            "id": "household-2",
+            "districtId": "d2",
+            "unitId": "unit-d2-0",
+            "size": 4,
+            "children": 0,
+            "income": 5708.70512817055,
+            "otherIncome": 1712.611538451165,
+            "bedrooms": 1,
+            "leaseUntil": 3,
+            "age": 27,
+            "savings": 17126.11538451165
+          },
+          "income": {
+            "baseline": 5708.70512817055,
+            "plan": 5708.70512817055,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 17126.11538451165,
+            "plan": 17126.11538451165,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-0",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-0",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-20",
+          "status": "matched",
+          "baseline": {
+            "id": "household-20",
+            "districtId": "d2",
+            "unitId": "unit-d2-6",
+            "size": 4,
+            "children": 0,
+            "income": 4747.45028372854,
+            "otherIncome": 1424.235085118562,
+            "bedrooms": 1,
+            "leaseUntil": 9,
+            "age": 45,
+            "savings": 14242.35085118562
+          },
+          "plan": {
+            "id": "household-20",
+            "districtId": "d2",
+            "unitId": "unit-d2-6",
+            "size": 4,
+            "children": 0,
+            "income": 4747.45028372854,
+            "otherIncome": 1424.235085118562,
+            "bedrooms": 1,
+            "leaseUntil": 9,
+            "age": 45,
+            "savings": 14242.35085118562
+          },
+          "income": {
+            "baseline": 4747.45028372854,
+            "plan": 4747.45028372854,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 14242.35085118562,
+            "plan": 14242.35085118562,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-6",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-6",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-21",
+          "status": "matched",
+          "baseline": {
+            "id": "household-21",
+            "districtId": "d0",
+            "unitId": "unit-d0-7",
+            "size": 2,
+            "children": 1,
+            "income": 4863.027851795778,
+            "otherIncome": 1458.9083555387333,
+            "bedrooms": 2,
+            "leaseUntil": 10,
+            "age": 46,
+            "savings": 14589.083555387333
+          },
+          "plan": {
+            "id": "household-21",
+            "districtId": "d0",
+            "unitId": "unit-d0-7",
+            "size": 2,
+            "children": 1,
+            "income": 4863.027851795778,
+            "otherIncome": 1458.9083555387333,
+            "bedrooms": 2,
+            "leaseUntil": 10,
+            "age": 46,
+            "savings": 14589.083555387333
+          },
+          "income": {
+            "baseline": 4863.027851795778,
+            "plan": 4863.027851795778,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 14589.083555387333,
+            "plan": 14589.083555387333,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-7",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-7",
+              "buildingId": "building-d0"
+            }
+          }
+        },
+        {
+          "id": "household-22",
+          "status": "matched",
+          "baseline": {
+            "id": "household-22",
+            "districtId": "d1",
+            "unitId": "unit-d1-7",
+            "size": 3,
+            "children": 0,
+            "income": 5938.38293175213,
+            "otherIncome": 1781.5148795256391,
+            "bedrooms": 1,
+            "leaseUntil": 11,
+            "age": 47,
+            "savings": 17815.14879525639
+          },
+          "plan": {
+            "id": "household-22",
+            "districtId": "d1",
+            "unitId": "unit-d1-7",
+            "size": 3,
+            "children": 0,
+            "income": 5938.38293175213,
+            "otherIncome": 1781.5148795256391,
+            "bedrooms": 1,
+            "leaseUntil": 11,
+            "age": 47,
+            "savings": 17815.14879525639
+          },
+          "income": {
+            "baseline": 5938.38293175213,
+            "plan": 5938.38293175213,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 17815.14879525639,
+            "plan": 17815.14879525639,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-7",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-7",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-23",
+          "status": "matched",
+          "baseline": {
+            "id": "household-23",
+            "districtId": "d2",
+            "unitId": "unit-d2-7",
+            "size": 4,
+            "children": 0,
+            "income": 3213.7251081876457,
+            "otherIncome": 964.1175324562937,
+            "bedrooms": 2,
+            "leaseUntil": 12,
+            "age": 48,
+            "savings": 9641.175324562937
+          },
+          "plan": {
+            "id": "household-23",
+            "districtId": "d2",
+            "unitId": "unit-d2-7",
+            "size": 4,
+            "children": 0,
+            "income": 3213.7251081876457,
+            "otherIncome": 964.1175324562937,
+            "bedrooms": 2,
+            "leaseUntil": 12,
+            "age": 48,
+            "savings": 9641.175324562937
+          },
+          "income": {
+            "baseline": 3213.7251081876457,
+            "plan": 3213.7251081876457,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 9641.175324562937,
+            "plan": 9641.175324562937,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-7",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-7",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-24",
+          "status": "matched",
+          "baseline": {
+            "id": "household-24",
+            "districtId": "d0",
+            "unitId": "unit-d0-8",
+            "size": 2,
+            "children": 1,
+            "income": 7304.154439596459,
+            "otherIncome": 2191.246331878938,
+            "bedrooms": 1,
+            "leaseUntil": 1,
+            "age": 49,
+            "savings": 21912.463318789378
+          },
+          "plan": {
+            "id": "household-24",
+            "districtId": "d0",
+            "unitId": "unit-d0-8",
+            "size": 2,
+            "children": 1,
+            "income": 7304.154439596459,
+            "otherIncome": 2191.246331878938,
+            "bedrooms": 1,
+            "leaseUntil": 1,
+            "age": 49,
+            "savings": 21912.463318789378
+          },
+          "income": {
+            "baseline": 7304.154439596459,
+            "plan": 7304.154439596459,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 21912.463318789378,
+            "plan": 21912.463318789378,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-8",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-8",
+              "buildingId": "building-d0"
+            }
+          }
+        },
+        {
+          "id": "household-25",
+          "status": "matched",
+          "baseline": {
+            "id": "household-25",
+            "districtId": "d1",
+            "unitId": "unit-d1-8",
+            "size": 3,
+            "children": 0,
+            "income": 4328.537912340835,
+            "otherIncome": 1298.5613737022504,
+            "bedrooms": 2,
+            "leaseUntil": 2,
+            "age": 50,
+            "savings": 12985.613737022504
+          },
+          "plan": {
+            "id": "household-25",
+            "districtId": "d1",
+            "unitId": "unit-d1-8",
+            "size": 3,
+            "children": 0,
+            "income": 4328.537912340835,
+            "otherIncome": 1298.5613737022504,
+            "bedrooms": 2,
+            "leaseUntil": 2,
+            "age": 50,
+            "savings": 12985.613737022504
+          },
+          "income": {
+            "baseline": 4328.537912340835,
+            "plan": 4328.537912340835,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 12985.613737022504,
+            "plan": 12985.613737022504,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-8",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-8",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-26",
+          "status": "matched",
+          "baseline": {
+            "id": "household-26",
+            "districtId": "d2",
+            "unitId": "unit-d2-8",
+            "size": 4,
+            "children": 0,
+            "income": 6457.588634919375,
+            "otherIncome": 1937.2765904758126,
+            "bedrooms": 1,
+            "leaseUntil": 3,
+            "age": 51,
+            "savings": 19372.765904758126
+          },
+          "plan": {
+            "id": "household-26",
+            "districtId": "d2",
+            "unitId": "unit-d2-8",
+            "size": 4,
+            "children": 0,
+            "income": 6457.588634919375,
+            "otherIncome": 1937.2765904758126,
+            "bedrooms": 1,
+            "leaseUntil": 3,
+            "age": 51,
+            "savings": 19372.765904758126
+          },
+          "income": {
+            "baseline": 6457.588634919375,
+            "plan": 6457.588634919375,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 19372.765904758126,
+            "plan": 19372.765904758126,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-8",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-8",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-27",
+          "status": "matched",
+          "baseline": {
+            "id": "household-27",
+            "districtId": "d0",
+            "unitId": "unit-d0-9",
+            "size": 2,
+            "children": 1,
+            "income": 3750.3742713015527,
+            "otherIncome": 1125.1122813904658,
+            "bedrooms": 2,
+            "leaseUntil": 4,
+            "age": 52,
+            "savings": 11251.122813904658
+          },
+          "plan": {
+            "id": "household-27",
+            "districtId": "d0",
+            "unitId": "unit-d0-9",
+            "size": 2,
+            "children": 1,
+            "income": 3750.3742713015527,
+            "otherIncome": 1125.1122813904658,
+            "bedrooms": 2,
+            "leaseUntil": 4,
+            "age": 52,
+            "savings": 11251.122813904658
+          },
+          "income": {
+            "baseline": 3750.3742713015527,
+            "plan": 3750.3742713015527,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 11251.122813904658,
+            "plan": 11251.122813904658,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-9",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-9",
+              "buildingId": "building-d0"
+            }
+          }
+        },
+        {
+          "id": "household-28",
+          "status": "matched",
+          "baseline": {
+            "id": "household-28",
+            "districtId": "d1",
+            "unitId": "unit-d1-9",
+            "size": 3,
+            "children": 0,
+            "income": 3925.6806480698287,
+            "otherIncome": 1177.7041944209486,
+            "bedrooms": 1,
+            "leaseUntil": 5,
+            "age": 53,
+            "savings": 11777.041944209486
+          },
+          "plan": {
+            "id": "household-28",
+            "districtId": "d1",
+            "unitId": "unit-d1-9",
+            "size": 3,
+            "children": 0,
+            "income": 3925.6806480698287,
+            "otherIncome": 1177.7041944209486,
+            "bedrooms": 1,
+            "leaseUntil": 5,
+            "age": 53,
+            "savings": 11777.041944209486
+          },
+          "income": {
+            "baseline": 3925.6806480698287,
+            "plan": 3925.6806480698287,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 11777.041944209486,
+            "plan": 11777.041944209486,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-9",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-9",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-29",
+          "status": "matched",
+          "baseline": {
+            "id": "household-29",
+            "districtId": "d2",
+            "unitId": "unit-d2-9",
+            "size": 4,
+            "children": 0,
+            "income": 4218.833802267909,
+            "otherIncome": 1265.6501406803727,
+            "bedrooms": 2,
+            "leaseUntil": 6,
+            "age": 54,
+            "savings": 12656.501406803727
+          },
+          "plan": {
+            "id": "household-29",
+            "districtId": "d2",
+            "unitId": "unit-d2-9",
+            "size": 4,
+            "children": 0,
+            "income": 4218.833802267909,
+            "otherIncome": 1265.6501406803727,
+            "bedrooms": 2,
+            "leaseUntil": 6,
+            "age": 54,
+            "savings": 12656.501406803727
+          },
+          "income": {
+            "baseline": 4218.833802267909,
+            "plan": 4218.833802267909,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 12656.501406803727,
+            "plan": 12656.501406803727,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-9",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-9",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-3",
+          "status": "matched",
+          "baseline": {
+            "id": "household-3",
+            "districtId": "d0",
+            "unitId": "unit-d0-1",
+            "size": 2,
+            "children": 1,
+            "income": 7729.656015988439,
+            "otherIncome": 2318.896804796532,
+            "bedrooms": 2,
+            "leaseUntil": 4,
+            "age": 28,
+            "savings": 23188.968047965318
+          },
+          "plan": {
+            "id": "household-3",
+            "districtId": "d0",
+            "unitId": "unit-d0-1",
+            "size": 2,
+            "children": 1,
+            "income": 7729.656015988439,
+            "otherIncome": 2318.896804796532,
+            "bedrooms": 2,
+            "leaseUntil": 4,
+            "age": 28,
+            "savings": 23188.968047965318
+          },
+          "income": {
+            "baseline": 7729.656015988439,
+            "plan": 7729.656015988439,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 23188.968047965318,
+            "plan": 23188.968047965318,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-1",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-1",
+              "buildingId": "building-d0"
+            }
+          }
+        },
+        {
+          "id": "household-4",
+          "status": "matched",
+          "baseline": {
+            "id": "household-4",
+            "districtId": "d1",
+            "unitId": "unit-d1-1",
+            "size": 3,
+            "children": 0,
+            "income": 3778.2561774365604,
+            "otherIncome": 1133.4768532309681,
+            "bedrooms": 1,
+            "leaseUntil": 5,
+            "age": 29,
+            "savings": 11334.768532309681
+          },
+          "plan": {
+            "id": "household-4",
+            "districtId": "d1",
+            "unitId": "unit-d1-1",
+            "size": 3,
+            "children": 0,
+            "income": 3778.2561774365604,
+            "otherIncome": 1133.4768532309681,
+            "bedrooms": 1,
+            "leaseUntil": 5,
+            "age": 29,
+            "savings": 11334.768532309681
+          },
+          "income": {
+            "baseline": 3778.2561774365604,
+            "plan": 3778.2561774365604,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 11334.768532309681,
+            "plan": 11334.768532309681,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-1",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-1",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-5",
+          "status": "matched",
+          "baseline": {
+            "id": "household-5",
+            "districtId": "d2",
+            "unitId": "unit-d2-1",
+            "size": 4,
+            "children": 0,
+            "income": 6231.333119329065,
+            "otherIncome": 1869.3999357987195,
+            "bedrooms": 2,
+            "leaseUntil": 6,
+            "age": 30,
+            "savings": 18693.999357987195
+          },
+          "plan": {
+            "id": "household-5",
+            "districtId": "d2",
+            "unitId": "unit-d2-1",
+            "size": 4,
+            "children": 0,
+            "income": 6231.333119329065,
+            "otherIncome": 1869.3999357987195,
+            "bedrooms": 2,
+            "leaseUntil": 6,
+            "age": 30,
+            "savings": 18693.999357987195
+          },
+          "income": {
+            "baseline": 6231.333119329065,
+            "plan": 6231.333119329065,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 18693.999357987195,
+            "plan": 18693.999357987195,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-1",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-1",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-6",
+          "status": "matched",
+          "baseline": {
+            "id": "household-6",
+            "districtId": "d0",
+            "unitId": "unit-d0-2",
+            "size": 2,
+            "children": 1,
+            "income": 4966.069010086358,
+            "otherIncome": 1489.8207030259073,
+            "bedrooms": 1,
+            "leaseUntil": 7,
+            "age": 31,
+            "savings": 14898.207030259073
+          },
+          "plan": {
+            "id": "household-6",
+            "districtId": "d0",
+            "unitId": "unit-d0-2",
+            "size": 2,
+            "children": 1,
+            "income": 4966.069010086358,
+            "otherIncome": 1489.8207030259073,
+            "bedrooms": 1,
+            "leaseUntil": 7,
+            "age": 31,
+            "savings": 14898.207030259073
+          },
+          "income": {
+            "baseline": 4966.069010086358,
+            "plan": 4966.069010086358,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 14898.207030259073,
+            "plan": 14898.207030259073,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-2",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-2",
+              "buildingId": "building-d0"
+            }
+          }
+        },
+        {
+          "id": "household-7",
+          "status": "matched",
+          "baseline": {
+            "id": "household-7",
+            "districtId": "d1",
+            "unitId": "unit-d1-2",
+            "size": 3,
+            "children": 0,
+            "income": 4701.066999230534,
+            "otherIncome": 1410.3200997691602,
+            "bedrooms": 2,
+            "leaseUntil": 8,
+            "age": 32,
+            "savings": 14103.200997691602
+          },
+          "plan": {
+            "id": "household-7",
+            "districtId": "d1",
+            "unitId": "unit-d1-2",
+            "size": 3,
+            "children": 0,
+            "income": 4701.066999230534,
+            "otherIncome": 1410.3200997691602,
+            "bedrooms": 2,
+            "leaseUntil": 8,
+            "age": 32,
+            "savings": 14103.200997691602
+          },
+          "income": {
+            "baseline": 4701.066999230534,
+            "plan": 4701.066999230534,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 14103.200997691602,
+            "plan": 14103.200997691602,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1150,
+            "plan": 1150,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d1-2",
+              "buildingId": "building-d1"
+            },
+            "plan": {
+              "unitId": "unit-d1-2",
+              "buildingId": "building-d1"
+            }
+          }
+        },
+        {
+          "id": "household-8",
+          "status": "matched",
+          "baseline": {
+            "id": "household-8",
+            "districtId": "d2",
+            "unitId": "unit-d2-2",
+            "size": 4,
+            "children": 0,
+            "income": 4032.6640715356916,
+            "otherIncome": 1209.7992214607075,
+            "bedrooms": 1,
+            "leaseUntil": 9,
+            "age": 33,
+            "savings": 12097.992214607075
+          },
+          "plan": {
+            "id": "household-8",
+            "districtId": "d2",
+            "unitId": "unit-d2-2",
+            "size": 4,
+            "children": 0,
+            "income": 4032.6640715356916,
+            "otherIncome": 1209.7992214607075,
+            "bedrooms": 1,
+            "leaseUntil": 9,
+            "age": 33,
+            "savings": 12097.992214607075
+          },
+          "income": {
+            "baseline": 4032.6640715356916,
+            "plan": 4032.6640715356916,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 12097.992214607075,
+            "plan": 12097.992214607075,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1300,
+            "plan": 1300,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d2-2",
+              "buildingId": "building-d2"
+            },
+            "plan": {
+              "unitId": "unit-d2-2",
+              "buildingId": "building-d2"
+            }
+          }
+        },
+        {
+          "id": "household-9",
+          "status": "matched",
+          "baseline": {
+            "id": "household-9",
+            "districtId": "d0",
+            "unitId": "unit-d0-3",
+            "size": 2,
+            "children": 1,
+            "income": 5545.940716518089,
+            "otherIncome": 1663.7822149554268,
+            "bedrooms": 2,
+            "leaseUntil": 10,
+            "age": 34,
+            "savings": 16637.822149554268
+          },
+          "plan": {
+            "id": "household-9",
+            "districtId": "d0",
+            "unitId": "unit-d0-3",
+            "size": 2,
+            "children": 1,
+            "income": 5545.940716518089,
+            "otherIncome": 1663.7822149554268,
+            "bedrooms": 2,
+            "leaseUntil": 10,
+            "age": 34,
+            "savings": 16637.822149554268
+          },
+          "income": {
+            "baseline": 5545.940716518089,
+            "plan": 5545.940716518089,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "savings": {
+            "baseline": 16637.822149554268,
+            "plan": 16637.822149554268,
+            "delta": 0,
+            "unit": "USD stock",
+            "status": "available",
+            "missing": []
+          },
+          "rent": {
+            "baseline": 1000,
+            "plan": 1000,
+            "delta": 0,
+            "unit": "USD/month",
+            "status": "available",
+            "missing": []
+          },
+          "housing": {
+            "baseline": {
+              "unitId": "unit-d0-3",
+              "buildingId": "building-d0"
+            },
+            "plan": {
+              "unitId": "unit-d0-3",
+              "buildingId": "building-d0"
+            }
+          }
+        }
+      ]
+    },
+    "missing": []
+  },
+  "scene": {
+    "targets": [
+      {
+        "collection": "buildings",
+        "id": "building-d0",
+        "arm": "baseline",
+        "ghost": false,
+        "x": 223.28072404832847,
+        "y": 125.90187594181934
+      },
+      {
+        "collection": "buildings",
+        "id": "building-d1",
+        "arm": "baseline",
+        "ghost": false,
+        "x": 296.1731879929021,
+        "y": 167.10776914862146
+      },
+      {
+        "collection": "buildings",
+        "id": "building-d2",
+        "arm": "baseline",
+        "ghost": false,
+        "x": 395.63238139335687,
+        "y": 223.33175555152457
+      },
+      {
+        "collection": "buildings",
+        "id": "building-d0",
+        "arm": "plan",
+        "ghost": false,
+        "x": 906.7807240483285,
+        "y": 125.90187594181934
+      },
+      {
+        "collection": "buildings",
+        "id": "building-d1",
+        "arm": "plan",
+        "ghost": false,
+        "x": 979.6731879929021,
+        "y": 167.10776914862146
+      },
+      {
+        "collection": "buildings",
+        "id": "building-d2",
+        "arm": "plan",
+        "ghost": false,
+        "x": 1079.132381393357,
+        "y": 223.33175555152457
+      }
+    ],
+    "camera": {
+      "position": [
+        84.4,
+        48.400000000000006,
+        48.400000000000006
+      ],
+      "target": [
+        36,
+        0,
+        0
+      ]
+    },
+    "mode": "split",
+    "disposed": false,
+    "backend": "webgpu",
+    "backendReason": null,
+    "objects": 6,
+    "geometries": 15,
+    "textures": 3,
+    "month": 0,
+    "layoutVersion": "future-machine-layout.v2",
+    "error": null
+  },
+  "camera": {
+    "position": [
+      84.4,
+      48.400000000000006,
+      48.400000000000006
+    ],
+    "target": [
+      36,
+      0,
+      0
+    ]
+  }
+}

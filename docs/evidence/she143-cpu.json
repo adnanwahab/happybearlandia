@@ -1,0 +1,33 @@
+{
+  "model": "flat-microagents.v1",
+  "rules": "cell-contact-integer.v1",
+  "source": "synthetic/un-calibrated",
+  "seed": 143,
+  "count": 10000,
+  "machine": "darwin arm64",
+  "runtime": "1.4.2",
+  "frames": [
+    {
+      "tick": 1,
+      "cpuMs": 0.6327080000000009,
+      "updatedAgentCount": 10000,
+      "directedContactEvaluations": 79912,
+      "stateSHA256": "a10b511888de800be95d8b0e717344ac53aba539feb25b6ec3054360be7f4a89"
+    },
+    {
+      "tick": 2,
+      "cpuMs": 1.9186250000000022,
+      "updatedAgentCount": 10000,
+      "directedContactEvaluations": 79912,
+      "stateSHA256": "770c27c2b4383c5633d020d89a8a553aeec11896bad7bd56f8898918b8c2e5c7"
+    },
+    {
+      "tick": 3,
+      "cpuMs": 0.1527920000000016,
+      "updatedAgentCount": 10000,
+      "directedContactEvaluations": 79912,
+      "stateSHA256": "d9a7a8aedbb03da96711a912877624a58249de9e0d7d07343248d3c2fb1bc70e"
+    }
+  ],
+  "gpuVerification": "blocked: sandbox HTTP bind denied and Chrome launch SIGABRT"
+}

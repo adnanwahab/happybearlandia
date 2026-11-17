@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test';
+test('WHY runs four persisted ablations and reopens their exact replay receipts',async({page})=>{
+ await page.goto('/world/future-machine.html?renderer=canvas');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await page.waitForFunction(()=>window.futureMachine?.state.status==='ready');
+ const slider=page.locator('input[type=range]').first();
+ await slider.fill('120');await slider.dispatchEvent('input');
+ await page.getByRole('button',{name:/WHY.*rent/i}).click();
+ await page.getByRole('button',{name:'Open Butterfly Ledger',exact:true}).click();
+ const ledger=page.locator('.fm-ledger');
+ await expect(ledger).toContainText('Residual dominates',{timeout:120000});
+ await expect(ledger).toContainText('model attribution under stated assumptions');
+ await expect(ledger).toContainText('-740.769 USD/month');
+ await expect(ledger.locator('meter')).toHaveCount(5);
+ await expect(ledger.locator('a')).toHaveCount(5);
+ const link=ledger.locator('a').first();
+ await expect(link).toContainText('seed 42');await expect(link).toContainText('city-systems.1.0.0');
+ const href=await link.getAttribute('href');const url=new URL(href);
+ const record=await (await page.request.get(`/api/city-experiments/${url.searchParams.get('experiment')}`)).json();
+ expect(record.status).toBe('complete');expect(record.manifest.initial.seed).toBe(42);
+ expect(record.manifest.scenarios[1].interventions[0].amount).toBe(12);
+ await page.goto(href);await page.waitForFunction(()=>window.futureMachine?.state.status==='ready');
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+ expect(await page.evaluate(()=>window.futureMachine.history.recipe.intervention.amount)).toBe(12);
+});

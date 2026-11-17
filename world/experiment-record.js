@@ -1,4 +1,6 @@
-import { buildReproducibilityManifest } from "./reproducibility.js";
+import { buildUncertaintyExplorer } from "./uncertainty-explorer.js";
+import { buildReproducibilityManifest, fingerprint } from "./reproducibility.js";
+import { experimentRegistryEntry, EXPERIMENT_CODE_VERSION } from "./experiment-registry.js";
 function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -30,13 +32,14 @@ export function createExperimentRecord(input = {}, now = new Date()) {
     adapterId: input.simulationBatch?.adapter?.id || null,
     parentRecordId,
     revision,
+    content: input,
   };
 
-  return {
+  const record = {
     schemaVersion: "civic-experiment-record.v1",
-    id: `record_${hashString(stableStringify(identity))}`,
+    id: `record_${fingerprint(identity)}`,
     savedAt: now.toISOString(),
-    codeVersion: "hbl-civic-experiment-lab.v3",
+    codeVersion: EXPERIMENT_CODE_VERSION,
     lineage: {
       parentRecordId,
       parentExperimentId: input.experiment?.lineage?.parentExperimentId || null,
@@ -48,18 +51,23 @@ export function createExperimentRecord(input = {}, now = new Date()) {
     simulationBatch: input.simulationBatch || null,
     analyzedExperiment: input.analyzedExperiment || null,
     sensitivity: input.sensitivity || null,
+    uncertainty: input.simulationBatch ? buildUncertaintyExplorer(input.simulationBatch, input.experiment) : null,
     scenarioComparison: input.scenarioComparison || null,
     improvements: input.improvements || [],
     improvementComparison: input.improvementComparison || null,
+    registry: input.registry || {},
     reproducibility: buildReproducibilityManifest({
       experiment: input.experiment,
       worldBatch: input.worldBatch,
       simulationBatch: input.simulationBatch,
     }),
   };
+  record.registry = experimentRegistryEntry(record);
+  return record;
 }
 
 export function summarizeExperimentRecord(record) {
+  const registry = experimentRegistryEntry(record);
   return {
     id: record?.id || null,
     savedAt: record?.savedAt || null,
@@ -70,6 +78,9 @@ export function summarizeExperimentRecord(record) {
     parentRecordId: record?.lineage?.parentRecordId || null,
     runs: record?.worldBatch?.runs || record?.simulationBatch?.simulations?.length || 0,
     adapter: record?.simulationBatch?.adapter?.label || null,
+    hypothesis: registry.hypothesis,
+    modelVersion: registry.modelVersion,
+    resultLabel: registry.resultLabel,
   };
 }
 

@@ -1,0 +1,70 @@
+bun test v1.4.2 (744846f84)
+
+test/example-receipts.test.js:
+(pass) checked-in receipts regenerate byte-for-byte with matching canonical SHA-256 [678.37ms]
+(pass) examples retain synthetic provenance, supported recipes and real completion evidence [7.14ms]
+
+test/city-seed-replay-sweep.test.js:
+(pass) explicit sweep covers 100 seeds and uint32/sign boundaries [6.20ms]
+(pass) report retains mismatching digests and continues after failures [4.11ms]
+(pass) malformed boundary recipe is a reported failure [0.44ms]
+(pass) step audit detects identity, time, model, observation and provenance corruption [5.68ms]
+(pass) real independent pairs replay exactly including null and hard recipe boundaries [5933.91ms]
+
+test/release-health.test.js:
+(pass) liveness remains separate from readiness and exposes only a safe build identifier [17.06ms]
+(pass) startup preflight rejects newer causal revisions before modifying the database [10.66ms]
+(pass) recognized legacy storage can migrate while a foreign SQLite schema is rejected [10.42ms]
+(pass) readiness requires the initialized world_saved_homes table [9.57ms]
+(pass) readiness requires the initialized world_house_sessions table [10.25ms]
+(pass) malformed saved-home tables fail both startup preflight and readiness [10.51ms]
+(pass) Decision preflight accepts an initializable path without creating it and rejects a file [42.74ms]
+
+test/release-operations-dry-run.test.js:
+(pass) current repository topology retains mount and readiness while refusing canary assumptions [0.97ms]
+(pass) complete synthetic record produces review-only argv and cannot execute a rollback [0.21ms]
+(pass) missing evidence, local evidence and production-as-staging all fail closed [0.15ms]
+(pass) storage failures, wrong build, mutable image and incompatible schema block image-only recovery [0.06ms]
+(pass) CLI rejects an execution request and leaves repository config unchanged [8.40ms]
+(pass) malformed incident records are rejected without treating them as complete [0.05ms]
+
+test/checkpoint-replay.test.js:
+(pass) canonical state sorts keys and rejects lossy values [0.53ms]
+(pass) selects immutable checkpoint and applies only ordered post-checkpoint events through target [1.20ms]
+(pass) fails closed for hash tampering, model drift and descriptive history [0.70ms]
+(pass) verified recomputation requires target digest and excludes AI/render/wall clock records [0.65ms]
+(pass) ambiguous ordering and unavailable tick fail; API exposes real state [1.09ms]
+(pass) real CityState recomputation matches existing engine and validates checkpoint clock [44.06ms]
+(pass) SQLite checkpoint envelope integrates with immutable causal persistence [5.21ms]
+(pass) registered causal dispatcher serves persisted City state without live-state fallback [20.61ms]
+(pass) latest checkpoint wins, explicit ID pins immutable history, and corrupted latest never falls back [0.53ms]
+(pass) World producer historical month resolves complete persisted authority amid descriptive causal traces [243.00ms]
+
+test/run-receipt.test.js:
+(pass) real persisted City receipt round-trips selected month, identity and outcome digests [1253.88ms]
+(pass) seed boundaries, null identity, deterministic canonical bytes and detached frozen export [452.36ms]
+(pass) invalid fields, bounds, versions and tampering fail before any replay/network [205.91ms]
+114 | }
+115 | 
+116 | test('normal CLI emits canonical receipt; failures emit only stderr and nonzero exit', async () => {
+117 |   await fixture(async ({handle,realFetch}) => {
+118 |     const history = await createExperiment({...DEFAULT_RECIPE,households:3});
+119 |     const server = Bun.serve({port:0,hostname:'127.0.0.1',fetch:handle});
+                             ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at <anonymous> (/Users/wahabma/happybearlandia/workspaces/SHE-67/test/run-receipt.test.js:119:24)
+      at async fixture (/Users/wahabma/happybearlandia/workspaces/SHE-67/test/run-receipt.test.js:25:15)
+      at async <anonymous> (/Users/wahabma/happybearlandia/workspaces/SHE-67/test/run-receipt.test.js:117:9)
+(fail) normal CLI emits canonical receipt; failures emit only stderr and nonzero exit [892.76ms]
+
+1 tests failed:
+(fail) normal CLI emits canonical receipt; failures emit only stderr and nonzero exit [892.76ms]
+
+ 33 pass
+ 1 fail
+ 218 expect() calls
+Ran 34 tests across 6 files. [9.99s]

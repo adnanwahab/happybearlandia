@@ -168,3 +168,80 @@ test('Decision preflight accepts an initializable path without creating it and r
     fixture.cleanup();
   }
 });
+
+
+test.each([undefined, '', 'unknown', 'development', 'abc123', 'g'.repeat(40), 'a'.repeat(65), '/secret/config'])(
+  'production build identity stays unknown for invalid input %j', async value => {
+    expect(publicBuildId(value, true)).toBe('unknown');
+    const handler = createReleaseHealthHandler({ env: { NODE_ENV: 'production', HBL_BUILD_ID: value } });
+    expect((await handler(request('/api/health')).json()).buildId).toBe('unknown');
+  },
+);
+
+test.each(['ABCDEF1', 'a'.repeat(40), 'f'.repeat(64)])('production accepts commit identity %s', value => {
+  expect(publicBuildId(value, true)).toBe(value.toLowerCase());
+});
+
+test('demo readiness combines actual assets, synthetic fixtures and read-only backend probes', async () => {
+  const fixture = temporary();
+  try {
+    const { DEMO_FILES } = await import('../ops/release-health.js');
+    const root = join(fixture.decisionDirectory, 'demo');
+    for (const file of Object.values(DEMO_FILES).flat()) {
+      const target = join(root, file);
+      mkdirSync(join(target, '..'), { recursive: true });
+      writeFileSync(target, 'fixture');
+    }
+    createWorldPersistenceStore(fixture.dbPath).close();
+    const cityDirectory = join(root, 'private-city');
+    let now = 0;
+    const handler = createReleaseHealthHandler({
+      worldDbPath: fixture.dbPath, decisionDirectory: fixture.decisionDirectory,
+      demoRoot: root, cityDirectory, now: () => now,
+      env: { HBL_BUILD_ID: '/private/secret', API_KEY: 'secret' },
+    });
+    const probe = () => handler(request('/api/demo/ready'));
+    expect(probe().status).toBe(200);
+    expect((await probe().json()).checks).toEqual({
+      demoAssets: 'ok', scenarioFixtures: 'ok', cityStorage: 'ok', worldStorage: 'ok', decisionStorage: 'ok',
+    });
+    expect(existsSync(cityDirectory)).toBe(false);
+    const missing = join(root, DEMO_FILES.scenarioFixtures[0]);
+    renameSync(missing, missing + '.off');
+    expect(probe().status).toBe(200); // bounded cache
+    now = 2000;
+    expect(probe().status).toBe(503);
+    expect((await probe().json()).checks.scenarioFixtures).toBe('unavailable');
+    renameSync(missing + '.off', missing);
+    mkdirSync(cityDirectory);
+    writeFileSync(join(cityDirectory, 'hbl.sqlite'), 'secret invalid database');
+    const before = readFileSync(join(cityDirectory, 'hbl.sqlite'));
+    now = 4000;
+    const degraded = probe();
+    expect(degraded.status).toBe(503);
+    expect(degraded.headers.get('cache-control')).toBe('no-store');
+    const body = await degraded.json();
+    expect(body.checks.cityStorage).toBe('unavailable');
+    expect(body.checks.scenarioFixtures).toBe('ok');
+    expect(JSON.stringify(body)).not.toContain('secret');
+    expect(JSON.stringify(body)).not.toContain(root);
+    expect(readFileSync(join(cityDirectory, 'hbl.sqlite'))).toEqual(before);
+    expect(await handler(request('/api/demo/ready', 'HEAD')).text()).toBe('');
+    expect(handler(request('/api/demo/ready', 'POST')).status).toBe(405);
+    expect(handler(request('/api/ready')).status).toBe(200);
+  } finally { fixture.cleanup(); }
+});
+
+test('demo inventory resolves the checked-in homepage demo assets and generator', async () => {
+  const fixture = temporary();
+  try {
+    mkdirSync(fixture.decisionDirectory);
+    createWorldPersistenceStore(fixture.dbPath).close();
+    const response = createReleaseHealthHandler({
+      worldDbPath: fixture.dbPath, decisionDirectory: fixture.decisionDirectory,
+      cityDirectory: join(fixture.decisionDirectory, 'uninitialized-city'),
+    })(request('/api/demo/ready'));
+    expect(response.status).toBe(200);
+    expect((await response.json()).checks.scenarioFixtures).toBe('ok');
+  } finally { fixture.cleanup(); }
+});

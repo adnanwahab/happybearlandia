@@ -13,7 +13,7 @@ export function summarize(samples) {
     averageTriangles: avg(samples.map(s=>s.triangles).filter(Number.isFinite)),
     averageVisibleObjects: avg(samples.map(s=>s.visibleObjects).filter(Number.isFinite)),
     peakTextures: Math.max(0,...samples.map(s=>s.textures).filter(Number.isFinite)),
-    averageGpuMs: avg(gpu), gpuP95Ms: percentile(gpu,.95), fps: frames.length ? 1000 / avg(frames) : null,
+    gpuSamples: gpu.length, averageGpuMs: avg(gpu), gpuP95Ms: percentile(gpu,.95), fps: frames.length ? 1000 / avg(frames) : null,
     onePercentLowFps: slowest.length ? 1000 / avg(slowest) : null,
     slowFrames: frames.filter(ms=>ms > 16.67).length,
     droppedFrames: frames.reduce((n,ms)=>n+Math.max(0,Math.round(ms / (1000/60))-1),0) };

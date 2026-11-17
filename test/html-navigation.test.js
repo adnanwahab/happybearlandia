@@ -21,6 +21,7 @@ describe('registered experience HTML integration', () => {
   test('server aliases and direct HTML entries identify their experience', () => {
     for (const [path, id] of [
       ['/tools/flower.html', 'flower'], ['/tools/lumen/index.html', 'lumen'],
+      ['/world/bar', 'social-bear'], ['/world/bar/', 'social-bear'], ['/world/bar/index.html', 'social-bear'],
       ['/world/house/family_1', 'house'], ['/world/house/index.html', 'house'],
       ['/world/party/act-normal.html', 'act-normal'], ['/game/1', 'game'],
       ['/world/visualize-consitution', 'constitution-city'],

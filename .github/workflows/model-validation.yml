@@ -1,0 +1,50 @@
+name: Model validation
+
+# Run on all changes so shared simulation dependencies cannot bypass validation.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - name: Calibration, backtest, and invariant contracts
+        run: >
+          bun test --timeout 60000
+          test/model-validation.test.js
+          test/historical-calibration.test.js
+          test/housing-model.test.js
+          test/decision-analysis.test.js
+          test/city-systems.test.js
+          test/city-seed-replay-sweep.test.js
+          test/future-machine-data.test.js
+          test/future-machine-boundaries.test.js
+          test/future-machine-scrub-identity.test.js
+      - name: Accuracy and full deterministic seed matrix
+        if: ${{ !cancelled() }}
+        run: bun run test:models
+      - name: Report for human review
+        if: always()
+        run: |
+          echo 'Model validation requires human review. This workflow cannot merge or deploy.' >> "$GITHUB_STEP_SUMMARY"
+          if test -f test-results/model-validation/report.json; then
+            bun -e 'const r = await Bun.file("test-results/model-validation/report.json").json(); console.log(JSON.stringify({results:r.results, failures:r.failures}, null, 2))' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: model-validation
+          path: test-results/model-validation
+          if-no-files-found: warn

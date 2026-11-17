@@ -1,0 +1,16 @@
+import path from 'node:path';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {readProject} from './project';
+import {captureScreenshots} from './screenshots';
+const args=process.argv.slice(2),value=(flag:string)=>{const i=args.indexOf(flag);if(i<0||!args[i+1]||args[i+1].startsWith('--'))throw Error('Required: '+flag);return args[i+1];};
+const project=readProject(value('--config')),task=value('--task'),output=path.resolve(value('--out'));
+if(!project.screenshots)throw Error('Profile has no browser evidence configuration');
+if(!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(task))throw Error('Invalid task identity');
+const relative=path.relative(project.repository,output);
+if(!relative||relative==='.mini-symphony-evidence'||relative.startsWith('.mini-symphony-evidence'+path.sep))throw Error('Artifacts must not overwrite feature evidence');
+const controller=new AbortController();for(const signal of ['SIGTERM','SIGINT'] as const)process.once(signal,()=>controller.abort());
+await mkdir(output,{recursive:true});
+const evidence=await captureScreenshots(project.repository,project.screenshots,controller.signal,'after',task,output);
+const result={schemaVersion:1,repository:project.githubRepository,task,sourceCommit:evidence.sourceCommit,workingDiffSha256:evidence.workingDiffSha256,runId:process.env.GITHUB_RUN_ID??null,evidence};
+await writeFile(path.join(output,'receipt.json'),JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify({task,sourceCommit:evidence.sourceCommit,files:evidence.files.length,output}));

@@ -205,3 +205,22 @@ describe('Decision API integration', () => {
     console.info('Decision cancellation API latency ms:', JSON.stringify(latency.map(value => Math.round(value))));
   }, 60000);
 });
+
+test('100 actual landscape records resolve to stored receipts and deterministic selected replay',async()=>{
+ const {compatibleLandscapeRuns,decisionRunReceiptURL}=await import('../world/decision/visualizations.js');
+ const api=await setup(),payload=input({runs:100,years:1,scenarios:createHousingScenarios().slice(0,1)});
+ const experiment=await execute(api,payload);await terminal(api,experiment.id);
+ const results=await (await api(`/${experiment.id}/results?traces=summary`)).json();
+ const rows=compatibleLandscapeRuns(results.experiment,results.runs);expect(rows).toHaveLength(100);
+ for(const row of rows){
+  const path=decisionRunReceiptURL(results.experiment,row).replace('/api/decision-experiments','');
+  const response=await api(path);expect(response.ok).toBe(true);
+  const {run}=await response.json();expect(run.id).toBe(row.id);expect(run.seed).toBe(row.seed);
+  expect(run.scenarioId).toBe(row.scenarioId);expect(run.metrics).toEqual(row.metrics);
+  expect(run.experimentId).toBe(experiment.id);
+ }
+ const selected=rows[73],{run}=await (await api(`/${experiment.id}/runs/${selected.id}`)).json();
+ const replay=simulateHousingRun({parameters:run.sampledParameters,seed:run.seed,years:1});
+ expect(run.timeline).toEqual(replay.timeline);expect(run.metrics).toEqual(replay.metrics);
+ expect((await api(`/${experiment.id}/runs/missing`)).status).toBe(404);
+});

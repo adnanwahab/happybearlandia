@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "native": {
+    "command": "make all",
+    "tests": 310,
+    "failures": 0,
+    "skipped": 6,
+    "configuredCoveragePercent": 100,
+    "existingCoverageExclusionsUnchanged": true,
+    "formatter": "passed",
+    "lintSpecs": "passed",
+    "dialyzer": "passed",
+    "build": "passed"
+  },
+  "python": {
+    "standalonePython39Tests": 173,
+    "installedPython39Tests": 214,
+    "failures": 0,
+    "resourceWarningsAsErrors": true
+  },
+  "runtime": {
+    "pid": 32399,
+    "maxConcurrentAgents": 1,
+    "actualWorkers": 0,
+    "maxTurns": 20,
+    "requiredLabels": [
+      "symphony-pilot",
+      "symphony-pressure-release"
+    ],
+    "pinnedWorkflow": "~/.local/state/hbl-publisher/throughput-runtime/20261111-lifecycle-v2/WORKFLOW.md",
+    "defaultWritableRoots": "canonical issue workspace only",
+    "modelTokensObserved": 0,
+    "owner": "other terminal, explicitly selected by user",
+    "activeWorkflow": "/Users/wahabma/happybearlandia/tools/symphony/elixir/WORKFLOW.md",
+    "pinnedWorkflowIsActive": false,
+    "observedAt": 1794459851.3911722,
+    "observerPID": 33294
+  },
+  "cachedObservation": {
+    "cyclesObserved": 3,
+    "cacheHits": 2,
+    "ttlSeconds": 300,
+    "thirdObservationAgeSeconds": 130.40913796424866,
+    "lastFullScan": {
+      "logicalLinearReads": 18,
+      "githubCommands": 35,
+      "githubRetries": 0,
+      "seconds": 35.659992042
+    },
+    "applyUsesCache": false
+  },
+  "publicationRecovery": {
+    "issue": "SHE-121",
+    "pr": "https://github.com/adnanwahab/happybearlandia/pull/40",
+    "head": "4845c3dadc1cc32c6d6e42b64cf6583410884b79",
+    "draft": true,
+    "linearLinked": true,
+    "source": "retained tested worker output; external native after_run",
+    "newModelRun": false,
+    "approvedRetryInvocations": 1,
+    "approvedRetryExit": 1,
+    "liveIdempotencePassed": false
+  },
+  "nextIssues": {
+    "SHE-83": {
+      "claimed": false,
+      "nativePrerequisites": [
+        "SHE-79"
+      ],
+      "prerequisitesDone": true
+    },
+    "SHE-142": {
+      "claimed": false,
+      "nativePrerequisites": [
+        "SHE-141"
+      ],
+      "prerequisitesDone": true
+    }
+  },
+  "holds": [
+    "physical resource gate",
+    "review backlog",
+    "disabled readiness/activation",
+    "unverified active ownership",
+    "missing approved issue clone/preflight"
+  ],
+  "endToEndDeliveryThroughputImprovement": null
+}

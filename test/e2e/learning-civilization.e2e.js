@@ -33,6 +33,25 @@ test('observe a district, approve a policy, lock a prediction and reveal its exa
   await page.reload();
   await expect(prediction.getByText('Accuracy score', { exact: true })).toBeVisible();
 
+  const skillRow = prediction.locator('.hbl-prediction-result dl > div').filter({ has: page.getByText('Skill vs no-change', { exact: true }) });
+  const savedSkill = await page.evaluate(() => JSON.parse(localStorage.getItem('hbl.learning.v1.outcomes'))[0].value.resolution.skill);
+  expect(Number.isFinite(savedSkill)).toBe(true);
+  await expect(skillRow.locator('dd')).toHaveText(new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(savedSkill));
+  // Old records remain readable without silently recomputing or rewriting them.
+  const legacy = await page.evaluate(() => {
+    const key = 'hbl.learning.v1.outcomes';
+    const outcomes = JSON.parse(localStorage.getItem(key));
+    delete outcomes[0].value.resolution.skill;
+    delete outcomes[0].value.resolution.noChangeError;
+    const raw = JSON.stringify(outcomes);
+    localStorage.setItem(key, raw);
+    return raw;
+  });
+  await page.reload();
+  await expect(skillRow.locator('dd')).toHaveText('Unavailable');
+  await expect(prediction.getByText('Accuracy score', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('hbl.learning.v1.outcomes'))).toBe(legacy);
+
   await page.getByRole('link', { name: 'Replay approved future' }).click();
   await expect(page.getByRole('heading', { name: 'Month 14', exact: true })).toBeVisible();
   await expect(page.locator('#policies')).toContainText('Riverside · Transit capacity +4');

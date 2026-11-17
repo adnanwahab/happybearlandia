@@ -8,3 +8,10 @@ const dispose:()=>void=createFrameBridge({frame,context:()=>context,onContext(va
 const mounted=mountUniverseNavigation(document.body,{experienceId:'world'});
 const retained:NavigationContext=mounted.getContext();
 void [path,dispose,retained];
+
+import { mountCommandPalette, availableActions } from './command-palette.js';
+const palette = mountCommandPalette(document.body);
+palette.open();
+palette.dispose();
+const paletteButtons: HTMLButtonElement[] = availableActions(document);
+void paletteButtons;

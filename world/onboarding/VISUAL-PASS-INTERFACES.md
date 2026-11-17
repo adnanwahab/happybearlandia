@@ -27,8 +27,31 @@ Quick-demo always compares legacy scene town via a dedicated fresh cycle worker;
 
 ## Integrated decisions and verification notes
 
+SHE-51 extends the guide with optional `onChangeYear(year)` and test IDs
+`quick-demo-year` / `quick-demo-change`. After a completed matched comparison,
+the prompt offers implementation years 0, 1, 3, 5 and 10. The current year cannot
+be submitted. Integration changes only the captured local recipe's year and
+starts the existing controller/worker flow; Replay then repeats that recipe.
+Town inputs, proposal IDs and seven-day horizon stay fixed. This is a fresh
+detached same-start comparison, not a continuation of live playback. The guide
+preserves a pending selection across updates for the same completed run.
+
 The integration uses a fixed **local Balanced** recipe (year 3, seven measured days) to avoid remote-package startup delays. It explicitly switches from Population to legacy before observing the scene; no identity map is inferred. The first progress latency includes initial work and is labeled as such. `rulesVersion` is null because policy.js declares none; its source path is retained. Reproducibility across future source updates is not claimed without a versioned build recipe.
 
 Ordinary World controls become usable at actual scene readiness while optional remote packages continue loading. Their completion never enables controls owned by an active cycle/experiment/demo. Asynchronous package ingestion retains local and existing cycle packages; colliding remote IDs receive a unique `remote-` prefix in the client catalog while `remoteId` retains the upstream identity. It does not change the selected policy or apply a remote policy implicitly. Remote option labels identify their source and use DOM text. Comparison amendment notes belong only to the selected remote package, not local Balanced. Frozen reality loading retains its synchronous package→snapshot ordering. Saved experiments skip optional fetching and restore their package options, selected policy, configured note and year without calling `applyPolicy` or changing checkpoint state. Existing saves do not retain external amendment receipts; their absence is not filled with invented provenance. Regression: `bunx playwright test --config test/research-local-play.browser.config.js`.
 
 Integration-owned `integration.css` suppresses legacy docks during an active sheet. Guide secondary actions are moved into “More city actions” by renderer glue; first-run-guide.js remains owned by its original worker. The actual-position ring is drawn through occluders and labeled as a locator including indoors. Main-world WebGPU failure falls back to WebGL2; unavailable graphics expose accessible recovery. The integration browser config includes the actual accessibility filename (the worker config used a mismatched filename) and additional real error/touch/tour/pacing checks.
+
+### Spatial keyboard targets — SHE-472
+
+`spatial-targets.js` supplies one bounded semantic button list (24 alternating
+legacy residents/buildings, source order, maximum configurable cap 48). Native
+Tab/Shift+Tab leave the list; arrows clamp, Home/End reach boundaries. Enter or
+click uses the existing inspector; Escape closes traversal or the existing panel
+and restores its trigger. Labels include source name and entity type. The static
+locator uses existing spotlight geometry with depth testing disabled so indoor
+locations remain visible; it follows actual coordinates through the normal frame
+loop. Camera framing is instantaneous, with no transition or continuous pursuit.
+No model commands or identity translations are issued. Population mode is explicitly
+unavailable; standalone Canvas2D retains its existing pointer controls and is not
+covered by this increment. Native NVDA/VoiceOver checks remain required.

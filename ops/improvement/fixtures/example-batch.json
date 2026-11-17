@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "improvement-batch.v1",
+  "stream": "evaluation:example",
+  "cursorBefore": null,
+  "cursorAfter": "example-revision-1",
+  "proposals": [{
+    "schemaVersion": "improvement-proposal.v1",
+    "kind": "evaluation",
+    "title": "Example: review the existing metric export boundary",
+    "hypothesis": "An overflow regression test can prevent infinite rates from becoming unavailable values during JSON export. This example references already delivered work and is not a new execution request.",
+    "sources": [{
+      "type": "repository",
+      "id": "world/metrics/agent-counts.js",
+      "revision": "a6e109974f6e16ab3512741dd45e316a787e8776",
+      "url": "https://github.com/adnanwahab/happybearlandia/blob/a6e109974f6e16ab3512741dd45e316a787e8776/world/metrics/agent-counts.js",
+      "evidence": "repository-inspection"
+    }],
+    "acceptanceCriteria": ["Reject infinite derived rates before JSON serialization; retain zero-duration unavailable semantics."],
+    "testCommands": [["bun", "test", "test/agent-counts.test.js"]],
+    "dependencies": [],
+    "deduplicationKeys": ["metric-export:finite-throughput"],
+    "targetIssue": "SHE-141"
+  }]
+}

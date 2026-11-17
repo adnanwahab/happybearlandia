@@ -1,0 +1,20 @@
+Listing tests:
+  one-city-two-futures.e2e.js:28:5 › record real SHE-71 homepage journey and intervention replay
+  one-city-two-futures.e2e.js:51:76 › SHE-71 Canvas2D click scrub and controls 1440
+  one-city-two-futures.e2e.js:51:76 › SHE-71 Canvas2D click scrub and controls 390
+  one-city-two-futures.e2e.js:71:5 › SHE-71 actual network failure, loading explanation and retry
+  two-futures-compatibility.e2e.js:2:5 › World falls back to real Canvas2D, Activity responds, facts and provenance resolve
+  two-futures-compatibility.e2e.js:21:5 › experience counts derive from actual registry and gallery
+  two-futures-compatibility.e2e.js:28:5 › Reality nonpassing outcomes and disabled prerequisites are explicit in actual worker UI
+  two-futures-compatibility.e2e.js:42:5 › 320px Canvas comparison retains timeline, metrics and WHY without overflow
+  two-futures-compatibility.e2e.js:54:5 › homepage Play Demo starts the real fixed-seed comparison with no configuration
+  two-futures-compatibility.e2e.js:62:5 › stalled GPU initialization cannot stall provenance or usable fallback
+  two-futures-compatibility.e2e.js:76:5 › all graphics contexts unavailable preserves recorded comparison controls without page errors
+  two-futures-compatibility.e2e.js:86:5 › configured seed remains distinct until real rerun and survives exact shared refresh
+  two-futures-sprint.e2e.js:14:5 › real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh
+  two-futures-sprint.e2e.js:27:5 › guided controls, shared camera, difference-only and metric WHY
+  two-futures-sprint.e2e.js:41:5 › forced unavailable WebGL retains actual paired evidence and selection
+  two-futures-sprint.e2e.js:45:5 › record real 45–60 second one-click Play Demo
+  two-futures-sprint.e2e.js:52:59 › cinematic recorded divergence hold respects no-preference
+  two-futures-sprint.e2e.js:52:59 › cinematic recorded divergence hold respects reduce
+Total: 18 tests in 3 files

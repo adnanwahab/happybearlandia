@@ -669,6 +669,7 @@ function ConstitutionNeighborhoodPanel({
       </div>
 
       <textarea
+        aria-label={`${activeTabMeta.label} rules`}
         value={activeDocText}
         onChange={event => onScopeDocChange(activeTabMeta.id, event.target.value)}
         spellCheck={false}
@@ -973,6 +974,7 @@ function emitPokerAction(action, amount = null) {
 }
 
 function GameplayOverlay() {
+  const conversationDialog = useRef(null);
   const sceneId = sceneIdFromPathname(window.location.pathname);
   const currentConstitutionCitySlug = getConstitutionNeighborhoodCitySlug(sceneId);
 
@@ -1408,6 +1410,8 @@ function GameplayOverlay() {
         return;
       }
 
+      if (event.target.closest("input, textarea, select, [contenteditable]")) return;
+      if (event.ctrlKey || event.altKey || event.metaKey) return;
       const index = Number.parseInt(event.key, 10);
 
       if (!Number.isInteger(index) || index < 1 || index > 9) {
@@ -1430,6 +1434,17 @@ function GameplayOverlay() {
       closeConversation();
     }
   }, [activeConversationId, currentNode]);
+
+  useEffect(() => {
+    if (!activeConversationId || !currentNode || !conversationDialog.current) return;
+    const dialog = conversationDialog.current;
+    const previous = document.activeElement;
+    dialog.showModal();
+    return () => {
+      dialog.close();
+      if (previous?.isConnected) previous.focus();
+    };
+  }, [activeConversationId, Boolean(currentNode)]);
 
   const pokerPlayers = pokerUi?.players ?? [];
   const humanPlayer = pokerPlayers.find(player => player?.isHuman) ?? null;
@@ -1669,6 +1684,7 @@ function GameplayOverlay() {
               </div>
 
               <input
+                aria-label="Raise to amount in dollars"
                 type="range"
                 min={minRaiseTo}
                 max={Math.max(minRaiseTo, maxRaiseTo)}
@@ -1703,10 +1719,20 @@ function GameplayOverlay() {
       ) : null}
 
       {activeConversationId && currentNode ? (
-        <div
+        <dialog
+          ref={conversationDialog}
+          aria-label={`Conversation with ${currentNode.speaker ?? "Bear"}`}
+          onCancel={event => { event.preventDefault(); closeConversation(); }}
           style={{
             position: "fixed",
             inset: 0,
+            margin: 0,
+            width: "100vw",
+            maxWidth: "none",
+            height: "100dvh",
+            maxHeight: "none",
+            border: 0,
+            padding: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1830,6 +1856,7 @@ function GameplayOverlay() {
                 Ask an open-ended question
               </div>
               <textarea
+                aria-label="Ask an open-ended question"
                 value={openEndedPrompt}
                 onChange={event => setOpenEndedPrompt(event.target.value)}
                 onKeyDown={event => {
@@ -1933,6 +1960,7 @@ function GameplayOverlay() {
               ) : null}
             </div>
 
+            <button type="button" onClick={closeConversation}>Close conversation</button>
             <div
               style={{
                 marginTop: "12px",
@@ -1943,7 +1971,7 @@ function GameplayOverlay() {
               Press 1-9 to choose • Esc to close
             </div>
           </div>
-        </div>
+        </dialog>
       ) : null}
     </>
   );

@@ -1,0 +1,1073 @@
+{
+  "version": "spatial-neighbors.v1",
+  "source": "synthetic-lcg32-four-hubs.v1",
+  "rules": "euclidean-inclusive-radius.v1",
+  "measuredAt": "2026-11-12T20:37:19.951Z",
+  "command": [
+    "/Users/wahabma/.bun/bin/bun",
+    "/Users/wahabma/happybearlandia/workspaces/SHE-149/scripts/benchmark-spatial-neighbors.js",
+    "1000000",
+    "42",
+    "3"
+  ],
+  "count": 1000000,
+  "seed": 42,
+  "repeats": 3,
+  "tileSize": 16,
+  "radius": 4,
+  "units": "integer coordinate units; microseconds per query; milliseconds per build; bytes",
+  "machine": {
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "logicalCPUs": 10,
+    "memoryBytes": 17179869184,
+    "runtime": {
+      "node": "26.3.0",
+      "bun": "1.4.2",
+      "boringssl": "41bf9b59c2ebf277a7aa427e1ecad5cc80dd4d4f",
+      "openssl": "1.1.0",
+      "llhttp": "9.3.0",
+      "libarchive": "ded82291ab41d5e355831b96b0e1ff49e24d8939",
+      "mimalloc": "6a64e1ba7f5b2130d4efccb67ec87fd0003f0f6a",
+      "picohttpparser": "066d2b1e9ab820703db0837a7255d92d30f0c9f5",
+      "uwebsockets": "744846f844374847c902b5e7fd59b4342a51ef99",
+      "webkit": "2e2aa2290fac856d6f451ceacb58f7f5b44dd057",
+      "zig": "04e7f6ac1e009525bc00934f20199c68f04e0a24",
+      "zlib": "12731092979c6d07f42da27da673a9f6c7b13586",
+      "tinycc": "05f0fafaa3be31e31d7b4b5c17dc60f62c991171",
+      "lolhtml": "725ce499aa9b71e38b7a2d0a9fbb6d7294a4079e",
+      "ares": "c7a3138dcfe3bb0eaaf10c0c24c36dc66dc790ab",
+      "libdeflate": "c8c56a20f8f621e6a966b716b31f1dedab6a41e3",
+      "usockets": "744846f844374847c902b5e7fd59b4342a51ef99",
+      "lshpack": "8905c024b6d052f083a3d11d0a169b3c2735c8a1",
+      "zstd": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
+      "v8": "14.6.202.34-node.20",
+      "uv": "1.48.0",
+      "napi": "10",
+      "icu": "76.1",
+      "unicode": "16.0",
+      "sqlite": "3.43.2",
+      "modules": "147"
+    }
+  },
+  "protocol": "fresh Bun subprocess per method/skew/repeat, GC before/after build; build excludes fixture and GC; query includes result allocation, excludes sorting/hash/oracle; 256 deterministic queries per stratum, no warmup",
+  "limitations": [
+    "Synthetic snapshot indices, no production movement/contact integration or scalar-oracle equivalence.",
+    "Candidate checks and radius matches are directed geometric counts, not modeled interactions or collision resolution.",
+    "Population queries are evenly spaced IDs; hub queries deliberately oversample hubs. No all-pairs million-agent correctness claim.",
+    "Memory deltas are noisy runtime observations; RSS includes allocator/build high-water effects. Typed bytes exclude JS containers and temporary sort storage.",
+    "Single local machine, sequential cold builds, no GPU/browser/workers or sustained timestep throughput."
+  ],
+  "samples": [
+    {
+      "method": "hash",
+      "hubFraction": 0,
+      "hubCount": 0,
+      "inputHash": "5a5274b010da1cbe7ff39e063f75c588779a9a04405d2bfb69eac4f1b7ffbf0a",
+      "buildMs": 47.974958,
+      "memory": {
+        "before": {
+          "rss": 36716544,
+          "heapTotal": 1296384,
+          "heapUsed": 8818740,
+          "external": 8276644,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 73170944,
+          "heapTotal": 20629504,
+          "heapUsed": 24394581,
+          "external": 8353781,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 15575841,
+        "rssDeltaBytes": 36454400
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 35,
+        "hotTileCapacity": 256,
+        "overflowTiles": 0,
+        "overflowAgents": 0,
+        "droppedAgents": 0,
+        "typedIndexBytes": 0,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 2.8750000000030695,
+          "p95Us": 9.082999999989738,
+          "maxUs": 131.0840000000013,
+          "candidates": 9475,
+          "collisionMatches": 759
+        }
+      ],
+      "resultHash": "ae6e8506b01ea0c6461598f99fdbd7d65ba778fc5caa49950aa8f290ffd8f3fb",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 0
+    },
+    {
+      "method": "sorted",
+      "hubFraction": 0,
+      "hubCount": 0,
+      "inputHash": "5a5274b010da1cbe7ff39e063f75c588779a9a04405d2bfb69eac4f1b7ffbf0a",
+      "buildMs": 442.301166,
+      "memory": {
+        "before": {
+          "rss": 36700160,
+          "heapTotal": 1296384,
+          "heapUsed": 8819526,
+          "external": 8276646,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 59260928,
+          "heapTotal": 1315840,
+          "heapUsed": 13717287,
+          "external": 13165831,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 4897761,
+        "rssDeltaBytes": 22560768
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 35,
+        "hotTileCapacity": 256,
+        "overflowTiles": 0,
+        "overflowAgents": 0,
+        "droppedAgents": 0,
+        "typedIndexBytes": 4786436,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 1.9159999999942556,
+          "p95Us": 5.750000000034561,
+          "maxUs": 98.83300000001327,
+          "candidates": 9475,
+          "collisionMatches": 759
+        }
+      ],
+      "resultHash": "ae6e8506b01ea0c6461598f99fdbd7d65ba778fc5caa49950aa8f290ffd8f3fb",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 0
+    },
+    {
+      "method": "hash",
+      "hubFraction": 0,
+      "hubCount": 0,
+      "inputHash": "5a5274b010da1cbe7ff39e063f75c588779a9a04405d2bfb69eac4f1b7ffbf0a",
+      "buildMs": 37.865,
+      "memory": {
+        "before": {
+          "rss": 36651008,
+          "heapTotal": 1296384,
+          "heapUsed": 8818740,
+          "external": 8276644,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 72450048,
+          "heapTotal": 20596736,
+          "heapUsed": 24391157,
+          "external": 8353877,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 15572417,
+        "rssDeltaBytes": 35799040
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 35,
+        "hotTileCapacity": 256,
+        "overflowTiles": 0,
+        "overflowAgents": 0,
+        "droppedAgents": 0,
+        "typedIndexBytes": 0,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 2.334000000004721,
+          "p95Us": 7.66699999999787,
+          "maxUs": 108.79200000000822,
+          "candidates": 9475,
+          "collisionMatches": 759
+        }
+      ],
+      "resultHash": "ae6e8506b01ea0c6461598f99fdbd7d65ba778fc5caa49950aa8f290ffd8f3fb",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 1
+    },
+    {
+      "method": "sorted",
+      "hubFraction": 0,
+      "hubCount": 0,
+      "inputHash": "5a5274b010da1cbe7ff39e063f75c588779a9a04405d2bfb69eac4f1b7ffbf0a",
+      "buildMs": 439.865042,
+      "memory": {
+        "before": {
+          "rss": 36585472,
+          "heapTotal": 1296384,
+          "heapUsed": 8819526,
+          "external": 8276646,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 58933248,
+          "heapTotal": 1315840,
+          "heapUsed": 13721731,
+          "external": 13165795,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 4902205,
+        "rssDeltaBytes": 22347776
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 35,
+        "hotTileCapacity": 256,
+        "overflowTiles": 0,
+        "overflowAgents": 0,
+        "droppedAgents": 0,
+        "typedIndexBytes": 4786436,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 2.3329999999646134,
+          "p95Us": 7.833000000005086,
+          "maxUs": 118.58399999999847,
+          "candidates": 9475,
+          "collisionMatches": 759
+        }
+      ],
+      "resultHash": "ae6e8506b01ea0c6461598f99fdbd7d65ba778fc5caa49950aa8f290ffd8f3fb",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 1
+    },
+    {
+      "method": "hash",
+      "hubFraction": 0,
+      "hubCount": 0,
+      "inputHash": "5a5274b010da1cbe7ff39e063f75c588779a9a04405d2bfb69eac4f1b7ffbf0a",
+      "buildMs": 40.5245,
+      "memory": {
+        "before": {
+          "rss": 36651008,
+          "heapTotal": 1296384,
+          "heapUsed": 8815716,
+          "external": 8276644,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 73318400,
+          "heapTotal": 20629504,
+          "heapUsed": 24390869,
+          "external": 8353877,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 15575153,
+        "rssDeltaBytes": 36667392
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 35,
+        "hotTileCapacity": 256,
+        "overflowTiles": 0,
+        "overflowAgents": 0,
+        "droppedAgents": 0,
+        "typedIndexBytes": 0,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 2.332999999993035,
+          "p95Us": 7.291999999992527,
+          "maxUs": 110.91599999998891,
+          "candidates": 9475,
+          "collisionMatches": 759
+        }
+      ],
+      "resultHash": "ae6e8506b01ea0c6461598f99fdbd7d65ba778fc5caa49950aa8f290ffd8f3fb",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 2
+    },
+    {
+      "method": "sorted",
+      "hubFraction": 0,
+      "hubCount": 0,
+      "inputHash": "5a5274b010da1cbe7ff39e063f75c588779a9a04405d2bfb69eac4f1b7ffbf0a",
+      "buildMs": 438.694625,
+      "memory": {
+        "before": {
+          "rss": 36634624,
+          "heapTotal": 1296384,
+          "heapUsed": 8818742,
+          "external": 8276646,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 59129856,
+          "heapTotal": 1315840,
+          "heapUsed": 13717959,
+          "external": 13165831,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 4899217,
+        "rssDeltaBytes": 22495232
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 35,
+        "hotTileCapacity": 256,
+        "overflowTiles": 0,
+        "overflowAgents": 0,
+        "droppedAgents": 0,
+        "typedIndexBytes": 4786436,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 1.9580000000019027,
+          "p95Us": 5.833999999993011,
+          "maxUs": 102.20800000001873,
+          "candidates": 9475,
+          "collisionMatches": 759
+        }
+      ],
+      "resultHash": "ae6e8506b01ea0c6461598f99fdbd7d65ba778fc5caa49950aa8f290ffd8f3fb",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 2
+    },
+    {
+      "method": "hash",
+      "hubFraction": 0.01,
+      "hubCount": 10000,
+      "inputHash": "e5199135f1ecde26c41b71a961469fab0008124a6c7328257021974ecb2ba38d",
+      "buildMs": 33.7935,
+      "memory": {
+        "before": {
+          "rss": 36995072,
+          "heapTotal": 1296384,
+          "heapUsed": 8815864,
+          "external": 8277000,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 69419008,
+          "heapTotal": 18515968,
+          "heapUsed": 27210382,
+          "external": 8354110,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 18394518,
+        "rssDeltaBytes": 32423936
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 2516,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 9022,
+        "droppedAgents": 0,
+        "typedIndexBytes": 0,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 2.1249999999994884,
+          "p95Us": 4.958999999999492,
+          "maxUs": 282.4159999999978,
+          "candidates": 16878,
+          "collisionMatches": 1884
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 15.625,
+          "p95Us": 21.042000000001337,
+          "maxUs": 28.584000000002163,
+          "candidates": 647505,
+          "collisionMatches": 98332
+        }
+      ],
+      "resultHash": "412b365aa3f0c170aa825d22dee0c5a402032c797475c82555250e0bfea91346",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 0
+    },
+    {
+      "method": "sorted",
+      "hubFraction": 0.01,
+      "hubCount": 10000,
+      "inputHash": "e5199135f1ecde26c41b71a961469fab0008124a6c7328257021974ecb2ba38d",
+      "buildMs": 444.259583,
+      "memory": {
+        "before": {
+          "rss": 36978688,
+          "heapTotal": 1296384,
+          "heapUsed": 8819114,
+          "external": 8277002,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 58327040,
+          "heapTotal": 1315840,
+          "heapUsed": 13705412,
+          "external": 13150692,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 4886298,
+        "rssDeltaBytes": 21348352
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 2516,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 9022,
+        "droppedAgents": 0,
+        "typedIndexBytes": 4786436,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 1.8749999999840838,
+          "p95Us": 3.999999999962256,
+          "maxUs": 285.04200000003266,
+          "candidates": 16878,
+          "collisionMatches": 1884
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 15.459000000021206,
+          "p95Us": 19.917000000020835,
+          "maxUs": 33.375000000035016,
+          "candidates": 647505,
+          "collisionMatches": 98332
+        }
+      ],
+      "resultHash": "412b365aa3f0c170aa825d22dee0c5a402032c797475c82555250e0bfea91346",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 0
+    },
+    {
+      "method": "hash",
+      "hubFraction": 0.01,
+      "hubCount": 10000,
+      "inputHash": "e5199135f1ecde26c41b71a961469fab0008124a6c7328257021974ecb2ba38d",
+      "buildMs": 34.618624999999994,
+      "memory": {
+        "before": {
+          "rss": 36962304,
+          "heapTotal": 1296384,
+          "heapUsed": 8815864,
+          "external": 8277000,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 69058560,
+          "heapTotal": 18499584,
+          "heapUsed": 27171065,
+          "external": 8354265,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 18355201,
+        "rssDeltaBytes": 32096256
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 2516,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 9022,
+        "droppedAgents": 0,
+        "typedIndexBytes": 0,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 2.291999999997074,
+          "p95Us": 5.249999999996646,
+          "maxUs": 289.66700000000145,
+          "candidates": 16878,
+          "collisionMatches": 1884
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 15.833000000000652,
+          "p95Us": 21.791000000007443,
+          "maxUs": 28.458999999998014,
+          "candidates": 647505,
+          "collisionMatches": 98332
+        }
+      ],
+      "resultHash": "412b365aa3f0c170aa825d22dee0c5a402032c797475c82555250e0bfea91346",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 1
+    },
+    {
+      "method": "sorted",
+      "hubFraction": 0.01,
+      "hubCount": 10000,
+      "inputHash": "e5199135f1ecde26c41b71a961469fab0008124a6c7328257021974ecb2ba38d",
+      "buildMs": 438.737083,
+      "memory": {
+        "before": {
+          "rss": 36945920,
+          "heapTotal": 1296384,
+          "heapUsed": 8819834,
+          "external": 8276938,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 59490304,
+          "heapTotal": 1315840,
+          "heapUsed": 13719096,
+          "external": 13165832,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 4899262,
+        "rssDeltaBytes": 22544384
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 2516,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 9022,
+        "droppedAgents": 0,
+        "typedIndexBytes": 4786436,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 2.0000000000095497,
+          "p95Us": 4.583000000025095,
+          "maxUs": 288.8749999999618,
+          "candidates": 16878,
+          "collisionMatches": 1884
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 15.45800000002373,
+          "p95Us": 20.041999999989457,
+          "maxUs": 26.00000000001046,
+          "candidates": 647505,
+          "collisionMatches": 98332
+        }
+      ],
+      "resultHash": "412b365aa3f0c170aa825d22dee0c5a402032c797475c82555250e0bfea91346",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 1
+    },
+    {
+      "method": "hash",
+      "hubFraction": 0.01,
+      "hubCount": 10000,
+      "inputHash": "e5199135f1ecde26c41b71a961469fab0008124a6c7328257021974ecb2ba38d",
+      "buildMs": 34.758583,
+      "memory": {
+        "before": {
+          "rss": 36962304,
+          "heapTotal": 1296384,
+          "heapUsed": 8815080,
+          "external": 8277000,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 69763072,
+          "heapTotal": 18499584,
+          "heapUsed": 27175774,
+          "external": 8354270,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 18360694,
+        "rssDeltaBytes": 32800768
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 2516,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 9022,
+        "droppedAgents": 0,
+        "typedIndexBytes": 0,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 2.082999999998947,
+          "p95Us": 4.5409999999961315,
+          "maxUs": 288.91699999999787,
+          "candidates": 16878,
+          "collisionMatches": 1884
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 15.833000000000652,
+          "p95Us": 20.95800000000736,
+          "maxUs": 29.790999999995904,
+          "candidates": 647505,
+          "collisionMatches": 98332
+        }
+      ],
+      "resultHash": "412b365aa3f0c170aa825d22dee0c5a402032c797475c82555250e0bfea91346",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 2
+    },
+    {
+      "method": "sorted",
+      "hubFraction": 0.01,
+      "hubCount": 10000,
+      "inputHash": "e5199135f1ecde26c41b71a961469fab0008124a6c7328257021974ecb2ba38d",
+      "buildMs": 435.12924999999996,
+      "memory": {
+        "before": {
+          "rss": 37027840,
+          "heapTotal": 1296384,
+          "heapUsed": 8819898,
+          "external": 8277002,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 59129856,
+          "heapTotal": 1315840,
+          "heapUsed": 13722040,
+          "external": 13166088,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 4902142,
+        "rssDeltaBytes": 22102016
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 2516,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 9022,
+        "droppedAgents": 0,
+        "typedIndexBytes": 4786436,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 2.2499999999467946,
+          "p95Us": 4.666999999983545,
+          "maxUs": 262.00000000000045,
+          "candidates": 16878,
+          "collisionMatches": 1884
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 15.083000000004176,
+          "p95Us": 19.707999999980075,
+          "maxUs": 24.334000000010292,
+          "candidates": 647505,
+          "collisionMatches": 98332
+        }
+      ],
+      "resultHash": "412b365aa3f0c170aa825d22dee0c5a402032c797475c82555250e0bfea91346",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 2
+    },
+    {
+      "method": "hash",
+      "hubFraction": 0.1,
+      "hubCount": 100000,
+      "inputHash": "05e3d609eaf71dc56026608ea3128b8f9a533520051c02531edbc9bcd00f3d69",
+      "buildMs": 31.004916,
+      "memory": {
+        "before": {
+          "rss": 37011456,
+          "heapTotal": 1296384,
+          "heapUsed": 8819447,
+          "external": 8276999,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 69419008,
+          "heapTotal": 17532928,
+          "heapUsed": 28871464,
+          "external": 8354104,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 20052017,
+        "rssDeltaBytes": 32407552
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 25014,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 99017,
+        "droppedAgents": 0,
+        "typedIndexBytes": 0,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 1.6250000000042064,
+          "p95Us": 162.3340000000013,
+          "maxUs": 588.3749999999992,
+          "candidates": 658219,
+          "collisionMatches": 102200
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 90.95800000000054,
+          "p95Us": 99.3750000000091,
+          "maxUs": 108.41700000000287,
+          "candidates": 6406810,
+          "collisionMatches": 986275
+        }
+      ],
+      "resultHash": "631e8c956abbf58935f06f549d4eb62e374021ca9a375562bfb4be2d438e2688",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 0
+    },
+    {
+      "method": "sorted",
+      "hubFraction": 0.1,
+      "hubCount": 100000,
+      "inputHash": "05e3d609eaf71dc56026608ea3128b8f9a533520051c02531edbc9bcd00f3d69",
+      "buildMs": 413.677792,
+      "memory": {
+        "before": {
+          "rss": 36896768,
+          "heapTotal": 1296384,
+          "heapUsed": 8815081,
+          "external": 8277001,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 59260928,
+          "heapTotal": 1315840,
+          "heapUsed": 13717560,
+          "external": 13166088,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 4902479,
+        "rssDeltaBytes": 22364160
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 25014,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 99017,
+        "droppedAgents": 0,
+        "typedIndexBytes": 4786436,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 1.458000000013726,
+          "p95Us": 151.83300000001054,
+          "maxUs": 514.3340000000194,
+          "candidates": 658219,
+          "collisionMatches": 102200
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 126.12500000000182,
+          "p95Us": 137.24999999999454,
+          "maxUs": 154.41699999996672,
+          "candidates": 6406810,
+          "collisionMatches": 986275
+        }
+      ],
+      "resultHash": "631e8c956abbf58935f06f549d4eb62e374021ca9a375562bfb4be2d438e2688",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 0
+    },
+    {
+      "method": "hash",
+      "hubFraction": 0.1,
+      "hubCount": 100000,
+      "inputHash": "05e3d609eaf71dc56026608ea3128b8f9a533520051c02531edbc9bcd00f3d69",
+      "buildMs": 40.796040999999995,
+      "memory": {
+        "before": {
+          "rss": 37109760,
+          "heapTotal": 1296384,
+          "heapUsed": 8818055,
+          "external": 8277063,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 69304320,
+          "heapTotal": 17532928,
+          "heapUsed": 28870233,
+          "external": 8354329,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 20052178,
+        "rssDeltaBytes": 32194560
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 25014,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 99017,
+        "droppedAgents": 0,
+        "typedIndexBytes": 0,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 1.7909999999972115,
+          "p95Us": 161.08299999999076,
+          "maxUs": 608.9999999999947,
+          "candidates": 658219,
+          "collisionMatches": 102200
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 94.04099999999005,
+          "p95Us": 105.75000000000045,
+          "maxUs": 134.87500000000807,
+          "candidates": 6406810,
+          "collisionMatches": 986275
+        }
+      ],
+      "resultHash": "631e8c956abbf58935f06f549d4eb62e374021ca9a375562bfb4be2d438e2688",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 1
+    },
+    {
+      "method": "sorted",
+      "hubFraction": 0.1,
+      "hubCount": 100000,
+      "inputHash": "05e3d609eaf71dc56026608ea3128b8f9a533520051c02531edbc9bcd00f3d69",
+      "buildMs": 449.989333,
+      "memory": {
+        "before": {
+          "rss": 37339136,
+          "heapTotal": 1296384,
+          "heapUsed": 8819897,
+          "external": 8277001,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 59179008,
+          "heapTotal": 1315840,
+          "heapUsed": 14230010,
+          "external": 13149594,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 5410113,
+        "rssDeltaBytes": 21839872
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 25014,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 99017,
+        "droppedAgents": 0,
+        "typedIndexBytes": 4786436,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 1.6669999999976426,
+          "p95Us": 152.70799999996143,
+          "maxUs": 521.5410000000134,
+          "candidates": 658219,
+          "collisionMatches": 102200
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 123.58299999999645,
+          "p95Us": 133.74999999996362,
+          "maxUs": 144.41699999997581,
+          "candidates": 6406810,
+          "collisionMatches": 986275
+        }
+      ],
+      "resultHash": "631e8c956abbf58935f06f549d4eb62e374021ca9a375562bfb4be2d438e2688",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 1
+    },
+    {
+      "method": "hash",
+      "hubFraction": 0.1,
+      "hubCount": 100000,
+      "inputHash": "05e3d609eaf71dc56026608ea3128b8f9a533520051c02531edbc9bcd00f3d69",
+      "buildMs": 32.72304200000001,
+      "memory": {
+        "before": {
+          "rss": 36913152,
+          "heapTotal": 1296384,
+          "heapUsed": 8819895,
+          "external": 8276999,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 69353472,
+          "heapTotal": 17532928,
+          "heapUsed": 28876888,
+          "external": 8354264,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 20056993,
+        "rssDeltaBytes": 32440320
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 25014,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 99017,
+        "droppedAgents": 0,
+        "typedIndexBytes": 0,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 1.5839999999940346,
+          "p95Us": 159.5000000000084,
+          "maxUs": 592.5000000000011,
+          "candidates": 658219,
+          "collisionMatches": 102200
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 91.33300000000588,
+          "p95Us": 99.08400000000483,
+          "maxUs": 104.54199999999503,
+          "candidates": 6406810,
+          "collisionMatches": 986275
+        }
+      ],
+      "resultHash": "631e8c956abbf58935f06f549d4eb62e374021ca9a375562bfb4be2d438e2688",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 2
+    },
+    {
+      "method": "sorted",
+      "hubFraction": 0.1,
+      "hubCount": 100000,
+      "inputHash": "05e3d609eaf71dc56026608ea3128b8f9a533520051c02531edbc9bcd00f3d69",
+      "buildMs": 460.304416,
+      "memory": {
+        "before": {
+          "rss": 36978688,
+          "heapTotal": 1296384,
+          "heapUsed": 8813737,
+          "external": 8277001,
+          "arrayBuffers": 0
+        },
+        "after": {
+          "rss": 58900480,
+          "heapTotal": 1315840,
+          "heapUsed": 13711992,
+          "external": 13166120,
+          "arrayBuffers": 8000192
+        },
+        "retainedHeapDeltaBytes": 4898255,
+        "rssDeltaBytes": 21921792
+      },
+      "stats": {
+        "occupiedTiles": 65536,
+        "maxOccupancy": 25014,
+        "hotTileCapacity": 256,
+        "overflowTiles": 4,
+        "overflowAgents": 99017,
+        "droppedAgents": 0,
+        "typedIndexBytes": 4786436,
+        "storedIdCount": 1000000
+      },
+      "batches": [
+        {
+          "stratum": "population",
+          "queries": 256,
+          "p50Us": 1.5419999999721767,
+          "p95Us": 153.83299999996325,
+          "maxUs": 542.1249999999986,
+          "candidates": 658219,
+          "collisionMatches": 102200
+        },
+        {
+          "stratum": "hub",
+          "queries": 256,
+          "p50Us": 127.16599999998834,
+          "p95Us": 138.87499999998454,
+          "maxUs": 160.91599999998607,
+          "candidates": 6406810,
+          "collisionMatches": 986275
+        }
+      ],
+      "resultHash": "631e8c956abbf58935f06f549d4eb62e374021ca9a375562bfb4be2d438e2688",
+      "oracleQueries": 264,
+      "oracleMismatches": 0,
+      "repeat": 2
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+bun test v1.4.2 (744846f84)
+
+test/fixtures/one-city-two-futures/recording-command.test.js:
+(pass) recording CLI rejects invalid ports and unknown arguments before launch [21.08ms]
+(pass) runner exit zero cannot report success with missing artifacts [129.51ms]
+(pass) runner exit zero cannot report success with missing video [96.95ms]
+(pass) runner exit zero cannot report success with empty video [108.22ms]
+(pass) runner exit zero cannot report success with corrupt video [180.69ms]
+
+ 5 pass
+ 0 fail
+ 18 expect() calls
+Ran 5 tests across 1 file. [546.00ms]

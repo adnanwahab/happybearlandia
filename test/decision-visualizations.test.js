@@ -16,3 +16,27 @@ describe('advanced futures evidence',()=>{
  test('before/after differences use scenario and seed matched pairs only',()=>{const rows=[{scenarioId:'a',seed:1,metrics:{x:10}},{scenarioId:'b',seed:1,metrics:{x:30}}],previous=[{scenarioId:'a',seed:1,metrics:{x:7}},{scenarioId:'b',seed:2,metrics:{x:100}}];expect(pairedMetricDeltas(rows,previous,'x')).toEqual({count:1,before:7,after:10,medianDelta:3})});
  test('enter-future URLs preserve exact experiment, run and month',()=>{const url=new URL(futureWorldURL({id:'exp-1'},{id:'run-2'},17),'http://localhost');expect(url.pathname).toBe('/world');expect(url.searchParams.get('decisionExperiment')).toBe('exp-1');expect(url.searchParams.get('decisionRun')).toBe('run-2');expect(url.searchParams.get('month')).toBe('17')});
 });
+
+import {compatibleLandscapeRuns, landscapeAxisRuns, decisionRunReceiptURL} from '../world/decision/visualizations.js';
+import {DECISION_ENGINE_VERSION} from '../world/decision/contracts.js';
+describe('receipt-linked landscape',()=>{
+ const experiment={id:'exp-test',modelVersion:'1.2.0',scenarios:[{id:'baseline'}]};
+ const row={id:'baseline_0001',experimentId:experiment.id,scenarioId:'baseline',modelVersion:experiment.modelVersion,engineVersion:DECISION_ENGINE_VERSION,status:'completed',seed:42,metrics:{x:0,y:2,z:3}};
+ test('100 deterministic seed records retain exact receipt identity',()=>{
+   const rows=Array.from({length:100},(_,i)=>({...row,id:`baseline_${i}`,seed:42+i}));
+   expect(compatibleLandscapeRuns(experiment,rows)).toEqual(rows);
+   expect(new Set(rows.map(r=>decisionRunReceiptURL(experiment,r))).size).toBe(100);
+   expect(decisionRunReceiptURL(experiment,row)).toBe('/api/decision-experiments/exp-test/runs/baseline_0001');
+ });
+ test('incomplete, foreign and unsupported records cannot enter the landscape',()=>{
+   const bad=[{status:'running'},{experimentId:'other'},{modelVersion:'old'},{engineVersion:'old'},{engineVersion:undefined},{scenarioId:'unknown'},{modelVersion:undefined}].map(change=>({...row,...change}));
+   expect(compatibleLandscapeRuns(experiment,[row,...bad])).toEqual([row]);
+   expect(decisionRunReceiptURL(experiment,{...row,experimentId:null})).toBeNull();
+ });
+ test('null depth is omitted only in depth view; zero remains a real measurement',()=>{
+   const missing={...row,metrics:{x:0,y:2,z:null}};
+   expect(landscapeAxisRuns([row,missing],'x','y')).toHaveLength(2);
+   expect(landscapeAxisRuns([row,missing],'x','y','z')).toEqual([row]);
+   for(const value of [null,undefined,NaN,Infinity,'0'])expect(landscapeAxisRuns([{...row,metrics:{x:value,y:2}}],'x','y')).toEqual([]);
+ });
+});

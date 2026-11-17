@@ -7,8 +7,9 @@ async function seek(page,month){const slider=page.getByRole('slider').first();aw
 function watchErrors(page){const errors={page:[],console:[]};page.on('pageerror',e=>errors.page.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.console.push(m.text());});return errors;}
 async function save(info,name,value){await writeFile(info.outputPath(`${name}.json`),JSON.stringify(value,null,2));}
 async function record(page,info,name,extra={}){
- const data=await page.evaluate(()=>{const api=window.futureMachine,h=api.history,s=api.state;let firstDivergence=null;
-  for(let month=0;month<h.plan.length;month++){const a=h.baseline[month].state.buildings,b=h.plan[month].state.buildings,added=b.find(row=>!a.some(before=>before.id===row.id));if(added){firstDivergence={month,collection:'buildings',id:added.id,building:added};break;}}
+ const data=await page.evaluate(async()=>{const api=window.futureMachine,h=api.history,s=api.state;
+  const {firstDivergence:find,compareHistory}=await import('/world/future-machine/diff/index.js');
+  const stop=find(h,compareHistory(h));const firstDivergence=stop?{month:stop.month,...stop.entity,building:h.plan[stop.month].state.buildings.find(row=>row.id===stop.entity.id)}:null;
   return {schemaVersion:'demo-followup-browser-evidence.v1',route:location.pathname+location.search,selectedMonth:s.month,recipe:h.recipe,seed:h.seed,modelVersion:h.modelVersion,initialHash:h.initialHash,runId:h.experimentId,firstDivergence,metrics:s.diff.metrics,evidence:h.plan.slice(0,s.month+1).flatMap(snapshot=>snapshot.events.map(event=>({arm:'plan',snapshotMonth:snapshot.month,...event}))),baseline:h.baseline[s.month],plan:h.plan[s.month],provenance:h.provenance,scene:api.stats.scene,camera:api.stats.scene.camera};});
  await save(info,name,{...data,...extra});await page.screenshot({path:info.outputPath(`${name}.png`),fullPage:true});return data;
 }
@@ -16,7 +17,7 @@ async function fork(page,query=''){await page.goto(route+query);await page.getBy
 async function engines(info){const inventory={};for(const [name,type] of Object.entries({chromium,firefox,webkit})){const executable=type.executablePath();let installed=false;try{await access(executable);installed=true;}catch{}inventory[name]={executable,installed,executed:name===info.project.use.browserName};}inventory.safari={executed:false,reason:'Playwright WebKit is not Safari; no Safari support claim.'};await save(info,'local-browser-engines',inventory);}
 
 test('homepage Play Demo: exact matched start and first physical Month 16',async({page},info)=>{
- const errors=watchErrors(page);await engines(info);await page.goto('/');await page.getByRole('link',{name:'Play Demo',exact:true}).click();await ready(page);await page.getByRole('button',{name:'Pause demo',exact:true}).click();
+ const errors=watchErrors(page);await engines(info);await page.goto('/');await page.getByRole('link',{name:'Try the 60-second simulation',exact:true}).click();await ready(page);await page.getByRole('button',{name:'Pause demo',exact:true}).click();
  await seek(page,0);const start=await record(page,info,'homepage-month-0');expect(start.seed).toBe(42);expect(start.recipe.intervention).toMatchObject({type:'housing',amount:24,cost:1000000,delay:0});expect(start.modelVersion).toBeTruthy();expect(start.runId).toBeTruthy();expect(start.initialHash).toBeTruthy();expect(start.baseline.state).toEqual(start.plan.state);expect(start.metrics.housingUnits.delta).toBe(0);expect(start.firstDivergence.month).toBe(16);
  await seek(page,15);expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics.housingUnits.delta)).toBe(0);
  await seek(page,16);await page.getByTestId('future-machine-stage').scrollIntoViewIfNeeded();const first=await record(page,info,'first-physical-month-16');expect(first.metrics.housingUnits.delta).toBe(24);expect(first.metrics.capitalSpending.delta).toBe(1000000);expect(first.evidence.some(e=>e.eventType==='PROJECT_COMPLETE')).toBe(true);expect(first.plan.state.buildings.find(row=>row.id===first.firstDivergence.id)).toEqual(first.firstDivergence.building);

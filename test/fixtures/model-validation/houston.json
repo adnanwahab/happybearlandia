@@ -1,0 +1,10 @@
+{
+  "dataset": "houston-acs-overlapping-vintages.v1",
+  "modelVersion": "1.2.0",
+  "seed": 42,
+  "runs": 100,
+  "metric": "housing_supply",
+  "observed": 1023112,
+  "absoluteError": 6572.376443952206,
+  "numericTolerance": 0.000001
+}

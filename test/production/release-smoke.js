@@ -1,13 +1,23 @@
 import { expect, test } from '@playwright/test';
 
-test('the deployed revision serves ready storage and working release entry points', async ({ page, request }) => {
+test('the deployed revision has a known build ID and ready storage', async ({ request }) => {
   const revision = process.env.HBL_SMOKE_BUILD_ID;
   expect(revision).toMatch(/^[a-f0-9]{7,64}$/);
   for (const [path, status] of [['/api/health', 'ok'], ['/api/ready', 'ready']]) {
     const response = await request.get(path);
     expect(response.ok()).toBe(true);
-    expect(await response.json()).toMatchObject({ status, buildId: revision });
+    const report = await response.json();
+    expect(report.buildId, `${path} must identify the deployed commit; supply HBL_BUILD_ID at build time`).toMatch(/^[a-f0-9]{7,64}$/);
+    expect(report).toMatchObject({ status, buildId: revision });
+    if (path === '/api/ready') {
+      expect(report.checks).toMatchObject({ worldStorage: 'ok', decisionStorage: 'ok' });
+    }
   }
+});
+
+test('the deployed revision serves working release entry points', async ({ page, request }) => {
+  const revision = process.env.HBL_SMOKE_BUILD_ID;
+  expect(revision).toMatch(/^[a-f0-9]{7,64}$/);
   const faults = [];
   page.on('pageerror', error => faults.push(error.message));
   // Smoke the deployed entry points without loading unrelated embedded previews.

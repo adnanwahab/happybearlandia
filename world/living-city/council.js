@@ -170,7 +170,18 @@ export function mountLivingCouncil(host) {
       list.append(...coalitions.map(group => element('li', `${voteLabels[group.vote]} · ${group.members.join(', ')}`)));
       groups.append(element('h4', 'Voting coalitions'), list);
     }
-    content.replaceChildren(title, proposalCost, tallyText, cards, groups);
+    const changes = element('div');
+    if (after != null) {
+      for (const [label, predicate] of [
+        ['Changed', p => p.baseline !== null && p.outcome !== null && p.baseline !== p.outcome],
+        ['Unchanged', p => p.baseline !== null && p.outcome !== null && p.baseline === p.outcome],
+        ['Unavailable', p => p.baseline === null || p.outcome === null],
+      ]) {
+        const matched = positions.filter(predicate).map(p => p.label);
+        changes.append(element('p', `${label}: ${matched.join(', ') || 'None among these metrics'}.`));
+      }
+    }
+    content.replaceChildren(title, proposalCost, changes, tallyText, cards, groups);
   }
 
   update(null);

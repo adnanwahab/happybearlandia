@@ -1,0 +1,1 @@
+{"schemaVersion":"feedback-aggregate-fixture.v1","aggregates":[{"ordinal":1,"consent":{"granted":true,"scope":"aggregate-triage","version":1},"surface":"world","symptom":"replay-unavailable","observations":3,"voteOrdinals":[1,1,2],"reproduction":{"scenario":null,"seed":null,"modelVersion":null},"createdAt":100,"deleteAt":200,"deletedAt":null}]}

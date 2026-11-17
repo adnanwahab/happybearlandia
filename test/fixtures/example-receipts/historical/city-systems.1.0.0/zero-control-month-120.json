@@ -1,0 +1,1405 @@
+{
+  "checksum": "f1dd3197f3eb7ed5c5b9df78e70af8cfa7a850b2768a7c6c7f4b40a18043d53a",
+  "evidence": {
+    "authority": "monthly City",
+    "evidenceKind": "manifest-recomputation",
+    "experimentId": null,
+    "horizon": {
+      "firstMonth": 0,
+      "lastMonth": 120,
+      "steps": 120
+    },
+    "initialHash": "2b5285afcd34a95999401d90f0e120d1b36682c8249f9a503123dd2ca5987e3e",
+    "limitations": [
+      "Modeled results from illustrative, uncalibrated monthly City rules are not empirical forecasts.",
+      "Synthetic inventory and schematic layout are assumptions, not real geographic building locations.",
+      "Replay recomputes the recorded manifest; equivalence to independently retained checkpoints has not been verified.",
+      "A single matched seed is not an uncertainty distribution. Differences alone do not establish real-world causality.",
+      "Entity identities are scoped to monthly City; no House or Population identity mapping is asserted."
+    ],
+    "modelVersion": "city-systems.1.0.0",
+    "modeledComparison": null,
+    "month": 120,
+    "narrativeInterpretation": null,
+    "observations": {
+      "baseline": {
+        "causalRecords": [],
+        "decisions": [
+          {
+            "actorId": "household-5",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.49982035568181
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5188024649473733
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5101975592171457
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.4179608696067179
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.708516583459288
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.681357907796227
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-8",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.3980456903139058
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.4208902074971546
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.4105344080407138
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.299529745110339
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.6085113936829434
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5758265732460157
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-11",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.7076631924226606
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.7263476614590425
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5178776809933259
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.427087266349
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.5162230630022904
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.4894902364551275
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-17",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.5306801760057183
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5484911370889072
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.7404171323014817
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.653871213399106
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.538839868500809
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5133568145083176
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-23",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.6300224774476184
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.651653456906514
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.441847774277031
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.3367398586915251
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.4399322257159928
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.4089836758378063
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-29",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.3564788146222393
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.3809008189846854
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.3698299183623135
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.2511600274387567
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.56766720837486
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5327253962589216
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          }
+        ],
+        "events": [
+          {
+            "eventType": "BUSINESS_CLOSED",
+            "geographyId": "d0",
+            "id": "120-0",
+            "modelId": "businesses",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "businessId": "business-d0-72",
+              "viability": -1378.078514360046
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "businesses"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d0",
+            "id": "120-1",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-3",
+              "income": 1321.693341457285,
+              "rent": 1002.2339250111208,
+              "savings": 52391.46015553216
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-2",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-5",
+              "income": 1887.3256038408726,
+              "rent": 1225.257899427083,
+              "savings": 105648.06867892365
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d1",
+            "id": "120-3",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-6",
+              "income": 1590.3202305547893,
+              "rent": 968.3896968619877,
+              "savings": 170480.08567721254
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-4",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-7",
+              "income": 1195.6164503702894,
+              "rent": 1091.556634787141,
+              "savings": 26341.976407852224
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-5",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-8",
+              "income": 1568.2284087873995,
+              "rent": 1050.0594406601265,
+              "savings": 101296.6382060406
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-6",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-9",
+              "income": 1143.1962395785376,
+              "rent": 1091.3424099192396,
+              "savings": 29260.98461587535
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-7",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-15",
+              "income": 1273.7662823405117,
+              "rent": 1085.192098588831,
+              "savings": 44768.954362954566
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d1",
+            "id": "120-8",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-16",
+              "income": 1437.887855549343,
+              "rent": 928.2217765558181,
+              "savings": 136271.84517331803
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-9",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-29",
+              "income": 1466.932046203874,
+              "rent": 1240.6885459222221,
+              "savings": 20230.91237780436
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "PARK_OVERCROWDING",
+            "geographyId": "d2",
+            "id": "120-10",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "park-d2"
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "HEALTHCARE_CAPACITY_STRESS",
+            "geographyId": "d2",
+            "id": "120-11",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "healthcare-d2"
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "EMERGENCY_RESPONSE_DEGRADED",
+            "geographyId": "d2",
+            "id": "120-12",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "emergency-d2"
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "COMMUNITY_SERVICE_STRESS",
+            "geographyId": "d2",
+            "id": "120-13",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "library-d2"
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "ANNUAL_POPULATION_UPDATE",
+            "geographyId": null,
+            "id": "120-14",
+            "modelId": "demographics",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "departed": 0,
+              "formed": 0,
+              "growth": -0.000666666666666667
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "demographics"
+          }
+        ],
+        "metrics": {
+          "availableUnits": 6,
+          "balance": 14251141.674091721,
+          "businesses": 4,
+          "capitalSpending": 0,
+          "completedProjects": 0,
+          "debt": 0,
+          "employed": 12,
+          "households": 30,
+          "housingUnits": 36,
+          "jobs": 12,
+          "meanRent": 964.8342201475191,
+          "meanTravelMinutes": 15.000083783111114,
+          "overloadedServices": 4,
+          "population": 90,
+          "unhoused": 0,
+          "utilityFailures": 0
+        },
+        "month": 120
+      },
+      "plan": {
+        "causalRecords": [],
+        "decisions": [
+          {
+            "actorId": "household-5",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.49982035568181
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5188024649473733
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5101975592171457
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.4179608696067179
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.708516583459288
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.681357907796227
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-8",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.3980456903139058
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.4208902074971546
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.4105344080407138
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.299529745110339
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.6085113936829434
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5758265732460157
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-11",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.7076631924226606
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.7263476614590425
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5178776809933259
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.427087266349
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.5162230630022904
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.4894902364551275
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-17",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.5306801760057183
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5484911370889072
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.7404171323014817
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.653871213399106
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.538839868500809
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5133568145083176
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-23",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.6300224774476184
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.651653456906514
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.441847774277031
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.3367398586915251
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.4399322257159928
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.4089836758378063
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-29",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.3564788146222393
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.3809008189846854
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.3698299183623135
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.2511600274387567
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.56766720837486
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5327253962589216
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          }
+        ],
+        "events": [
+          {
+            "eventType": "BUSINESS_CLOSED",
+            "geographyId": "d0",
+            "id": "120-0",
+            "modelId": "businesses",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "businessId": "business-d0-72",
+              "viability": -1378.078514360046
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "businesses"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d0",
+            "id": "120-1",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-3",
+              "income": 1321.693341457285,
+              "rent": 1002.2339250111208,
+              "savings": 52391.46015553216
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-2",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-5",
+              "income": 1887.3256038408726,
+              "rent": 1225.257899427083,
+              "savings": 105648.06867892365
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d1",
+            "id": "120-3",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-6",
+              "income": 1590.3202305547893,
+              "rent": 968.3896968619877,
+              "savings": 170480.08567721254
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-4",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-7",
+              "income": 1195.6164503702894,
+              "rent": 1091.556634787141,
+              "savings": 26341.976407852224
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-5",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-8",
+              "income": 1568.2284087873995,
+              "rent": 1050.0594406601265,
+              "savings": 101296.6382060406
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-6",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-9",
+              "income": 1143.1962395785376,
+              "rent": 1091.3424099192396,
+              "savings": 29260.98461587535
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-7",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-15",
+              "income": 1273.7662823405117,
+              "rent": 1085.192098588831,
+              "savings": 44768.954362954566
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d1",
+            "id": "120-8",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-16",
+              "income": 1437.887855549343,
+              "rent": 928.2217765558181,
+              "savings": 136271.84517331803
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-9",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "householdId": "household-29",
+              "income": 1466.932046203874,
+              "rent": 1240.6885459222221,
+              "savings": 20230.91237780436
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "PARK_OVERCROWDING",
+            "geographyId": "d2",
+            "id": "120-10",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "park-d2"
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "HEALTHCARE_CAPACITY_STRESS",
+            "geographyId": "d2",
+            "id": "120-11",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "healthcare-d2"
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "EMERGENCY_RESPONSE_DEGRADED",
+            "geographyId": "d2",
+            "id": "120-12",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "emergency-d2"
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "COMMUNITY_SERVICE_STRESS",
+            "geographyId": "d2",
+            "id": "120-13",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "library-d2"
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "ANNUAL_POPULATION_UPDATE",
+            "geographyId": null,
+            "id": "120-14",
+            "modelId": "demographics",
+            "modelVersion": "city-systems.1.0.0",
+            "payload": {
+              "departed": 0,
+              "formed": 0,
+              "growth": -0.000666666666666667
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "demographics"
+          }
+        ],
+        "metrics": {
+          "availableUnits": 6,
+          "balance": 14251141.674091721,
+          "businesses": 4,
+          "capitalSpending": 0,
+          "completedProjects": 0,
+          "debt": 0,
+          "employed": 12,
+          "households": 30,
+          "housingUnits": 36,
+          "jobs": 12,
+          "meanRent": 964.8342201475191,
+          "meanTravelMinutes": 15.000083783111114,
+          "overloadedServices": 4,
+          "population": 90,
+          "unhoused": 0,
+          "utilityFailures": 0
+        },
+        "month": 120
+      }
+    },
+    "provenance": {
+      "assumptions": [
+        "Synthetic City inventory; no geographic coordinates.",
+        "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+        "Illustrative monthly equations, not an empirical forecast."
+      ],
+      "authority": "monthly City only",
+      "confidence": "low",
+      "datasetVersion": "future-machine-synthetic.v1",
+      "initialHash": "2b5285afcd34a95999401d90f0e120d1b36682c8249f9a503123dd2ca5987e3e",
+      "modelManifest": [
+        {
+          "cadence": 1,
+          "dependencies": [],
+          "id": "environment",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 1,
+          "dependencies": [
+            "environment"
+          ],
+          "id": "governance",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 1,
+          "dependencies": [
+            "governance"
+          ],
+          "id": "utilities",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 3,
+          "dependencies": [
+            "utilities"
+          ],
+          "id": "development",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 1,
+          "dependencies": [
+            "development"
+          ],
+          "id": "construction",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 1,
+          "dependencies": [
+            "construction"
+          ],
+          "id": "transport",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 1,
+          "dependencies": [
+            "transport"
+          ],
+          "id": "businesses",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 1,
+          "dependencies": [
+            "businesses"
+          ],
+          "id": "jobs",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 1,
+          "dependencies": [
+            "jobs"
+          ],
+          "id": "housing",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 1,
+          "dependencies": [
+            "housing"
+          ],
+          "id": "services",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 12,
+          "dependencies": [
+            "services"
+          ],
+          "id": "demographics",
+          "version": "city-systems.1.0.0"
+        },
+        {
+          "cadence": 1,
+          "dependencies": [
+            "demographics"
+          ],
+          "id": "finance",
+          "version": "city-systems.1.0.0"
+        }
+      ],
+      "populationSnapshot": "synthetic-7-30",
+      "replay": "Local recipe recomputation; no independently recorded checkpoints.",
+      "type": "synthetic-assumption",
+      "worldRevision": "seed.v1"
+    },
+    "recipe": {
+      "households": 30,
+      "intervention": null,
+      "modelVersion": "city-systems.1.0.0",
+      "months": 120,
+      "schemaVersion": "future-machine.v1",
+      "seed": 7
+    },
+    "schemaVersion": "future-machine-evidence.v1",
+    "seed": 7
+  },
+  "outcomeDigests": {
+    "baseline": {
+      "selected": "9765dfa540e28cd3dd50f4a120a6389708a3c22b3081af24de6b4993dca2b0f0",
+      "terminal": "9765dfa540e28cd3dd50f4a120a6389708a3c22b3081af24de6b4993dca2b0f0"
+    },
+    "plan": {
+      "selected": "9765dfa540e28cd3dd50f4a120a6389708a3c22b3081af24de6b4993dca2b0f0",
+      "terminal": "9765dfa540e28cd3dd50f4a120a6389708a3c22b3081af24de6b4993dca2b0f0"
+    }
+  },
+  "rulesRevision": [
+    {
+      "cadence": 1,
+      "dependencies": [],
+      "id": "environment",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "environment"
+      ],
+      "id": "governance",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "governance"
+      ],
+      "id": "utilities",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 3,
+      "dependencies": [
+        "utilities"
+      ],
+      "id": "development",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "development"
+      ],
+      "id": "construction",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "construction"
+      ],
+      "id": "transport",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "transport"
+      ],
+      "id": "businesses",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "businesses"
+      ],
+      "id": "jobs",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "jobs"
+      ],
+      "id": "housing",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "housing"
+      ],
+      "id": "services",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 12,
+      "dependencies": [
+        "services"
+      ],
+      "id": "demographics",
+      "version": "city-systems.1.0.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "demographics"
+      ],
+      "id": "finance",
+      "version": "city-systems.1.0.0"
+    }
+  ],
+  "scenarioIds": {
+    "baseline": "baseline",
+    "plan": "plan"
+  },
+  "schemaVersion": "canonical-run-receipt.v1",
+  "timeRange": {
+    "firstDate": "2026-01",
+    "firstMonth": 0,
+    "lastDate": "2036-01",
+    "lastMonth": 120
+  },
+  "units": {
+    "availableUnits": "homes",
+    "balance": "USD",
+    "businesses": "businesses",
+    "capitalSpending": "USD cumulative",
+    "completedProjects": "projects",
+    "debt": "USD",
+    "employed": "workers",
+    "households": "households",
+    "housingUnits": "homes",
+    "jobs": "jobs",
+    "meanRent": "USD/month",
+    "meanTravelMinutes": "minutes/link",
+    "population": "people",
+    "unhoused": "households"
+  }
+}

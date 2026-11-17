@@ -203,3 +203,47 @@ bun build world/decision/studio.js --target browser --external '/vendor/*' --out
 For the rest of the demo, see [`DECISION_DEMO.md`](DECISION_DEMO.md). Deployment and
 live provider credentials are separate operational decisions, not part of approval
 of a world-edit proposal.
+
+## World Builder + Time Travel (monthly City)
+
+Open `/world/living-city/` and use **World Builder + Time Travel**. This bounded
+infrastructure slice upgrades existing transit in the displayed resident's
+district. Choose one of three capacity/cost presets and a 1–24 month horizon.
+**Run branch from displayed city** copies that exact CityState checkpoint,
+including seed, existing policies and scheduled shocks. The original future
+advances without the new proposal; the proposed future uses the existing City
+construction and governance lifecycle. The parent is never modified.
+
+Both cards read the same monthly index. Scrub recorded months and inspect the
+commute, treasury, housing inventory, completed projects, transit capacity and
+events. **Enter original future** or **Enter proposed future** changes the shared
+network and resident-home inspection to that checkpoint. Another proposal starts
+there, including earlier interventions. Choosing the existing Network timeline
+or opening a quest pair returns to that quest's state.
+
+Supported labels refer to synthetic model records, with collection/field and
+month shown alongside values. Costs, coefficients and unsupported real-world
+outcomes are explicitly assumptions. Missing trips are unavailable. No Population,
+OSM or Decision Studio identity mapping is claimed. Branch history is session-only;
+the quest's existing challenge link continues to share the original quest recipe,
+not a builder branch. Reloading discards builder history.
+
+## Editable-world hints (SHE-468)
+
+The existing World tools expose a static **What can I change?** interaction layer.
+In `/world` it floats over the scene; in Decision Studio it stays within the
+shared tools. Selecting a scenario project offers its existing building editor;
+selecting ground offers a new-building draft only when the default footprint
+passes the complete edit validator in that placement context. Map/source
+buildings remain context, even if their ID coincides with a scenario project.
+The policy hint opens the existing prompt for a supported housing parameter.
+These are synthetic housing assumptions, independent of resident simulation.
+
+Hints are discovery for representative drafts, not approval of arbitrary values,
+legal parcel rights, or a forecast. Changing dimensions or values requires the
+usual review and approval validation. Read-only tools remove hints, and missing
+or incompatible inputs expose no actions. Native buttons have visible focus and
+44px minimum height. The layer is static for reduced motion and low-end devices;
+it refreshes on tool/selection updates, never in the render loop. Canvas2D's
+standalone fallback does not mount the building editor and exposes no edit hints.
+There are no per-building meshes, animated highlights, or automatic simulation.

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "first-play-attempt.v1",
+  "date": "2026-11-12",
+  "sourceCommit": "b963dd353538294cb0fbf5d34d5283fad6e10e68",
+  "sourceSHA256": {
+    "test/first-play.browser.config.js": "1cb63ef9aa564e95a16c219a7256eaaee73f26380ca4838efd0c30e1538bde8b",
+    "test/e2e/first-play-matrix.e2e.js": "8b0a3405963e78622b0d10c3b4243ed13e895ee0a100ce2666628adcb6f0b1ad",
+    "test/e2e/pipeline-device-loss.e2e.js": "314e223d3a2b7c0f6bbee66f20b5ecf8835d6ce0317b6a31a13d5dcbcfb2183a"
+  },
+  "environment": {
+    "architecture": "arm64",
+    "os": "macOS",
+    "bun": "1.4.2",
+    "physicalGPU": "unverified",
+    "availableBrowserCache": "Chromium 1243; Firefox/WebKit absent"
+  },
+  "browserExecution": {
+    "status": "blocked-before-tests",
+    "attemptedPorts": [
+      3199,
+      58473
+    ],
+    "exitCode": 1,
+    "message": "Bun serve listen failed with EADDRINUSE on both ports; cause not established.",
+    "log": "startup-blocked.log",
+    "testsExecuted": 0
+  },
+  "verification": {
+    "focusedBun": {
+      "passed": 21,
+      "failed": 0,
+      "assertions": 145
+    },
+    "playwrightDiscovery": {
+      "defaultChromium": 8,
+      "allEngines": 24
+    }
+  },
+  "performanceClaim": null,
+  "deviceCoverageClaim": null
+}

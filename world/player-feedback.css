@@ -1,0 +1,9 @@
+/* Static DOM controls work independently of renderer quality and reduced motion. */
+#playerFeedback { margin: 8px 0; font-size: 13px; }
+#playerFeedback summary { min-height: 44px; align-content: center; cursor: pointer; }
+#playerFeedback p { line-height: 1.45; overflow-wrap: anywhere; }
+#playerFeedback button, #playerFeedback select { min-height: 44px; max-width: 100%; }
+#playerFeedback .reaction-consent { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 8px; }
+#playerFeedback input { flex: 0 0 auto; width: 20px; height: 20px; }
+#playerFeedback button:disabled { opacity: .55; cursor: default; }
+#playerFeedback :focus-visible { outline: 3px solid var(--accent, #995522); outline-offset: 2px; }

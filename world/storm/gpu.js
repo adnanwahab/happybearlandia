@@ -62,13 +62,40 @@ fn step_water(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 let cachedContext;
 
-function getContext() {
+export function waterGPURequirements({ size, steps, terrain }) {
+  return {
+    maxStorageBufferBindingSize: terrain.byteLength,
+    maxBufferSize: Math.max(16, terrain.byteLength, steps * terrain.byteLength),
+    maxStorageBuffersPerShaderStage: 4,
+    maxBindingsPerBindGroup: 5,
+    maxUniformBufferBindingSize: 16,
+    maxUniformBuffersPerShaderStage: 1,
+    maxBindGroups: 1,
+    maxComputeInvocationsPerWorkgroup: WORKGROUP_SIZE,
+    maxComputeWorkgroupSizeX: WORKGROUP_SIZE,
+    maxComputeWorkgroupsPerDimension: Math.ceil(size ** 2 / WORKGROUP_SIZE),
+  };
+}
+
+export function checkWaterGPULimits(limits, requirements, source) {
+  for (const [name, needed] of Object.entries(requirements)) {
+    const available = limits?.[name];
+    if (!Number.isFinite(available) || available < needed) {
+      throw new Error(`${source} ${name}: needs ${needed}, available ${available ?? 'unknown'}.`);
+    }
+  }
+}
+
+function getContext(requirements) {
   if (!cachedContext) {
     const init = (async () => {
       const adapter = await globalThis.navigator?.gpu?.requestAdapter();
       if (!adapter) throw new Error('No WebGPU compute adapter is available.');
+      checkWaterGPULimits(adapter.limits, requirements, 'WebGPU adapter');
+      // Default device limits suffice or we fall back; never request unsupported limits.
       const device = await adapter.requestDevice();
       try {
+        checkWaterGPULimits(device.limits, requirements, 'WebGPU device');
         const pipeline = await device.createComputePipelineAsync({
           label: 'Heightfield water update',
           layout: 'auto',
@@ -94,7 +121,8 @@ function getContext() {
 export async function simulateWaterGPU(input) {
   const config = prepareWaterInput(input);
   const { size, steps, rainRate, terrain, drains } = config;
-  const { device, pipeline } = await getContext();
+  const { device, pipeline } = await getContext(waterGPURequirements(config));
+  checkWaterGPULimits(device.limits, waterGPURequirements(config), 'WebGPU device');
   const { COPY_DST, COPY_SRC, MAP_READ, STORAGE, UNIFORM } = GPUBufferUsage;
   const bytes = terrain.byteLength;
   const frames = [new Float32Array(size ** 2)];

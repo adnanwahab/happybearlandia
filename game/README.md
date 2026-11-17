@@ -1,5 +1,26 @@
 # Editing the game scene
 
+## Honey Trail
+
+`/game/1` includes an optional eight-drop collection challenge. Follow the
+glowing gold rings from the spawn area toward the shallow stairs. Move with
+WASD, jump with Space, and drag to look. The timer starts on the first pickup
+and freezes on completion. Restart trail restores the pickups and timer while
+keeping the player in place; the best time lasts until the page is reloaded.
+Lava respawns retain progress. Time measures active simulation updates, pauses
+during conversation/poker dialogs, and is local to each player, not a shared
+multiplayer leaderboard. The challenge does not appear on other scenes.
+Markers respect the existing Reduce motion setting without changing collection
+rules or the timer. Keyboard restart retains button focus; pointer restart returns
+to ordinary movement controls.
+
+`honey-trail.js` owns the authored v1 coordinates and collection rules;
+`honey-trail-view.js` renders nonphysical markers and the challenge panel.
+Update the authored coordinates if moving the playground floor or stairs.
+Verify rules and scene/UI integration with `bun test test/honey-trail.test.js`.
+
+## Scene format
+
 `scene/1.json` is loaded before the game starts. An external editor can read and
 write this file without generating JavaScript. Reload the page after editing;
 restart the server too when changing the networked cube's initial transform.
@@ -80,3 +101,10 @@ view still uses external deck.gl and GeoJSON resources; it is outside this smoke
 test's startup workflow.
 
 The `*.e2e.js` filenames keep these tests separate from Bun's unit test discovery.
+
+## Animation and sound
+
+Character clips and collision audio use the [shared media pipeline](../shared/media/README.md).
+The bottom-left settings expose reduced motion and persisted volume (muted by
+default). The shared loader enforces encoded-byte budgets before assets become
+playable; the bear importer additionally enforces decoded clip/track/key limits.

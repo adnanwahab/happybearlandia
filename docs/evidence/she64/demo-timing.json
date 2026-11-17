@@ -1,0 +1,20 @@
+{
+  "elapsedMs": 54840,
+  "seed": 42,
+  "scenario": {
+    "schemaVersion": "future-machine.v1",
+    "modelVersion": "city-systems.1.0.0",
+    "seed": 42,
+    "households": 30,
+    "months": 120,
+    "intervention": {
+      "type": "housing",
+      "districtId": "d1",
+      "amount": 24,
+      "cost": 1000000,
+      "delay": 0,
+      "compliance": 1
+    }
+  },
+  "selectedMonth": 120
+}

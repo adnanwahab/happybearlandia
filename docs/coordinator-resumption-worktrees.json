@@ -1,0 +1,233 @@
+[
+  {
+    "path": "/Users/wahabma/happybearlandia",
+    "head": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+    "branch": "refs/heads/sprint/one-city-two-futures-20261111",
+    "dirty": [
+      " M docs/coordinator-next-dispatch.json",
+      " M docs/implementation-plan.md",
+      " M readme.md",
+      "?? docs/coordinator-resumption-evidence.json",
+      "?? docs/coordinator-u03-review.json",
+      "?? docs/images/",
+      "?? docs/original-readme-notes.md",
+      "?? tools/symphony/"
+    ],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/0285/happybearlandia",
+    "head": "10bbfa41671016507ede5b81f2d7c8fc5de3d2f1",
+    "branch": "refs/heads/codex/research-coordinator-20261111",
+    "dirty": [
+      " M docs/demo-backlog.md",
+      " M docs/implementation-plan.md",
+      " M scripts/demo-pipeline.mjs",
+      " M scripts/pipeline/tasks.json",
+      " M test/demo-pipeline.test.js",
+      " M test/e2e/two-futures-sprint.e2e.js",
+      "?? docs/engineering-pipeline.md",
+      "?? scripts/pipeline-coordinator.mjs",
+      "?? test/pipeline-coordinator.test.js",
+      "?? test/test-results/"
+    ],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/10eb/happybearlandia",
+    "head": "bb3b1588c2e5b78d92a34f117b52704bcc2ade84",
+    "branch": "refs/heads/main",
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/1e86/happybearlandia",
+    "head": "b615b59c9d5d33819ddd8d3e95e9afc5882841a1",
+    "branch": null,
+    "dirty": [
+      " M docs/implementation-plan.md",
+      " M world/onboarding/VISUAL-PASS-INTERFACES.md",
+      " M world/onboarding/panel-manager.js",
+      " M world/onboarding/quick-demo-controller.js",
+      " M world/render.js",
+      "?? docs/world-visual-pass-report.md",
+      "?? test/e2e/world-visual-integration.e2e.js",
+      "?? test/world-visual-integration.browser.config.js",
+      "?? test/world-visual-panels.test.js",
+      "?? world/onboarding/integration.css"
+    ],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia",
+    "head": "ca65c80e3043e79c9893361ccd7b77b9c2b5b22d",
+    "branch": "refs/heads/codex/backlog-integration",
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/backlog-proposal-triage/happybearlandia",
+    "head": "3656b4f7fe813598c0706718c1527734fc2ad0b6",
+    "branch": "refs/heads/codex/backlog-proposal-triage",
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/backlog-replay/happybearlandia",
+    "head": "a3eb730bcd9b6516cbfafd95f9d1276a54352bc9",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/backlog-statistics/happybearlandia",
+    "head": "0ed6286b97a53124b691934c36d6c616eca72988",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/backlog-transitions/happybearlandia",
+    "head": "96e72fa2084b5fb28654e36d71e509c24e8e7df9",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/c32a/happybearlandia",
+    "head": "9691d0e17ba669c43bc9b6f33c64d3a2f96eab89",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/c710/happybearlandia",
+    "head": "d4df87abdf8c05ba3076e9d00546c7d09d62dc1e",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/canvas-fps-repair/happybearlandia",
+    "head": "4660ca3a7b72083219e6ba0d36b6dd7da64771cf",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia",
+    "head": "dec13789a35e091d9ca6baf74ef9cff6f64d9f36",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/demo-followup-browser/happybearlandia",
+    "head": "4df0c68982f8c95e3c47f38301f5772ea5b37658",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/device-loss-label-cleanup/happybearlandia",
+    "head": "3ebc17b45641c4e50c4805a233adbfe627ec1dc5",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/evidence-trail-browser/happybearlandia",
+    "head": "549cd0d62f7a35d1b00e8fdc29f43341fde1b7fd",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/pipeline-bounded-repair/happybearlandia",
+    "head": "8f20c6a53e12ff0337a33eb77c407a2af54b1d08",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia",
+    "head": "67aed30c5382739f39fadf54e6faf328478a8fcd",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/pipeline-device-loss/happybearlandia",
+    "head": "fe0f08d3b2717f5f6758b68ed8c9c1a0d99cb572",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia",
+    "head": "a1aa70d543929f2b0441671d798738a8b625dbfa",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/pipeline-receipt-worker/happybearlandia",
+    "head": "9cb053bfd47fd561829f937ca952276e38e06f29",
+    "branch": "refs/heads/codex/pipeline-u16-evidence",
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia",
+    "head": "a6c84fa89493549a5ed90bcfae359adcdff09966",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/pipeline-resources-u03/happybearlandia",
+    "head": "ef1339b17f9cd860f34bc3722b84347833c596b6",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/presentation-effects/happybearlandia",
+    "head": "383e02cde51534a0af9777b66f7f4fc007f2e048",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/she-115-worker-cancellation/happybearlandia",
+    "head": "060c26ef8fddb7eeac4f1717efe8e8cbda33cbcb",
+    "branch": "refs/heads/codex/she-115-worker-cancellation",
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/she79-manifest-validation/happybearlandia",
+    "head": "01bf4243c7f6043701a69eb3b5c0d6543976f988",
+    "branch": "refs/heads/codex/she79-manifest-validation",
+    "dirty": [],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/.codex/worktrees/symphony-complete-integration/happybearlandia",
+    "head": "81690cae875cc0d0634f145c609d5bd179098c75",
+    "branch": "refs/heads/codex/merge-complete-symphony-20261111",
+    "dirty": [
+      " M docs/implementation-plan.md",
+      "?? test/e2e/symphony-unblock.e2e.js",
+      "?? test/symphony-unblock.browser.config.js"
+    ],
+    "statusExit": 0
+  },
+  {
+    "path": "/Users/wahabma/hbl-linear-ops",
+    "head": "4cdda410dff672db52ed96e5391763c8fb814be4",
+    "branch": null,
+    "dirty": [],
+    "statusExit": 0
+  }
+]

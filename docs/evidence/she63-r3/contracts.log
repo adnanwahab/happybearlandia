@@ -1,0 +1,56 @@
+bun test v1.4.2 (744846f84)
+
+test/future-machine-canvas.test.js:
+(pass) pure projection helpers preserve exact identities and recorded month [1.05ms]
+(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.50ms]
+(pass) fit handles empty data and sourced footprints, mode is bounded [0.26ms]
+(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [1.52ms]
+(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.73ms]
+(pass) cancel, lost capture, right click and distant release never select or poison camera [0.26ms]
+(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [1.28ms]
+(pass) context and initial draw exceptions release every owned node and listener [0.10ms]
+(pass) cross-scale focus widens then closes around the same exact shared entity [0.10ms]
+(pass) resolution preset reverses backing cost without changing inventory, camera or inputs [0.13ms]
+(pass) only user camera gestures trigger manual takeover, never programmatic framing [0.11ms]
+
+test/future-machine-paired.test.js:
+{"recipe":{"schemaVersion":"future-machine.v1","modelVersion":"city-systems.1.1.0","seed":42,"households":30,"months":120,"intervention":{"type":"housing","districtId":"d1","amount":24,"cost":1000000,"delay":0,"compliance":1}},"initialHash":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","digests":{"initial":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","baseline":"9dbadec39af6ce3c14f742ba44dc9f52dae39c99402a20a59cabd6e3769fff29","plan":"eb2744e2b7fda6f9677300bf9ded8a058d5d448cd2ecdf091ba850c5789eaa68","diff":"1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee"},"stateDigest":"22bfa1c1126c976ef4ee73ade8234bb4264a47248ea4352d9cb2ab9a52cb84ef","diffDigest":"1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee","firstPhysical":{"month":16,"entities":[{"collection":"buildings","id":"building-project-policy-1-0","kind":"added","before":null,"after":{"id":"building-project-policy-1-0","districtId":"d1","parcelId":null,"floors":3},"changedFields":[],"physical":true,"buildingIds":["building-project-policy-1-0"]}],"housingUnits":{"baseline":36,"plan":60,"delta":24,"unit":"homes","status":"available","missing":[]},"capitalSpending":{"baseline":0,"plan":1000000,"delta":1000000,"unit":"USD cumulative","status":"available","missing":[]}},"completion":{"schemaVersion":"SystemEvent.v1","id":"16-0","simulationTime":16,"system":"construction","eventType":"PROJECT_COMPLETE","geographyId":"d1","severity":1,"payload":{"projectId":"project-policy-1-0","type":"housing","units":24,"displacedUnits":[],"displacedBusinesses":[],"rule":{"id":"city.construction","version":"city-systems.1.1.0","evidenceType":"synthetic-assumption","source":"world/city/README.md"}},"modelId":"construction","modelVersion":"city-systems.1.1.0"}}
+(pass) seed-42 paired state and diff digests reproduce with real physical evidence [3150.36ms]
+(pass) zero intervention produces identical full histories and zero deltas at every month [866.68ms]
+
+test/future-machine-backend.test.js:
+(pass) actual initialized native flag required; renderer type alone is insufficient [0.57ms]
+(pass) force GL, disabled preference and missing API never load GPU module [0.13ms]
+(pass) load and construction failures select truthful fallback [0.09ms]
+(pass) failed init cleans backend without resurrecting partial renderer [1.26ms]
+(pass) initialized failed candidates cannot block fallback with throwing async disposal [1.26ms]
+(pass) deadline bounds stalled init; late initialized resources are released again [7.00ms]
+(pass) late init rejection is consumed and cleaned; late module never constructs renderer [13.81ms]
+(pass) fallback failure propagates so host can retain Canvas/inventory fallback [0.10ms]
+(pass) invalid dependencies and unbounded deadlines fail explicitly [0.07ms]
+(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke
+
+test/future-machine-scrub-identity.test.js:
+(pass) real City reverse scrub has no future structure at zero and preserves exact schematic IDs [1321.55ms]
+(pass) actual reverse scrub and split/difference preserve one Canvas camera and viewport scale [643.83ms]
+
+test/future-machine-data.test.js:
+Future Machine preset: 637 ms pair; 52067770 JSON bytes
+(pass) default pair has identical original Month 0, exact 120 steps and deterministic replay [1553.30ms]
+(pass) strict versions, missing inventory, horizon and frame boundaries [222.27ms]
+(pass) API adapter persists paired seeds, normalizes replay and handles cancellation/errors [746.29ms]
+Future Machine persisted API pair + replay: 1924 ms
+(pass) real City API persists and reopens the exact 120-month pair [2996.11ms]
+(pass) normalization preserves completion provenance and rejects a missing capital ledger [267.61ms]
+(pass) editing proposed homes reuses the original baseline and leaves prior results immutable [2283.64ms]
+(pass) deadline reports actionable timeout and caller abort remains cancellation [11.32ms]
+(pass) lost connection is actionable without masking application failures [0.20ms]
+
+1 tests skipped:
+(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke
+
+ 32 pass
+ 1 skip
+ 0 fail
+ 880 expect() calls
+Ran 33 tests across 5 files. [14.13s]

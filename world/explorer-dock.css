@@ -3,3 +3,32 @@
 .explorer-home{font-size:10px;letter-spacing:.17em;font-weight:800;color:#387360;text-decoration:none}.explorer-dock h2{font-size:22px;letter-spacing:-.6px;margin:5px 0}.explorer-dock p{font-size:12px;color:#526c61;margin:0 0 12px}.explorer-actions{display:flex;gap:7px;flex-wrap:wrap}.explorer-actions button{background:white;border:1px solid #b8cec2;color:#254b3e;font-size:12px;padding:8px 11px;border-radius:9px}.explorer-actions button:first-child,.explorer-actions button[aria-pressed=true]{background:#245b48;color:white}.explorer-actions button:hover{filter:brightness(.94)}.explorer-actions button:focus-visible{outline:3px solid #e5ae45;outline-offset:3px}.explorer-status{font-size:11px;margin-top:10px;color:#526c61}
 .world-map-focus #top,.world-map-focus #feed,.world-map-focus #tag{display:none!important}
 @media(max-width:760px){.explorer-dock{bottom:10px;padding:12px 15px}.explorer-dock h2{font-size:18px}.explorer-dock p{display:none}.explorer-actions{gap:5px}.explorer-actions button{padding:6px 8px;font-size:11px}.world-explorer #top{max-height:calc(100dvh - 220px)}.world-explorer #feed{display:none}.world-explorer #activity-dashboard-button{bottom:180px}}
+/* World HUD lanes: shortcuts/facts, controls, explorer, then display tools. */
+.world-explorer #top{overflow-anchor:none;max-height:calc(100dvh - 310px);width:min(330px,calc(100vw - 24px));box-sizing:border-box}
+.world-explorer .bw-world-tools{top:108px;box-sizing:border-box;max-height:calc(100dvh - 210px)}
+.world-explorer #world-playback-facts{white-space:normal;max-width:300px}
+.world-explorer .explorer-dock{bottom:86px;max-height:38dvh;overflow:auto}
+.explorer-dock>button{min-height:44px;margin:8px 6px 0 0}
+.explorer-dock.is-collapsed{width:auto;max-width:calc(100vw - 24px);padding:4px 10px;border-radius:28px;display:flex;gap:6px}
+.explorer-dock.is-collapsed>:not([data-action=minimize]):not([data-action=dismiss]){display:none}
+.explorer-dock.is-collapsed>button{margin:0}
+.world-utilities{position:fixed;bottom:max(8px,env(safe-area-inset-bottom));left:12px;right:12px;z-index:92;display:flex;align-items:center;gap:8px;overflow:auto;max-height:68px;padding:4px;background:var(--panel);border-radius:12px}
+.world-explorer .world-utilities>*{position:static!important;transform:none!important;flex:0 0 auto;max-width:none!important;margin:0!important;min-height:44px;box-sizing:border-box}
+.world-explorer #feed{bottom:86px;max-height:20dvh}
+.world-explorer #loading{bottom:76px}
+.world-explorer #world-stream-status{bottom:auto;top:64px;left:350px;transform:none;max-width:calc(100vw - 700px)}
+@media(max-width:900px){
+ .world-explorer .bw-world-tools{top:112px;bottom:auto;max-height:calc(100dvh - 310px)}
+ .world-explorer #top[open]{top:112px;max-height:calc(100dvh - 310px)}
+ .world-explorer #feed{display:none}
+ .world-explorer #world-stream-status{left:12px;top:90px;max-width:calc(100vw - 24px)}
+ .world-explorer .explorer-dock{bottom:86px;padding:10px;max-height:25dvh}
+ .world-explorer .explorer-dock.is-collapsed{padding:4px 10px}
+}
+.world-explorer #top:not([open]){width:auto}
+.world-explorer #top[open],.world-explorer .bw-world-tools{max-height:calc(100dvh - 210px - var(--explorer-height,220px))}
+/* Managed sheets leave the display toolbar reachable. */
+.world-explorer #firstRunGuide,.world-explorer [data-world-panel],
+:root .world-explorer #inspect[data-world-panel],
+:root .world-explorer #cyclePanel[data-world-panel],
+:root .world-explorer #experimentPanel[data-world-panel]{bottom:86px}

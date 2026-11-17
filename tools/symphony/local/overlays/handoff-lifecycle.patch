@@ -1,0 +1,218 @@
+--- a/lib/symphony_elixir/agent_runner.ex
++++ b/lib/symphony_elixir/agent_runner.ex
+@@ -50 +50,8 @@
+-          Workspace.run_after_run_hook(workspace, issue, worker_host)
++          case Workspace.run_after_run_hook(workspace, issue, worker_host) do
++            :ok ->
++              :ok
++
++            {:error, _reason} ->
++              park_host_recovery(codex_update_recipient, issue, :after_run_failed)
++              raise RuntimeError, "Host after_run failed; operator recovery required"
++          end
+@@ -113 +120 @@
+-      case continue_with_issue?(issue, issue_state_fetcher) do
++      case continuation_outcome(workspace, issue, issue_state_fetcher, codex_update_recipient) do
+@@ -141,0 +149,93 @@
++  # Model-authored data can request an early stop, never authorize publication.
++  # The trusted after_run hook remains the sole validator/publisher.
++  @doc false
++  @spec local_handoff_outcome(Path.t()) :: :continue | :stop | {:error, :invalid_handoff}
++  def local_handoff_outcome(workspace) do
++    paths = [[".hbl-handoff", "workpad.json"], [".git", "hbl-workpad.json"]]
++
++    Enum.reduce_while(paths, :continue, fn components, outcome ->
++      reduce_handoff(read_handoff(workspace, components), outcome)
++    end)
++  end
++
++  defp reduce_handoff(:absent, outcome), do: {:cont, outcome}
++
++  defp reduce_handoff({:ok, %{"status" => status, "notes" => notes}}, outcome)
++       when status in ["progress", "blocked", "handoff"] and is_binary(notes) do
++    if String.valid?(notes) and String.trim(notes) != "" and String.length(notes) <= 40_000 do
++      {:cont, if(status in ["blocked", "handoff"], do: :stop, else: outcome)}
++    else
++      {:halt, {:error, :invalid_handoff}}
++    end
++  end
++
++  defp reduce_handoff(_update, _outcome), do: {:halt, {:error, :invalid_handoff}}
++
++  defp read_handoff(workspace, [directory, filename]) do
++    parent = Path.join(workspace, directory)
++
++    case File.lstat(parent) do
++      {:error, :enoent} -> :absent
++      {:ok, %{type: :directory}} -> read_handoff_file(Path.join(parent, filename))
++      _ -> {:error, :invalid_handoff}
++    end
++  end
++
++  defp read_handoff_file(path) do
++    case File.lstat(path) do
++      {:error, :enoent} ->
++        :absent
++
++      {:ok, %{type: :regular, size: size}} when size <= 262_144 ->
++        with {:ok, data} <- read_bounded_handoff(path),
++             true <- byte_size(data) <= 262_144,
++             {:ok, decoded} <- Jason.decode(data) do
++          {:ok, decoded}
++        else
++          _ -> {:error, :invalid_handoff}
++        end
++
++      _ ->
++        {:error, :invalid_handoff}
++    end
++  end
++
++  defp read_bounded_handoff(path) do
++    case File.open(path, [:read, :binary]) do
++      {:ok, file} ->
++        try do
++          case IO.binread(file, 262_145) do
++            data when is_binary(data) -> {:ok, data}
++            _ -> {:error, :invalid_handoff}
++          end
++        after
++          File.close(file)
++        end
++
++      _ ->
++        {:error, :invalid_handoff}
++    end
++  end
++
++  defp continuation_outcome(workspace, issue, fetcher, recipient) do
++    case local_handoff_outcome(workspace) do
++      :continue ->
++        continue_with_issue?(issue, fetcher)
++
++      :stop ->
++        {:done, issue}
++
++      {:error, reason} ->
++        park_host_recovery(recipient, issue, reason)
++        {:error, reason}
++    end
++  end
++
++  defp park_host_recovery(recipient, issue, reason) do
++    send_codex_update(recipient, issue, %{
++      event: :host_handoff_blocked,
++      timestamp: DateTime.utc_now(),
++      reason: reason
++    })
++  end
++
+--- a/lib/symphony_elixir/workspace.ex
++++ b/lib/symphony_elixir/workspace.ex
+@@ -234 +234 @@
+-  @spec run_after_run_hook(Path.t(), map() | String.t() | nil, worker_host()) :: :ok
++  @spec run_after_run_hook(Path.t(), map() | String.t() | nil, worker_host()) :: :ok | {:error, term()}
+@@ -245 +244,0 @@
+-        |> ignore_hook_failure()
+--- a/lib/symphony_elixir/orchestrator.ex
++++ b/lib/symphony_elixir/orchestrator.ex
+@@ -660 +660 @@
+-    Map.get(running_entry, :last_codex_event) in [:turn_input_required, :approval_required] or
++    Map.get(running_entry, :last_codex_event) in [:turn_input_required, :approval_required, :host_handoff_blocked] or
+@@ -700,0 +701 @@
++  defp codex_event_blocker_error(:host_handoff_blocked), do: "host handoff requires operator recovery; implementation parked"
+--- a/lib/symphony_elixir_web/factory_throughput.ex
++++ b/lib/symphony_elixir_web/factory_throughput.ex
+@@ -25 +25 @@
+-    maps = ~w(runtime queue rates cycle_times utilization resources tokens api quality)
++    maps = ~w(runtime queue rates cycle_times utilization resources tokens api quality inventory)
+@@ -53 +53 @@
+-      <p class="section-copy">Repository PR rates include coordinator work; Symphony-only rates require an exact Symphony issue branch. Small samples do not establish capacity.</p>
++      <p class="section-copy">Repository PR rates include coordinator work; Symphony-only rates require an exact Symphony issue branch. Small samples do not establish capacity. Inventory age is separate from current resource samples; API counts describe the last full scan.</p>
+@@ -94,0 +95 @@
++      {"Inventory age seconds", ["inventory", "age_seconds"]},
+@@ -124,0 +126,11 @@
++    settings = SymphonyElixir.Config.settings!()
++
++    data =
++      Map.put(SymphonyElixirWeb.FactoryThroughput.snapshot(), "effective_configuration", %{
++        "required_labels" => settings.tracker.required_labels,
++        "max_concurrent_agents" => settings.agent.max_concurrent_agents,
++        "max_turns" => settings.agent.max_turns,
++        "workspace_root" => SymphonyElixir.Config.local_workspace_root(),
++        "workflow_path" => SymphonyElixir.Workflow.workflow_file_path()
++      })
++
+@@ -127 +139 @@
+-    |> json(SymphonyElixirWeb.FactoryThroughput.snapshot())
++    |> json(data)
+--- a/test/symphony_elixir/factory_throughput_test.exs
++++ b/test/symphony_elixir/factory_throughput_test.exs
+@@ -43 +43,8 @@
+-    assert Jason.decode!(result.resp_body) == %{"unavailable" => true}
++    data = Jason.decode!(result.resp_body)
++    assert data["unavailable"] == true
++    settings = SymphonyElixir.Config.settings!()
++    assert data["effective_configuration"]["max_turns"] == settings.agent.max_turns
++    assert data["effective_configuration"]["required_labels"] == settings.tracker.required_labels
++
++    assert Enum.sort(Map.keys(data["effective_configuration"])) ==
++             ["max_concurrent_agents", "max_turns", "required_labels", "workflow_path", "workspace_root"]
+--- a/test/symphony_elixir/core_test.exs
++++ b/test/symphony_elixir/core_test.exs
+@@ -134,0 +135 @@
++    assert config["agent"]["max_turns"] == 20
+--- a/lib/symphony_elixir/config/schema.ex
++++ b/lib/symphony_elixir/config/schema.ex
+@@ -342 +342 @@
+-          {:ok, Map.put(policy, "writableRoots", isolated_git_roots(defaults["writableRoots"]))}
++          {:ok, Map.put(policy, "writableRoots", defaults["writableRoots"])}
+@@ -352,10 +351,0 @@
+-    end
+-  end
+-
+-  defp isolated_git_roots([workspace]) do
+-    git_dir = Path.join(workspace, ".git")
+-
+-    if File.dir?(git_dir) and PathSafety.canonicalize(git_dir) == {:ok, git_dir} do
+-      [workspace, git_dir]
+-    else
+-      [workspace]
+--- a/test/symphony_elixir/workspace_and_config_test.exs
++++ b/test/symphony_elixir/workspace_and_config_test.exs
+@@ -20,2 +20 @@
+-    assert [writable, git_dir] = policy["writableRoots"]
+-    assert git_dir == Path.join(writable, ".git")
++    assert [writable] = policy["writableRoots"]
+@@ -22,0 +22,12 @@
++    assert Config.codex_turn_sandbox_policy(root) == policy
++    assert {:ok, runtime_settings} = Config.codex_runtime_settings(root)
++    assert runtime_settings.turn_sandbox_policy == policy
++    assert runtime_settings.thread_sandbox == "workspace-write"
++
++    # Metadata integrity belongs to trusted host isolation checks. Even an
++    # existing or symlinked .git must never acquire an explicit writable grant.
++    File.rmdir!(Path.join(root, ".git"))
++    target = Path.join(root, "host-metadata")
++    File.mkdir_p!(target)
++    File.ln_s!(target, Path.join(root, ".git"))
++    assert Config.codex_turn_sandbox_policy(root) == policy
+--- a/README.md
++++ b/README.md
+@@ -414,6 +414,10 @@
+-This checkout's WORKFLOW.md selects `symphony-pilot`, one worker and independent
+-clones under `~/code/symphony-pilot-isolated`. Its hooks have stable absolute paths
+-in this checkout. Keep that checkout available or update both paths deliberately.
+-Codex retains workspace-write sandboxing with network access enabled. A workspaceWrite
+-turn policy that omits writableRoots receives the canonical issue workspace and its contained .git directory
+-at runtime (explicit Git access supports unattended commits); explicitly supplied root lists retain their existing semantics. Unresolved
++This checkout's WORKFLOW.md requires `symphony-pilot` and the temporary
++`symphony-pressure-release` safety gate, one worker, tested max_turns20, and
++independent source-only clones under `~/code/symphony-source-only`. Its hooks
++have stable absolute paths; keep the checkout available or update them deliberately.
++Codex retains workspace-write sandboxing with network access enabled. A policy
++that omits writableRoots receives only the canonical issue workspace, with no
++explicit Git metadata exception. Workers edit/test source and write data-only
++handoffs; the trusted host owns fetch/branches/staging/commits/push/draft publication.
++Explicit operator root lists retain their existing semantics; this profile does
++not configure extra roots. Unresolved

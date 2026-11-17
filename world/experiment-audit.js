@@ -1,3 +1,6 @@
+import { buildUncertaintyExplorer } from './uncertainty-explorer.js';
+
+import { experimentRegistryEntry } from "./experiment-registry.js";
 import { buildReproducibilityManifest } from "./reproducibility.js";
 import { decomposeOutcomeUncertainty, topResearchQuestion } from "./uncertainty-analysis.js";
 
@@ -66,9 +69,11 @@ export function buildExperimentBundle(recordOrSnapshot = {}) {
   return {
     schemaVersion: "hbl-experiment-bundle.v1",
     exportedAt: new Date().toISOString(),
+    registry: experimentRegistryEntry(record),
     audit,
     reproducibility: audit.reproducibility,
     model: record.experiment?.model || null,
+    uncertainty: record.simulationBatch ? buildUncertaintyExplorer(record.simulationBatch, record.experiment) : null,
     researchPriority: uncertainty ? topResearchQuestion(uncertainty) : null,
     snapshot: record,
   };
@@ -89,6 +94,7 @@ export function shareExperimentViewModel(recordOrSnapshot = {}) {
   const priority = uncertainty ? topResearchQuestion(uncertainty) : null;
   return {
     title: experiment.plan?.title || "Civic experiment",
+    resultLabel: experimentRegistryEntry(record).resultLabel,
     experimentId: experiment.id || null,
     runs: record.worldBatch?.runs || record.simulationBatch?.simulations?.length || 0,
     robustness: summary.robustness ?? experiment.analysis?.robustness ?? null,

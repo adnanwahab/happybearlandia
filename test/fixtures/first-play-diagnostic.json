@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "hbl.first-play-diagnostic.v1",
+  "appVersion": "future-machine.2026-11-12",
+  "renderer": "canvas2d",
+  "errorType": "comparison-failure",
+  "traceId": "hbl-0123456789abcdef0123456789abcdef"
+}

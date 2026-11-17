@@ -9,6 +9,7 @@ const fileOverrides = Object.freeze({
   'constitution-city': 'world/constitution-city.html',
   game: 'game/index.html',
   house: 'world/house/index.html',
+  'social-bear': 'world/bar/index.html',
   experiments: 'world/reality-compiler.html',
   business: 'world/business.html',
 });
