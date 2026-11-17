@@ -12,6 +12,7 @@ test('the production server serves the homepage and rejects an unknown route', a
       HBL_WORLD_DB_PATH: ':memory:',
       DECISION_STORE_DIR: join(directory, 'decision'),
       HBL_JOURNAL_ROOT: join(directory, 'journals'),
+      HBL_SERVER_LOG_DIR: join(directory, 'server-logs'),
     },
     stdout: 'pipe',
     stderr: 'pipe',
@@ -50,6 +51,7 @@ test('the production server serves the homepage and rejects an unknown route', a
     for (const path of ['/shared/media/not-public.js', '/shared/not-public.js', '/.env']) {
       expect((await fetch(origin + path, { signal: AbortSignal.timeout(3000) })).status).toBe(404);
     }
+
     const missing = await fetch(origin + '/missing-release-test-page', { signal: AbortSignal.timeout(3000) });
     expect(missing.status).toBe(404);
   } finally {

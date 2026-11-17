@@ -1,5 +1,10 @@
 import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
 const handlePlayerFeedback = createPlayerFeedbackHandler({directory:process.env.HBL_PLAYER_FEEDBACK_DIR||undefined});
+import { createServerLogs } from './ops/server-logs/api.js';
+// Redacted request, error and warning logs, published at /api/server-logs.
+// Start capturing before other handlers initialize. See ops/server-logs/README.md.
+const serverLogs = createServerLogs(process.env);
+serverLogs.captureConsole();
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
@@ -444,7 +449,7 @@ const server = serve({
   port: PORT,
   hostname: process.env.HBL_BIND_HOST || undefined,
 
-  async fetch(request, server) {
+  fetch: serverLogs.instrument(async function routeRequest(request, server) {
     const { pathname } = new URL(request.url);
     if (pathname === '/api/player-feedback') return handlePlayerFeedback(request);
     if (pathname === '/logs' || pathname === '/logs/') return serveFile('./world/session-logs.html');
@@ -452,6 +457,7 @@ const server = serve({
     if (pathname.startsWith('/api/mini-symphony')) return handleMiniSymphony(request, {localAddress: server.requestIP(request)?.address});
     if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');
     if (pathname === '/mini-symphony/style.css') return serveFile('./tools/mini-symphony-dashboard/style.css');
+    if (pathname === "/api/server-logs" || pathname === "/api/server-logs/") return serverLogs.handle(request);
     if (pathname === "/api/health" || pathname === "/api/ready" || pathname === "/api/demo/ready") return handleReleaseHealth(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
@@ -589,7 +595,7 @@ const server = serve({
     if (under(pathname, "/blog")) return serveStatic("/blog", "./blog/dist", pathname);
 
     return notFound();
-  },
+  }),
 
   websocket: {
     pong(ws){if(ws.data?.roomId)actNormalService.websocket.pong(ws);},
@@ -629,3 +635,4 @@ console.log(`  /blog   http://localhost:${server.port}/blog (after building blog
 console.log(`  ws      ws://localhost:${server.port}/ws`);
 console.log(`  overpass ${OVERPASS_ENDPOINTS.map(endpoint => publicProviderOrigin(endpoint) ?? "invalid provider endpoint").join(" | ")} (timeout ${OVERPASS_TIMEOUT_MS}ms)`);
 console.log(`  dear-congress proxy origin ${DEAR_CONGRESS_ORIGIN}`);
+serverLogs.started();
