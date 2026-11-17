@@ -1,3 +1,6 @@
+import {mkdtempSync,rmSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
 import { describe, expect, test } from "bun:test";
 
 describe("/world api flood-zone fallback", () => {
@@ -5,6 +8,9 @@ describe("/world api flood-zone fallback", () => {
     process.env.OVERPASS_URL = "https://overpass.test/api/interpreter";
     process.env.NFHL_LAYER_URL = "https://nfhl.test/query";
 
+    const previousSnapshotDir=process.env.AREA_SNAPSHOT_DIR;
+    const snapshotDir=mkdtempSync(join(tmpdir(),"hbl-material-api-"));
+    process.env.AREA_SNAPSHOT_DIR=snapshotDir;
     const origFetch = globalThis.fetch;
     globalThis.fetch = async (input, init = {}) => {
       const url = String(input);
@@ -14,7 +20,7 @@ describe("/world api flood-zone fallback", () => {
             {
               type: "way",
               id: 1,
-              tags: { building: "house" },
+              tags: { building: "house", "building:material": "brick", "roof:material": "slate", secret: "excluded" },
               geometry: [
                 { lat: 29.7, lon: -95.5 },
                 { lat: 29.7001, lon: -95.5 },
@@ -35,10 +41,14 @@ describe("/world api flood-zone fallback", () => {
       const mod = await import(`./api.js?t=${crypto.randomUUID()}`);
       const out = await mod.getArea(29.7, -95.5, 150);
       expect(out.source).toBe("osm");
+      expect(out.buildings[0].id).toBe("w1");
+      expect(out.buildings[0].materialTags).toEqual({"building:material":"brick","roof:material":"slate"});
       expect(out.floodZonesSource).toBe("fallback-lowland");
       expect(Array.isArray(out.floodZones)).toBe(true);
     } finally {
       globalThis.fetch = origFetch;
+      if(previousSnapshotDir===undefined)delete process.env.AREA_SNAPSHOT_DIR;else process.env.AREA_SNAPSHOT_DIR=previousSnapshotDir;
+      rmSync(snapshotDir,{recursive:true,force:true});
       delete process.env.OVERPASS_URL;
       delete process.env.NFHL_LAYER_URL;
     }
