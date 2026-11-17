@@ -33,7 +33,9 @@
     "test:startup": "playwright test --config test/startup-smoke.config.js",
     "test:agents:browser": "bun scripts/run-symphony-browser-tests.mjs",
     "symphony:mini:export": "bun --no-env-file tools/symphony/mini-bun/export-runtime.ts",
-    "symphony:mini:audit": "bun --no-env-file tools/symphony/mini-bun/audit-integration.ts"
+    "symphony:mini:audit": "bun --no-env-file tools/symphony/mini-bun/audit-integration.ts",
+    "preview:generate": "bun scripts/generate-social-preview.ts",
+    "preview:check": "bun scripts/generate-social-preview.ts --check"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",

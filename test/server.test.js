@@ -14,6 +14,7 @@ test('the production server keeps merged feature routes and simulation admission
       HBL_JOURNAL_ROOT: join(directory, 'journals'),
       HBL_SERVER_LOG_DIR: join(directory, 'server-logs'),
       HBL_DETECTIVE_ROOT: join(directory, 'detective'),
+      HBL_SERVER_LOG_DIR: join(directory, 'server-logs'),
       NODE_ENV: 'test',
       HBL_TEST_SIMULATION_PER_CLIENT: '2',
       HBL_TEST_SIMULATION_TOTAL: '2',
@@ -102,6 +103,16 @@ test('the production server keeps merged feature routes and simulation admission
       expect(response.headers.get('content-type')).toContain('javascript');
     }
     expect((await fetch(origin + '/shared/media/private.js')).status).toBe(404);
+
+    // Requests through the real dispatcher reach the redacted server log.
+    const serverLogs = await fetch(origin + '/api/server-logs?since=1h&level=warn');
+    expect(serverLogs.status).toBe(200);
+    expect(serverLogs.headers.get('cache-control')).toBe('no-store');
+    const logBody = await serverLogs.json();
+    expect(logBody.schemaVersion).toBe('server-logs.v1');
+    expect(logBody.summary.requests.notFound.some(item => item.path === '/shared/media/private.js')).toBe(true);
+    const lifecycle = await (await fetch(origin + '/api/server-logs?type=lifecycle')).json();
+    expect(lifecycle.entries[0]).toMatchObject({ type: 'lifecycle', message: 'server started' });
 
     // Invalid bodies consume admission but never start a simulation or write a run.
     const submit = () => fetch(origin + '/api/runs', {

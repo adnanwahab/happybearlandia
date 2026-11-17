@@ -65,4 +65,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Local Mini Symphony browser artifacts (CI uploads them separately)
 /artifacts/mini-symphony/
-.mini-symphony-evidence/
+/.mini-symphony-evidence/

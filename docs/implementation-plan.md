@@ -40,6 +40,20 @@ availability claim or live integration activation without actual evidence.
 
 Implementation/check evidence and explicit remaining operations: [reliability review](reviews/mini-symphony-reliability-20261117.md). Canonical export, external artifacts, approval guard, five-config isolation and advisory repair queue are implemented; live rollout, GitHub protections, automated repair dispatch and persistent-deadline Bun supervision remain unclaimed.
 
+## SHE-990 sidewalk synchronization follow-up — November 17
+
+Isolated from actual remote main c3ec93c5. Priority is closing the retained
+19.32m legacy walker/render divergence before feature expansion. Own the
+presentation fix, canonical desktop/mobile Playwright acceptance and integration
+review of PR470/474. No deployment or merge. Acceptance includes actual sidewalk
+lane membership, exterior geometry, body pixels, unobstructed scene picking,
+mouse/touch selection, pause/resume and camera movement, with exact coordinate
+and JS/GPU receipts. See [slice and evidence](reviews/SHE-990-sidewalk-sync.md)
+and [related PR review](reviews/SHE-990-pr-review.md).
+Completed: presentation-only pause settlement; actual desktop/mobile sidewalk
+acceptance2/2, combined units87pass/1opt-in skip, startup6/6 and temporal6/6.
+PR470 fix981f7d8d; conflict-free disposable PR474 composition1adcb31d.
+PR474 strict performance acceptance remains failed; no merge or deployment.
 
 ## SHE-990 — World controls and street residents (November 17)
 

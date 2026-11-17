@@ -17,8 +17,9 @@ const repoInfo = () => ({ name: REPO, full_name: FULL_NAME, owner: { login: OWNE
 
 function pull(number = 1, overrides = {}) {
   return {
-    number, title: `Implement task ${number}`, body: 'A small independently reviewable change.',
+    number, node_id: `PR_node_${number}`, title: `Implement task ${number}`, body: 'A small independently reviewable change.',
     state: 'open', draft: false, mergeable: true, mergeable_state: 'clean', changed_files: 1,
+    user: { login: 'feature-author', type: 'User' },
     labels: [], requested_reviewers: [], requested_teams: [],
     created_at: time(86400 - number), updated_at: time(600),
     html_url: `https://github.com/${FULL_NAME}/pull/${number}`,
@@ -73,7 +74,7 @@ function fixture(options = {}) {
   }
   const handlers = {
     'repos.get': () => response({ ...repoInfo(), default_branch: 'main', allow_squash_merge: true,
-      allow_merge_commit: true, allow_rebase_merge: true, ...options.repository }),
+      allow_merge_commit: true, allow_rebase_merge: true, allow_auto_merge: false, ...options.repository }),
     'repos.getBranch': args => response({ name: args.branch, protected: true, commit: {
       sha: sequence(`branch:${args.branch}`, options.branchSequence?.[args.branch], args.branch === 'main' ? mainSha : SPRINT_SHA),
     } }),
@@ -90,7 +91,13 @@ function fixture(options = {}) {
     'pulls.get': args => response(structuredClone(sequence(`pr:${args.pull_number}`,
       options.prSequence?.[args.pull_number], prs.find(pr => pr.number === args.pull_number)))),
     'pulls.listFiles': args => page(options.files?.[args.pull_number] ?? [{ filename: 'src/world.ts', status: 'modified' }], args),
-    'pulls.listReviews': args => page(options.reviews?.[args.pull_number] ?? [], args),
+    'pulls.listReviews': args => page(
+      options.reviews && Object.hasOwn(options.reviews, args.pull_number)
+        ? options.reviews[args.pull_number]
+        : [{ id: 8000 + args.pull_number, state: 'APPROVED',
+             commit_id: prs.find(pr => pr.number === args.pull_number)?.head.sha,
+             user: { login: 'human-maintainer', type: 'User' }, submitted_at: time(100) }],
+      args),
     'issues.listComments': args => page(options.comments?.[args.issue_number] ?? [], args),
     'actions.listWorkflowRuns': args => page(runs.filter(run =>
       (!args.workflow_id || run.path.endsWith(`/${args.workflow_id}`)) &&
@@ -143,13 +150,19 @@ function fixture(options = {}) {
     },
     graphql: async (query, args) => {
       calls.push({ method: 'graphql', args });
+      if (query.includes('enablePullRequestAutoMerge')) {
+        writes.push({ method: 'graphql.enableAutoMerge', args });
+        if (options.autoMergeError) throw options.autoMergeError;
+        return { enablePullRequestAutoMerge: { pullRequest: { id: args.pullRequestId } } };
+      }
       const number = args.number ?? args.pullNumber ?? args.pullRequestNumber;
       assert.ok(number, 'GraphQL request includes a PR number');
       const all = options.threads?.[number] ?? [];
       const offset = args.cursor ? Number(args.cursor) : 0;
       const size = options.pageSize ?? 100;
       return { repository: { pullRequest: {
-        reviewDecision: options.reviewDecision?.[number] ?? null,
+        reviewDecision: options.reviewDecision && Object.hasOwn(options.reviewDecision, number)
+          ? options.reviewDecision[number] : 'APPROVED',
         reviewThreads: { nodes: all.slice(offset, offset + size), pageInfo: {
           hasNextPage: offset + size < all.length,
           endCursor: offset + size < all.length ? String(offset + size) : null,
@@ -178,8 +191,9 @@ test('merges at most one ready PR at its exact head, then dispatches current-mai
   assert.equal(args.pull_number, 1, 'select the oldest eligible PR regardless of API response order');
   assert.equal(args.sha, head(args.pull_number));
   assert.equal(args.merge_method, 'merge');
-  assert.equal(dispatches(f).length, 1);
+  assert.equal(dispatches(f).length, 2);
   assert.equal(dispatches(f)[0].args.workflow_id, 'core-journeys.yml');
+  assert.equal(dispatches(f)[1].args.workflow_id, 'post-merge-observations.yml');
   assert.equal(dispatches(f)[0].args.ref, 'main');
   assert.ok(f.writes.indexOf(merges(f)[0]) < f.writes.indexOf(dispatches(f)[0]));
 });
@@ -253,7 +267,7 @@ test('blocks unresolved review threads, changes requested, and maintainer holds'
 });
 
 test('review ordering preserves a change request until a newer decisive review clears it', async t => {
-  const review = (id, state, seconds) => ({ id, state, user: { login: 'maintainer' }, submitted_at: time(seconds) });
+  const review = (id, state, seconds) => ({ id, state, user: { login: 'maintainer', type: 'User' }, commit_id: head(1), submitted_at: time(seconds) });
   await t.test('later comment does not clear change request', async () => {
     const f = fixture({ reviews: { 1: [review(2, 'COMMENTED', 1), review(1, 'CHANGES_REQUESTED', 100)] } });
     await f.execute(); assert.equal(merges(f).length, 0);
@@ -448,4 +462,94 @@ test('the named sprint branch is eligible and does not dispatch main CI after me
   const f = fixture({ prs: [pr] }); await f.execute();
   assert.equal(merges(f).length, 1);
   assert.equal(dispatches(f).length, 0, 'sprint merge does not pretend main changed');
+});
+
+test('requires a positive review decision (not null or review-required)', async t => {
+  for (const decision of [null, 'REVIEW_REQUIRED', 'CHANGES_REQUESTED']) {
+    await t.test(String(decision), async () => {
+      const f = fixture({ reviewDecision: { 1: decision } });
+      await f.execute();
+      assert.equal(merges(f).length, 0);
+    });
+  }
+});
+test('requires a different human reviewer approving exactly the current head', async t => {
+  const approved = (commit_id, login, type = 'User') => ({
+    id: 400, state: 'APPROVED', commit_id,
+    user: { login, type }, submitted_at: time(50),
+  });
+  const scenarios = {
+    none: [],
+    stale: [approved(head(999), 'maintainer')],
+    bot: [approved(head(1), 'review-bot', 'Bot')],
+    self: [approved(head(1), 'feature-author')],
+    valid: [approved(head(1), 'human-maintainer')],
+  };
+  for (const [name, reviews] of Object.entries(scenarios)) {
+    await t.test(name, async () => {
+      const f = fixture({ reviews: { 1: reviews } });
+      await f.execute();
+      assert.equal(merges(f).length, name === 'valid' ? 1 : 0);
+    });
+  }
+});
+test('generated screenshot files do not qualify for automated merging', async () => {
+  const f = fixture({ files: { 1: [{ filename: '.mini-symphony-evidence/after.png', status: 'added' }] } });
+  await f.execute();
+  assert.equal(merges(f).length, 0);
+});
+test('scheduled merge workflow is explicitly opt-in and manual dispatch defaults dry', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const text = fs.readFileSync(path.join(__dirname, '../.github/workflows/auto-merge.yml'), 'utf8');
+  assert.ok(text.includes("cron: '*/5 * * * *'"));
+  assert.ok(text.includes('HBL_GUARDED_AUTOMERGE_ENABLED'));
+  assert.ok(text.includes('dry_run:'));
+  assert.ok(text.includes('default: true'));
+  assert.doesNotMatch(text, /if:\s*\$\{\{\s*false\s*\}\}/);
+});
+
+test('native GitHub auto-merge is enabled for an exact-head human-approved PR, not merged through REST', async () => {
+  const f = fixture({ repository: { allow_auto_merge: true } });
+  const result = await f.execute();
+  assert.equal(result.enabled, 1);
+  assert.equal(result.merged, 0);
+  assert.equal(merges(f).length, 0);
+  assert.equal(f.writes.filter(call => call.method === 'graphql.enableAutoMerge').length, 1);
+  assert.equal(f.writes.find(call => call.method === 'graphql.enableAutoMerge').args.pullRequestId, 'PR_node_1');
+  assert.equal(f.writes.find(call => call.method === 'graphql.enableAutoMerge').args.mergeMethod, 'MERGE');
+  assert.equal(dispatches(f).length, 0, 'native GitHub merges will emit their own main push');
+});
+
+test('native auto-merge fails closed when GitHub rejects the request', async () => {
+  const f = fixture({ repository: { allow_auto_merge: true }, autoMergeError: new Error('auto-merge unavailable') });
+  await f.execute();
+  assert.equal(merges(f).length, 0);
+  assert.ok(f.messages.some(message => message.level === 'setFailed'));
+});
+
+test('observational screenshots and performance checks do not block otherwise valid PRs', async () => {
+  const f = fixture({ checks: { [head(1)]: [
+    { id: 997, name: 'visual-evidence', status: 'completed', conclusion: 'failure', created_at: time(10) },
+    { id: 998, name: 'Performance - rain', status: 'in_progress', conclusion: null, created_at: time(20) },
+  ] } });
+  await f.execute();
+  assert.equal(merges(f).length, 1);
+});
+
+test('the audit contains the skipped or deferred state for every inventoried PR', async () => {
+  const f = fixture({ prs: [pull(1), pull(2)] });
+  const result = await f.execute();
+  assert.deepEqual(new Set(result.rows.filter(r => /^#\d+$/.test(r.pr)).map(r => r.pr)), new Set(['#1','#2']));
+  assert.ok(result.rows.find(r => r.pr === '#2' && r.status === 'deferred'));
+});
+
+test('unstable GitHub mergeability is acceptable only when failing checks are explicitly observational', async () => {
+  const f = fixture({ prs: [pull(1, { mergeable_state: 'unstable' })],
+    checks: { [head(1)]: [{ id: 445, name: 'visual-evidence', status: 'completed', conclusion: 'failure', created_at: time(10) }] } });
+  await f.execute();
+  assert.equal(merges(f).length, 1);
+  const blocked = fixture({ prs: [pull(1, { mergeable_state: 'unstable' })],
+    checks: { [head(1)]: [{ id: 446, name: 'security', status: 'completed', conclusion: 'failure', created_at: time(10) }] } });
+  await blocked.execute();
+  assert.equal(merges(blocked).length, 0);
 });

@@ -7,7 +7,6 @@ import { spawn, type ChildProcess } from 'node:child_process';
 
 import { portFailureEvidence, shouldAutoDebug, autoDebugPrompt, parseAutoDebugResult } from './auto-debug';
 import {cleanupMergedWorkspaces} from './cleanup';
-import {captureScreenshots,screenshotMarkdown} from './screenshots';
 import { publishDraft } from './publication';
 import { createSessionTelemetry } from './telemetry';
 import { createHash } from 'node:crypto';
@@ -33,7 +32,6 @@ const tasksPath = path.join(root, 'tasks.json'), statePath = path.join(root, 'st
 const legacyWorkspaces = path.join(root, 'workspaces');
 const workspaces = project?.workspaceDirectory ?? path.join(path.dirname(repo), `.${path.basename(repo)}-mini-symphony-workspaces`);
 const logs = path.join(root, 'logs'), lock = path.join(root, '.runner.lock');
-const evidenceDirectory=(id:string)=>path.join(root,'artifacts','mini-symphony',id);
 // Keep existing in-repository task worktrees resumable while placing all new
 // worktrees beside the checkout, outside the source tree Codex snapshots.
 const taskWorkspace = (id: string) => resolveTaskWorkspace(command,repo,legacyWorkspaces,workspaces,id);
@@ -42,7 +40,6 @@ const concurrency = Number(process.env.MINI_SYMPHONY_WORKERS ?? 1);
 if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 10 || !Number.isFinite(timeoutMs) || timeoutMs <= 0) throw Error('Workers must be an integer from 1 to 10; timeout must be positive');
 const prBase = project?.baseBranch ?? process.env.MINI_SYMPHONY_PR_BASE ?? new TextDecoder().decode(Bun.spawnSync(['git', '-C', repo, 'branch', '--show-current'], { stdout: 'pipe' }).stdout).trim();
 const children = new Set<ChildProcess>();
-const screenshotAbort = new AbortController();
 let stopping = false;
 let stopReason = 'completed';
 let telemetry: Awaited<ReturnType<typeof createSessionTelemetry>> | undefined;
@@ -51,7 +48,7 @@ function stop(signal: NodeJS.Signals) {
     stopReason = `external_${signal}`;
     void telemetry?.event('operator_intervention', `External ${signal} received (operator or supervisor).`, {reason: stopReason});
   }
-  stopping = true; screenshotAbort.abort();
+  stopping = true;
   for (const child of children) terminateChild(child);
 }
 const killGraceMs = Number(process.env.MINI_SYMPHONY_KILL_GRACE_MS ?? 10000);
@@ -97,21 +94,11 @@ async function publishTask(task: Task, workspace: string, log: string) {
     '',
     'Codex CLI exited with code 0. This confirms process completion only; tests and acceptance criteria still require review.',
   ].filter(Boolean).join('\n');
-  let evidence;
-  if(project?.screenshots && !entry.pullRequestUrl) {
-    await telemetry?.event('screenshots_started','Capturing desktop/mobile screenshots from disposable local application data.',{},task.id);
-    try {
-      const cached=path.join(evidenceDirectory(task.id),`${task.id}-after.json`);
-      const clean=command('git',['status','--porcelain'],workspace);
-      evidence=existsSync(cached)&&clean.code===0&&!clean.stdout.trim() ? JSON.parse(await readFile(cached,'utf8')) : await captureScreenshots(workspace,project.screenshots,screenshotAbort.signal,'after',task.id,evidenceDirectory(task.id));
-    }
-    catch { await telemetry?.event('screenshots_failed','Browser screenshot capture failed; PR publication held. Inspect local browser/server setup.',{},task.id);throw Error('Screenshot capture failed; PR publication held. Check browser installation and local server readiness.'); }
-    await telemetry?.event('screenshots_captured','Desktop/mobile screenshot files captured for the PR.',{count:evidence.files.length},task.id);
-  }
   let reused = false;
-  const beforeEvidence=evidence ? JSON.parse(await readFile(path.join(evidenceDirectory(task.id),`${task.id}-before.json`),'utf8')) : null;
-  const prBody=evidence ? (head:string)=>body+screenshotMarkdown(project!.githubRepository,head,beforeEvidence)+screenshotMarkdown(project!.githubRepository,head,evidence) : body;
-  const url = publishDraft(command, workspace, task.id, prBase, title, prBody, result => { reused = result.reused; });
+  const evidenceNote = project?.screenshots
+    ? '\n\n## Browser evidence\n\nBefore/after desktop and mobile Playwright screenshots are uploaded as CI run artifacts by [PR screenshot evidence](https://github.com/' + project.githubRepository + '/actions/workflows/pr-screenshot-evidence.yml); they are not committed to the PR.'
+    : '';
+  const url = publishDraft(command, workspace, task.id, prBase, title, body + evidenceNote, result => { reused = result.reused; });
   entry.status = 'pr_created'; entry.pullRequestUrl = url; entry.publishError = undefined;
   await save(state); await telemetry?.event('pr_created', reused ? 'Existing PR reconciled; no new PR created.' : 'New ready-for-review PR published; review and acceptance are pending.', {url, reused}, task.id); await logLine(log, `PR created: ${url}`); console.log(`[${task.id}] PR: ${url}`);
 }
@@ -253,22 +240,6 @@ async function runTask(task: Task) {
       console.error(`[${task.id}] worktree creation failed: ${error}`); return;
     }
   }
-  if(project?.screenshots && !existsSync(path.join(evidenceDirectory(task.id),`${task.id}-before.json`))) {
-    // Capture the configured remote baseline in a separate checkout; never call a
-    // resumed task's edited files the 'before' state.
-    const baseline=path.join(workspaces,`.before-${task.id}-${crypto.randomUUID()}`);
-    try {
-      const added=command('git',['worktree','add','--detach',baseline,`refs/remotes/origin/${prBase}`],repo);
-      if(added.code!==0)throw Error('Cannot prepare screenshot baseline');
-      await captureScreenshots(baseline,project.screenshots,screenshotAbort.signal,'before',task.id,evidenceDirectory(task.id));
-      await telemetry?.event('screenshots_before_captured','Captured the remote baseline before task changes.',{},task.id);
-    } catch(error) {
-      state[task.id]={...state[task.id],status:'failed',finishedAt:new Date().toISOString(),log:path.relative(root,log)};await save(state);
-      const reason=error instanceof Error&&/^Screenshot |^Cannot prepare screenshot baseline$/.test(error.message)?error.message:'Browser capture failed; check local browser installation';
-      await logLine(log,`Before screenshot capture failed; coding/publication held. ${reason}`);
-      await telemetry?.event('task_failed',`Before screenshot capture failed: ${reason}`,{},task.id);return;
-    } finally {command('git',['worktree','remove','--force',baseline],repo);}
-  }
   const startedAt = new Date().toISOString();
   state[task.id] = { ...state[task.id], status: 'running', attempt: state[task.id]?.attempt ?? 1, startedAt, log: path.relative(root, log) }; await save(state);
   const deadline=Date.now()+timeoutMs;
@@ -279,9 +250,7 @@ async function runTask(task: Task) {
       await logLine(log,'AUTO-DEBUG: one port-conflict repair pass; original transcript/result preserved.');
       await telemetry?.event('auto_debug_started','Port conflict detected; starting one bounded repair and validation pass.',{pass:1},task.id);
     }
-    const browserPolicy = existsSync(path.join(workspace,'scripts/run-symphony-browser-tests.mjs')) ? '\n\nFor browser verification use bun scripts/run-symphony-browser-tests.mjs --config <suite-config>. Routine engine is bundled Playwright Chromium. Use --engines chromium,installed-chrome,firefox,webkit --devices desktop,mobile for the separately reported release matrix. This launcher bounds shared browser jobs, isolates evidence and retries startup only. Do not retry failed assertions or call missing/unrun coverage passing. Custom server suites need an explicit isolated adapter; report unsupported suites as incomplete.' : '';
-    const workerPrompt = task.prompt + browserPolicy;
-    const bin = process.env.CODEX_BIN ?? 'codex', args = ['--ask-for-approval', 'never', 'exec', '--sandbox', 'workspace-write', '--output-last-message', resultFile, pass === 0 ? workerPrompt : autoDebugPrompt(workerPrompt, evidence)];
+    const bin = process.env.CODEX_BIN ?? 'codex', args = ['--ask-for-approval', 'never', 'exec', '--sandbox', 'workspace-write', '--output-last-message', resultFile, pass === 0 ? task.prompt : autoDebugPrompt(task.prompt, evidence)];
     await logLine(log, `Launching Codex CLI: ${bin} exec --sandbox workspace-write`);
     await logLine(log, `Prompt: ${task.prompt.split('\n')[0]}`);
     console.log(`[${task.id}] launching Codex; output -> ${path.relative(root, log)}`);

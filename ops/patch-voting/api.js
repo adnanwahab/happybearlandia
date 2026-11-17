@@ -5,6 +5,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname, resolve, relative, isAbsolute, sep } from 'node:path';
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { approvedPatchCandidates } from './candidates.js';
+import { validatePatchImpact } from './impact.js';
 
 const SESSION = 'hbl_patch_session';
 const MAX_BODY = 2048;
@@ -83,9 +84,11 @@ export function createPatchVotingStore(options = {}) {
     'CREATE TABLE IF NOT EXISTS ballot (id TEXT PRIMARY KEY, title TEXT NOT NULL, summary TEXT NOT NULL, cadence TEXT NOT NULL, area TEXT NOT NULL, closes_at INTEGER NOT NULL)',
     'CREATE TABLE IF NOT EXISTS vote (candidate_id TEXT NOT NULL, voter_key TEXT NOT NULL, value INTEGER NOT NULL CHECK(value IN (-1,1)), updated_at INTEGER NOT NULL, PRIMARY KEY(candidate_id,voter_key))',
     'CREATE TABLE IF NOT EXISTS suggestion (id TEXT PRIMARY KEY, voter_key TEXT NOT NULL, title TEXT NOT NULL, details TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT \'pending\')',
-    'CREATE TABLE IF NOT EXISTS throttle (voter_key TEXT NOT NULL, action TEXT NOT NULL, at INTEGER NOT NULL)'
+    'CREATE TABLE IF NOT EXISTS throttle (voter_key TEXT NOT NULL, action TEXT NOT NULL, at INTEGER NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS github_patch (candidate_id TEXT PRIMARY KEY, pr_number INTEGER NOT NULL, pr_url TEXT NOT NULL, head_sha TEXT NOT NULL, status TEXT NOT NULL, ci_status TEXT NOT NULL, updated_at INTEGER NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS impact_evidence (candidate_id TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at INTEGER NOT NULL)'
   ].join(';') + ';');
-  for (const column of ['kind TEXT NOT NULL DEFAULT \'idea\'', 'replay_seed TEXT', 'merged_into TEXT']) {
+  for (const column of ['kind TEXT NOT NULL DEFAULT \'idea\'', 'replay_seed TEXT', 'merged_into TEXT', 'world_context TEXT']) {
     const name = column.split(' ')[0];
     if (!db.query('PRAGMA table_info(suggestion)').all().some(row => row.name === name)) db.exec('ALTER TABLE suggestion ADD COLUMN ' + column);
   }
@@ -98,10 +101,18 @@ export function createPatchVotingStore(options = {}) {
   const getCandidate = db.query('SELECT * FROM ballot WHERE id=?');
   const tally = db.query('SELECT COALESCE(SUM(value),0) AS score, COUNT(*) AS votes, SUM(CASE WHEN value=1 THEN 1 ELSE 0 END) AS upvotes FROM vote WHERE candidate_id=?');
   const own = db.query('SELECT value FROM vote WHERE candidate_id=? AND voter_key=?');
+  const githubRow = db.query('SELECT pr_number,pr_url,head_sha,status,ci_status,updated_at FROM github_patch WHERE candidate_id=?');
+  const impactRow = db.query('SELECT payload FROM impact_evidence WHERE candidate_id=?');
+  const knownCandidate = id => approvedPatchCandidates.some(item => item.id === id);
+  const githubFor = id => {
+    const row = githubRow.get(id);
+    return row ? { prNumber: row.pr_number, prUrl: row.pr_url, headSha: row.head_sha, status: row.status, ciStatus: row.ci_status, updatedAt: new Date(row.updated_at).toISOString() } : null;
+  };
   const list = (voterKey = '') => db.query('SELECT * FROM ballot ORDER BY closes_at, id').all().map(item => ({
     id: item.id, title: item.title, summary: item.summary, cadence: item.cadence, area: item.area,
     closesAt: new Date(item.closes_at).toISOString(), open: clock() < item.closes_at,
-    ...tally.get(item.id), yourVote: own.get(item.id, voterKey)?.value || 0
+    ...tally.get(item.id), yourVote: own.get(item.id, voterKey)?.value || 0,
+    github: githubFor(item.id), impactAvailable: Boolean(impactRow.get(item.id))
   }));
   function throttle(key, action, limit, windowMs) {
     const ts = clock();
@@ -120,18 +131,58 @@ export function createPatchVotingStore(options = {}) {
     if (value === 0) db.query('DELETE FROM vote WHERE candidate_id=? AND voter_key=?').run(id, voterKey);
     else db.query('INSERT INTO vote (candidate_id,voter_key,value,updated_at) VALUES (?,?,?,?) ON CONFLICT(candidate_id,voter_key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at').run(id, voterKey, value, clock());
   });
-  const suggest = db.transaction((voterKey, title, details, kind = 'idea', replaySeed = null) => {
+  const suggest = db.transaction((voterKey, title, details, kind = 'idea', replaySeed = null, worldContext = null) => {
+    if (worldContext !== null && (typeof worldContext !== 'object' || Array.isArray(worldContext) ||
+      Object.keys(worldContext).some(key => !['universeId','worldId','scenarioId','seed'].includes(key)) ||
+      !Object.values(worldContext).every(value => typeof value === 'string' && value.length <= 128 &&
+        /^[A-Za-z0-9:_.-]*$/.test(value)))) {
+      throw error(400, 'Invalid World context.');
+    }
     if (!['idea', 'problem', 'confusing', 'favorite'].includes(kind)) throw error(400, 'Invalid feedback kind.');
     if (replaySeed !== null && (kind !== 'problem' || !validString(replaySeed, 1, 128))) throw error(400, 'Replay seed must be 1–128 characters on a problem report.');
     if (!validString(title, 8, 100) || !validString(details, 12, 800)) throw error(400, 'Title must be 8–100 characters and details 12–800 characters.');
     throttle(voterKey, 'suggest', 3, 86400000);
     const id = randomUUID();
     db.query('INSERT INTO suggestion (id,voter_key,title,details,created_at,status) VALUES (?,?,?,?,?,?)').run(id, voterKey, title.trim(), details.trim(), clock(), 'pending');
-    db.query('UPDATE suggestion SET kind=?,replay_seed=? WHERE id=?').run(kind, replaySeed, id);
+    db.query('UPDATE suggestion SET kind=?,replay_seed=?,world_context=? WHERE id=?').run(
+      kind, replaySeed, worldContext ? JSON.stringify(worldContext) : null, id);
     return { id, status: 'pending' };
   });
   return {
     list, castVote, suggest,
+    getImpact: id => knownCandidate(id) ? JSON.parse(impactRow.get(id)?.payload || 'null') : null,
+    setImpact: (candidateId, evidence) => {
+      if (!knownCandidate(candidateId)) throw error(404, 'Curated patch not found.');
+      const normalized = validatePatchImpact(evidence, candidateId);
+      const payload = JSON.stringify(normalized);
+      if (Buffer.byteLength(payload) > 20000) throw error(413, 'Impact evidence too large.');
+      db.query('INSERT INTO impact_evidence(candidate_id,payload,updated_at) VALUES(?,?,?) ON CONFLICT(candidate_id) DO UPDATE SET payload=excluded.payload,updated_at=excluded.updated_at').run(candidateId, payload, clock());
+      return normalized;
+    },
+    linkGithub: (candidateId, record) => {
+      if (!knownCandidate(candidateId)) throw error(404, 'Curated patch not found.');
+      if (!Number.isSafeInteger(record?.prNumber) || record.prNumber < 1 ||
+          record.prUrl !== 'https://github.com/adnanwahab/happybearlandia/pull/' + record.prNumber ||
+          !/^[a-f0-9]{40}$/i.test(record.headSha || '') || !['draft','open','closed','merged'].includes(record.status)) throw error(400, 'Invalid GitHub PR publication.');
+      db.query('INSERT INTO github_patch(candidate_id,pr_number,pr_url,head_sha,status,ci_status,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(candidate_id) DO UPDATE SET pr_number=excluded.pr_number,pr_url=excluded.pr_url,head_sha=excluded.head_sha,status=excluded.status,ci_status=excluded.ci_status,updated_at=excluded.updated_at').run(candidateId, record.prNumber, record.prUrl, record.headSha.toLowerCase(), record.status, 'pending', clock());
+      return githubFor(candidateId);
+    },
+    updateGithub: (prNumber, event) => {
+      if (!Number.isSafeInteger(prNumber) || prNumber < 1 || !event || typeof event !== 'object') return false;
+      const current = db.query('SELECT * FROM github_patch WHERE pr_number=?').get(prNumber);
+      if (!current || current.status === 'merged') return false;
+      if (event.headSha && !/^[a-f0-9]{40}$/i.test(event.headSha)) return false;
+      if (event.type === 'check') {
+        if (!event.headSha || event.headSha.toLowerCase() !== current.head_sha ||
+            !['pending','success','failure'].includes(event.status)) return false;
+        db.query('UPDATE github_patch SET ci_status=?,updated_at=? WHERE pr_number=?').run(event.status,clock(),prNumber);
+      } else if (event.type === 'pull') {
+        if (!['draft','open','closed','merged'].includes(event.status) || !event.headSha) return false;
+        const newSha = event.headSha.toLowerCase();
+        db.query('UPDATE github_patch SET status=?,head_sha=?,ci_status=?,updated_at=? WHERE pr_number=?').run(event.status,newSha,newSha === current.head_sha ? current.ci_status : 'pending',clock(),prNumber);
+      } else return false;
+      return true;
+    },
     mergeIdeas: db.transaction((source, target) => {
       const get = id => db.query('SELECT * FROM suggestion WHERE id=?').get(id);
       const a = get(source), b = get(target);
@@ -139,7 +190,7 @@ export function createPatchVotingStore(options = {}) {
       db.query("UPDATE suggestion SET status='merged',merged_into=? WHERE id=?").run(target, source);
     }),
     triageVotes: () => list().map(({yourVote, ...item}) => ({...item, status: 'pending', advisory: true})),
-    listSuggestions: () => db.query('SELECT id,title,details,created_at,status,kind,replay_seed,merged_into FROM suggestion ORDER BY created_at DESC LIMIT 200').all(),
+    listSuggestions: () => db.query('SELECT id,title,details,created_at,status,kind,replay_seed,merged_into,world_context FROM suggestion ORDER BY created_at DESC LIMIT 200').all(),
     close: () => db.close()
   };
 }
@@ -156,6 +207,29 @@ export function createPatchVotingHandler(options = {}) {
     const setCookie = fresh ? cookieHeader(token, secret, request) : null;
     const voterKey = token ? identity(secret, token) : '';
     try {
+      // New API aliases redirect same-origin to the established, narrow-cookie
+      // vote handlers. 307 preserves POST JSON and lets the browser attach its
+      // existing Path=/api/patch-votes cookie after the redirect.
+      const aliasVote = pathname.match(/^\/api\/patches\/([A-Za-z0-9_-]{1,32})\/vote$/);
+      if (request.method === 'POST' && (pathname === '/api/patches' || aliasVote)) {
+        const destination = pathname === '/api/patches'
+          ? '/api/patch-votes/suggestions' : '/api/patch-votes/' + aliasVote[1] + '/vote';
+        return new Response(null, { status: 307, headers: {
+          location: new URL(destination, url.origin).href, 'cache-control': 'no-store'
+        } });
+      }
+      if (pathname === '/api/patches' && request.method === 'GET') {
+        return json({ schemaVersion: 'hbl.patches.v1', advisory: true,
+          patches: store.list().map(({yourVote, ...patch}) => patch) });
+      }
+      const impactMatch = pathname.match(/^\/api\/patches\/([A-Za-z0-9_-]{1,32})\/impact$/);
+      if (impactMatch && request.method === 'GET') {
+        if (!approvedPatchCandidates.some(item => item.id === impactMatch[1])) return json({error:'Patch not found.'},404);
+        const evidence = store.getImpact(impactMatch[1]);
+        return evidence ? json(evidence) : json({ schemaVersion: 'hbl.patch-impact.v1',
+          candidateId: impactMatch[1], available: false,
+          reason: 'No recorded matched-seed before/after evidence has been verified for this patch.' });
+      }
       if (pathname === '/api/patch-votes' && request.method === 'GET') {
         return json({ schemaVersion: 'patch-ballot.v1', advisory: true, patches: store.list(voterKey), submissionsRequireReview: true, votingEnabled: Boolean(secret) }, 200, setCookie);
       }
@@ -172,9 +246,9 @@ export function createPatchVotingHandler(options = {}) {
       }
       if (pathname === '/api/patch-votes/suggestions') {
         const body = await readBody(request);
-        if (Object.keys(body).some(key => !['title', 'details', 'kind', 'replaySeed', 'consent'].includes(key))) throw error(400, 'Unexpected suggestion field.');
+        if (Object.keys(body).some(key => !['title', 'details', 'kind', 'replaySeed', 'worldContext', 'consent'].includes(key))) throw error(400, 'Unexpected suggestion field.');
         if (body.consent !== true) throw error(400, 'Explicit consent required.');
-        return json({ message: 'Feedback sent for moderation; it is not an agent instruction.', ...store.suggest(voterKey, body.title, body.details, body.kind, body.replaySeed) }, 202, setCookie);
+        return json({ message: 'Feedback sent for moderation; it is not an agent instruction.', ...store.suggest(voterKey, body.title, body.details, body.kind, body.replaySeed, body.worldContext ?? null) }, 202, setCookie);
       }
       return json({ error: 'Not found.' }, 404);
     } catch (e) {

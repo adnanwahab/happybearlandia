@@ -23,7 +23,9 @@ for (const route of routes) {
     const report = { path: route.path, status: null, nodes: {}, capabilities: [], errors: [], webgpuErrors: [] };
     page.on('pageerror', error => report.errors.push(error.message));
     page.on('console', message => {
-      if(message.type()==='error' && /webgpu|GPUValidationError|GPUOutOfMemoryError|gpu device.*lost/i.test(message.text()))report.webgpuErrors.push(message.text());
+      if (message.type() === 'error' && /webgpu|GPUValidationError|GPUOutOfMemoryError|gpu device.*lost/i.test(message.text())) {
+        report.webgpuErrors.push(message.text());
+      }
     });
     // Home contains expensive unrelated previews. Only the top-level route is under test.
     await page.route('**/*', request => {

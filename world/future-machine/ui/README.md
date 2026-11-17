@@ -440,3 +440,14 @@ All 11 changed JavaScript files passed syntax checks. Playwright discovery found
 after fixing the actual CommonJS config-loader failure. Discovery is not browser
 execution; the previously confirmed socket EPERM limitation remains. No browser
 rendering, GPU-loss, heap-bound or paint-timing result is claimed for this slice.
+
+## Committed timeline latency
+
+Timeline input remains an O(1) exact paired-month preview and never changes the
+City frame while dragging. Native terminal `change`/pointer release now commits
+immediately; the earlier unconditional120ms post-release wait prevented meeting
+the100ms laptop interaction target before rendering began. Explicit `delay`
+options on `bindScrubPreview` retain optional debouncing for embedding consumers.
+Escape, pointer cancellation, run replacement and disposal still discard a
+pending preview. This changes actual interaction scheduling, not the measurement
+window, authoritative snapshots or existing performance targets.

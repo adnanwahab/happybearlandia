@@ -13,12 +13,19 @@ export function architectureGeometry(THREE,{id,height,polygon=null}) {
 }
 export function facadeDetails(THREE,height,muted=false) {
   const group=new THREE.Group();group.userData.decorative=true;
+  if(!Number.isFinite(height)||height<=1.7)return group;
+  let floors=0;for(let y=1.7;y<height;y+=3)floors++;
   const material=new THREE.MeshStandardMaterial({color:muted?0x53666c:0xc5e0d6,roughness:.4});
   const geometry=new THREE.BoxGeometry(1.8,1.35,.12);
+  // Identical decorative windows share one draw call; their exact authored
+  // transforms/material stay unchanged and never acquire model pick identities.
+  const windows=new THREE.InstancedMesh(geometry,material,floors*12),pose=new THREE.Object3D();
+  let index=0;
   for(let y=1.7;y<height;y+=3)for(const x of [-4,0,4])for(const side of [-1,1]) {
-    const window=new THREE.Mesh(geometry,material);window.position.set(x,y-height/2,side*7.06);group.add(window);
-    const flank=new THREE.Mesh(geometry,material);flank.rotation.y=Math.PI/2;flank.position.set(side*7.06,y-height/2,x);group.add(flank);
+    pose.rotation.y=0;pose.position.set(x,y-height/2,side*7.06);pose.updateMatrix();windows.setMatrixAt(index++,pose.matrix);
+    pose.rotation.y=Math.PI/2;pose.position.set(side*7.06,y-height/2,x);pose.updateMatrix();windows.setMatrixAt(index++,pose.matrix);
   }
+  windows.instanceMatrix.needsUpdate=true;windows.computeBoundingSphere();group.add(windows);
   return group;
 }
 /** Stage-owned scenery only: never returned as City rows or pick targets. */
