@@ -207,6 +207,17 @@ export function createPatchVotingHandler(options = {}) {
     const setCookie = fresh ? cookieHeader(token, secret, request) : null;
     const voterKey = token ? identity(secret, token) : '';
     try {
+      // New API aliases redirect same-origin to the established, narrow-cookie
+      // vote handlers. 307 preserves POST JSON and lets the browser attach its
+      // existing Path=/api/patch-votes cookie after the redirect.
+      const aliasVote = pathname.match(/^\/api\/patches\/([A-Za-z0-9_-]{1,32})\/vote$/);
+      if (request.method === 'POST' && (pathname === '/api/patches' || aliasVote)) {
+        const destination = pathname === '/api/patches'
+          ? '/api/patch-votes/suggestions' : '/api/patch-votes/' + aliasVote[1] + '/vote';
+        return new Response(null, { status: 307, headers: {
+          location: new URL(destination, url.origin).href, 'cache-control': 'no-store'
+        } });
+      }
       if (pathname === '/api/patches' && request.method === 'GET') {
         return json({ schemaVersion: 'hbl.patches.v1', advisory: true,
           patches: store.list().map(({yourVote, ...patch}) => patch) });
