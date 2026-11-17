@@ -1,3 +1,4 @@
+import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
 import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
 import {mountGamepadControls} from './gamepad-controls.js';
@@ -2154,7 +2155,7 @@ const businessUI = businessMode ? mountBusinessMode(world, {
 // Only actual frontmost rendered hits enter the magnetic candidate set.
 function rankCityTargets(x,y){
  const rect=renderer.domElement.getBoundingClientRect();
- return rankScreenTargets({x,y,rect,hitAt(px,py){
+ return rankScreenTargets({x,y,rect,radius:inspectionFreeze.frozen?0:24,hitAt(px,py){
   ptr.set((px-rect.left)/rect.width*2-1,-(py-rect.top)/rect.height*2+1);ray.setFromCamera(ptr,camera);
   const hits=[];
   const person=livingWorld?.active?null:humanPeople.pick(ray);
@@ -2168,6 +2169,13 @@ function rankCityTargets(x,y){
   return hits.sort((a,b)=>a.distance-b.distance)[0]||null;
  }});
 }
+let frozenCamera=null;
+const inspectionFreeze=createInspectionFreeze({supported:()=>!livingWorld?.active&&!businessUI&&!window.hblWorldTileViewActive,
+ capture:()=>{frozenCamera={position:camera.position.clone(),quaternion:camera.quaternion.clone(),target:controls.target.clone(),enabled:controls.enabled};controls.enabled=false;return frozenCamera;},
+ release:pose=>{controls.enabled=pose.enabled;frozenCamera=null;}});
+const freezeUI=!embedMode?mountInspectionFreeze({container:$('top'),gate:inspectionFreeze,modelPaused:()=>playback.getState().paused}):null;
+window.hblInspectionFreeze={getState:()=>inspectionFreeze.getState()};
+addEventListener('pagehide',()=>freezeUI?.destroy(),{once:true});
 const magneticPicker=mountPickPreview(renderer.domElement,{rank:rankCityTargets,enabled:()=>!livingWorld?.active&&!businessUI,onPick:hit=>{
  if(hit.vehicle){select(null);selectedVehicle=hit.vehicle.id;vehicleInspector?.select(hit.vehicle);return;}
  selectedVehicle=null;vehicleInspector?.select(null);if(hit.selection.type==='person'&&emitLegacyPersonContext({clientX:hit.x,clientY:hit.y,type:'pointerup'},hit.selection.id)===false)return;select(hit.selection);
@@ -2330,8 +2338,8 @@ let lastStreamUpdate=-Infinity;
 
 function frame(now) {
   if(startupAbort.signal.aborted)return;
-  gamepadControls?.update(now);mapControls.update(now);fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
-  if((streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
+  if(!inspectionFreeze.frozen){gamepadControls?.update(now);mapControls.update(now);}fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
+  if(!inspectionFreeze.frozen&&(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
   const cpuStart = performance.now();
   const frameMs = now - last;
   const dt = Math.min(0.1, (now - last) / 1000);
@@ -2342,6 +2350,15 @@ function frame(now) {
   if(!livingWorld?.active)acc += simulationFrame.deltaMs/1000;
   const steps = livingWorld?.active?0:Math.floor(acc);
   if (steps > 0) { const advanced=advanceFrameMinutes(steps,minutes=>world.step(minutes));if(legacyJournalRecorder)void legacyJournalRecorder.flush(); acc -= advanced; if(selected?.type === "person")renderInspector(); }
+
+  if(inspectionFreeze.frozen&&(livingWorld?.active||businessUI||window.hblWorldTileViewActive))inspectionFreeze.clear();
+  freezeUI?.update();
+  if(inspectionFreeze.frozen){
+    camera.position.copy(frozenCamera.position);camera.quaternion.copy(frozenCamera.quaternion);controls.target.copy(frozenCamera.target);camera.updateMatrixWorld(true);
+    globalIllumination.render();inspectionFreeze.record(frameMs);
+    cityRenderer.afterFrame(now,performance.now()-cpuStart,frameMs);
+    requestAnimationFrame(frame);return;
+  }
 
   // Once per simulated day per tile: publish a few synthetic resident journals.
   // Trigger after 8:00 local sim time so demos show the loop quickly.
