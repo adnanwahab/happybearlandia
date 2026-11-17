@@ -38,6 +38,7 @@
   .live { position: absolute; left: 8px; bottom: 8px; font-size: 11px; padding: 2px 7px; border-radius: 6px; background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); font-variant-numeric: tabular-nums; pointer-events: none; }
   .error { color: var(--bad); }
 </style>
+<link rel="stylesheet" href="./racetrack/style.css">
 </head>
 <body>
 <header>
@@ -72,10 +73,30 @@
   </div>
 </header>
 <main>
+  <section id="racetrack" aria-labelledby="race-title">
+    <div class="kicker">Recorded scenario comparison</div>
+    <h2 id="race-title">Hundred-Future Racetrack</h2>
+    <p>100 authored synthetic City scenarios, same starting state and pinned seed. Compare housing unit inventory over recorded monthly timepoints. These futures are not probabilities or forecasts.</p>
+    <p class="note">Observed sources: none. Inputs: synthetic City inventory and declared housing proposals. Computed effects: City unit inventory. Decorative layers: lane rails and markers only. No causal attribution is inferred from a lead change.</p>
+    <div class="race-controls">
+      <button id="race-play" type="button" disabled>Play</button>
+      <button id="race-next" type="button" disabled>Next lead change</button>
+      <label>Recorded month <input id="race-month" type="range" min="0" max="120" value="0" step="1" disabled></label>
+      <output id="race-time"></output>
+      <label>Import projection receipts <input id="race-import" type="file" accept="application/json,.json"></label>
+    </div>
+    <p id="race-status" role="status">Loading recorded lanes…</p>
+    <div class="race-axis"><span>Scenario · click for receipt</span><div><span>0 homes</span><span>80 homes</span><span>160 homes</span></div><span>Recorded value</span></div>
+    <p class="note">Shared fixed normalization: homes ÷ 160. Higher inventory does not establish a better outcome. No interpolation or carry-forward across missing observations.</p>
+    <div id="race-lanes" aria-label="Aligned scenario lanes"></div>
+    <details><summary>Lead changes at selected timepoint</summary><p id="race-changes"></p></details>
+    <dialog id="race-receipt" aria-label="Exact projection run receipt"><button id="race-close" type="button">Close receipt</button><pre id="race-receipt-text"></pre></dialog>
+  </section>
   <p class="note" id="note"></p>
   <div class="grid" id="grid"></div>
 </main>
 
+<script type="module" src="./racetrack/view.js"></script>
 <script type="module">
 import { searchFutures, scoreFutures } from "./futures-analysis.js";
 const $ = (id) => document.getElementById(id);
@@ -96,10 +117,10 @@ $("back").href = `/world/realities.html?${new URLSearchParams({ simulation: snap
 $("lab").href = `/world/lab.html?${new URLSearchParams({ simulation: snapshotId || "", runs: String(runs), years: String(years), seed: baseSeed || "", people: String(people) })}`;
 
 if (!snapshotId || !baseSeed) {
-  $("title").textContent = "Missing simulation";
-  $("note").innerHTML = 'Open this from a realities page ("View all as live worlds"), or add <code>?simulation=…&amp;seed=…</code>.';
-  throw new Error("missing params");
-}
+  for (const id of ["filter", "order", "live", "q", "lab", "back"]) ($(id).closest("label") || $(id)).hidden = true;
+  $("note").innerHTML = 'For the separate live-world grid, open a realities page ("View all as live worlds") or add <code>?simulation=…&amp;seed=…</code>.';
+  $("title").textContent = "All Possible Worlds";
+} else {
 
 let snapshot = null;
 try {
@@ -262,6 +283,7 @@ $("live").onchange = () => { maxLive = Number($("live").value); schedule(); };
 applySearch();
 if (searchSet && !$("q").value.trim()) $("note").textContent = `Showing ${searchSet.size} worlds picked in the lab.`;
 arrange();
+}
 </script>
 </body>
 </html>

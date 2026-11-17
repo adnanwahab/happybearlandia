@@ -1,0 +1,47 @@
+import {test,expect} from 'bun:test';
+import bundle from '../world/racetrack/representative.json';
+import {stateHash} from '../world/future-machine/data/core.js';
+const domPath=process.env.HBL_RACETRACK_DOM;
+(domPath?test:test.skip)('real view module: recorded values, receipt, gaps, exclusion, playback and disposal',async()=>{
+ const {Window}=await import(domPath), win=new Window({url:'http://localhost/world/worlds.html'});
+ const saved=Object.fromEntries(['document','fetch','addEventListener','AbortController','setInterval','clearInterval'].map(k=>[k,globalThis[k]]));
+ let tick=null, clears=0;
+ try {
+  const html=await Bun.file('world/worlds.html').text();
+  win.document.body.innerHTML=html.match(/<main>([\s\S]*?)<\/main>/)[1];
+  globalThis.document=win.document;globalThis.AbortController=win.AbortController;
+  globalThis.addEventListener=win.addEventListener.bind(win);
+  globalThis.fetch=async()=>Response.json(bundle);
+  globalThis.setInterval=callback=>{tick=callback;return 1;};
+  globalThis.clearInterval=()=>{tick=null;clears++;};
+  win.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+  win.HTMLDialogElement.prototype.close=function(){this.open=false;};
+  await import('../world/racetrack/view.js');
+  const $=s=>win.document.querySelector(s);
+  const until=async predicate=>{for(let i=0;i<1000&&!predicate();i++)await Bun.sleep(5);expect(predicate()).toBe(true);};
+  await until(()=>win.document.querySelectorAll('.race-lane').length===100);
+  $('#race-next').click();expect($('#race-time').textContent).not.toContain('Month 0 ·');
+  const slider=$('#race-month');slider.value='30';slider.dispatchEvent(new win.Event('input'));
+  expect($('#race-time').textContent).toContain('Month 30');
+  $('.race-lane').click();
+  const receipt=JSON.parse($('#race-receipt-text').textContent);
+  expect(receipt.receipt).toEqual(bundle.tracks[0]);expect(receipt.recordedValue).toBe(bundle.tracks[0].values[30]);
+  expect($('#race-receipt').open).toBe(true);$('#race-close').click();expect($('#race-receipt').open).toBe(false);
+  $('#race-play').click();tick();expect($('#race-time').textContent).toContain('Month 31');
+  $('#race-play').click();expect(tick).toBe(null);
+  const missing=structuredClone(bundle.tracks[0]);missing.values[30]=null;
+  const {checksum,...body}=missing;missing.checksum=await stateHash(body);
+  const old=structuredClone(bundle.tracks[1]);old.modelVersion='old';
+  Object.defineProperty($('#race-import'),'files',{value:[{size:10000,text:async()=>JSON.stringify({...bundle,tracks:[missing,old]})}],configurable:true});
+  $('#race-import').dispatchEvent(new win.Event('change'));
+  await until(()=>$('#race-status').textContent.includes('1 excluded'));
+  expect(win.document.querySelectorAll('.race-lane')).toHaveLength(1);
+  slider.value='30';slider.dispatchEvent(new win.Event('input'));
+  expect($('.race-lane').textContent).toContain('Missing observation');
+  expect($('.race-track i').hidden).toBe(true);
+  $('#race-play').click();win.dispatchEvent(new win.Event('pagehide'));
+  expect(tick).toBe(null);expect(clears).toBeGreaterThan(0);
+  expect(win.document.querySelectorAll('.race-lane')).toHaveLength(0);
+  $('#race-play').click();expect(tick).toBe(null);
+ } finally {Object.assign(globalThis,saved);win.happyDOM.abort();}
+});
