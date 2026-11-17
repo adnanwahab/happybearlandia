@@ -1,0 +1,9 @@
+{
+  "issue": "SHE-616",
+  "runtime": "1.4.2",
+  "fixture": "synthetic 2048 transformed box meshes; 100 warmup + 1000 measured plans",
+  "scope": "CPU bounds extraction + bounded route planning + one sample; excludes GPU, frame pacing, physical mobile",
+  "p50Ms": 0.490415999999982,
+  "p95Ms": 0.7060000000000173,
+  "maxMs": 1.089041999999992
+}

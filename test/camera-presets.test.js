@@ -20,13 +20,13 @@ test('empty geography remains navigable; parks do not become collision walls',()
 import * as THREE from 'three';
 import {mountCameraPresets} from '../world/camera-presets.js';
 // Injected DOM follows the repository's panel-component test convention.
-function component(){
+function component(cinematic=false){
  const doc=new EventTarget();doc.defaultView=new EventTarget();
  const node=()=>Object.assign(new EventTarget(),{ownerDocument:doc,dataset:{},style:{},children:[],append(child){this.children.push(child);},remove(){this.removed=true;}});
  doc.createElement=()=>{const root=node(),row=node(),status=node();root.querySelector=tag=>tag==='div'?row:status;return root;};
  const container=node(),canvas=node(),camera=new THREE.PerspectiveCamera(),controls=new THREE.EventDispatcher();controls.target=new THREE.Vector3();controls.update=()=>{};camera.position.set(320,125,450);
  let subject=null,reduced=false,buildings=[];
- const picker=mountCameraPresets({container,camera,controls,canvas,getBuildings:()=>buildings,getSubject:()=>subject,reducedMotion:()=>reduced});
+ const picker=mountCameraPresets({cinematic,container,camera,controls,canvas,getBuildings:()=>buildings,getSubject:()=>subject,reducedMotion:()=>reduced});
  return {picker,camera,controls,canvas,doc,status:picker.element.querySelector('p'),setSubject:p=>subject=p,setReduced:v=>reduced=v,setBuildings:v=>buildings=v};
 }
 test('component keeps first return pose across presets and never writes the subject',()=>{
@@ -52,4 +52,20 @@ test('return revalidates changed geometry and active reduced-motion changes stop
  const f=component();f.picker.choose('street');const street=f.camera.position.toArray();
  f.setBuildings(place(320,450,200));expect(f.picker.choose('return')).toBe(false);expect(f.camera.position.toArray()).toEqual(street);expect(f.status.textContent).toContain('obstructed');
  f.setBuildings([]);f.setSubject({key:'fixture',position:{x:0,y:0,z:0}});f.picker.choose('follow');f.setReduced(true);f.picker.update(100);expect(f.status.textContent).toContain('Reduced motion');
+});
+
+test('cinematic spline advances and input cancels before the next update',()=>{
+ for(const eventType of ['pointerdown','wheel','keydown']){
+  const f=component(true);const before=f.camera.position.clone();f.picker.choose('street');
+  f.picker.update(performance.now()+200);expect(f.camera.position.equals(before)).toBe(false);
+  const at=f.camera.position.clone(),event=new Event(eventType);if(eventType==='keydown')event.key='ArrowUp';
+  (eventType==='keydown'?f.doc:f.canvas).dispatchEvent(event);f.picker.update(performance.now()+3000);
+  expect(f.camera.position.equals(at)).toBe(true);
+ }
+});
+test('new geometry cancels route before intersecting step; reduced motion cuts',()=>{
+ const f=component(true);f.picker.choose('street');const at=f.camera.position.clone();
+ f.setBuildings([{height:1100,poly:[[-1000,-1000],[1000,-1000],[1000,1000],[-1000,1000]]}]);f.picker.update(performance.now()+200);
+ expect(f.camera.position.equals(at)).toBe(true);
+ f.setBuildings([]);f.setReduced(true);f.picker.choose('street');expect(f.camera.position.y).toBe(5);
 });

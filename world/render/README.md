@@ -302,3 +302,28 @@ ID-buffer readback: transparent fragment discard, antialiasing and asynchronous
 asset/geometry replacement can differ from exact raster pixels. Full GPU/browser
 acceptance, including streaming and mode changes during freeze, remains pending;
 see `docs/reviews/SHE-659.md`.
+
+## Bounded cinematic preset routes (SHE-616)
+
+World's Camera Street/Rooftop/Skyline buttons now request a presentation-only
+cubic route. `camera-obstacles.js` reads each loaded building shell's actual
+BufferGeometry bounds and world transform (including roof and scaled heights),
+with a 3m margin. Hidden LOD shells remain conservative obstacles. Parks are
+excluded. Missing/unsupported shell geometry holds navigation rather than
+inventing a collision-free view. This is a building-envelope contract; artist
+assets, trees, vehicles and non-building scene objects are outside this slice.
+
+`../camera-route.js` verifies continuous segments with slab intersections. Its
+piecewise cubic smoothstep spans have zero tangents at their joins and stay on
+those segments. Direct routes use one span; blocked routes try lift/traverse/
+descend above all envelopes. Search is capped at 2,048 obstacles, four spans'
+checks and 1,200m altitude. An unverified route uses a checked endpoint cut;
+blocked destinations stay put. Reduced motion cuts, Return retains its existing
+cut, and resident Follow retains its existing framing behavior. Pointer, wheel,
+orbit start, navigation keys, Escape and local pan cancel route motion. Every
+animated step rereads bounds and checks its swept segment, cancelling on changes.
+
+This does not replace building-focus, onboarding, arrival, landmark-search or
+street-step camera ownership. Source/model records and clocks are untouched.
+See [the issue review](../../docs/reviews/SHE-616.md) for actual verification and
+browser acceptance blockers.

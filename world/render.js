@@ -1,3 +1,4 @@
+import {rendererCameraObstacles} from './render/camera-obstacles.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
 import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
@@ -2647,8 +2648,9 @@ if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
   addEventListener('pagehide',()=>{delete window.hblGuidedActions;},{once:true});
 }
 // Camera presets share existing scene coordinates; never select or command a model entity.
-const cinematicCamera=!embedMode?mountCameraPresets({container:$('top'),camera,controls,canvas:renderer.domElement,
+const cinematicCamera=!embedMode?mountCameraPresets({cinematic:true,container:$('top'),camera,controls,canvas:renderer.domElement,
  getBuildings:()=>[...town.buildings,...contextBuildings.values()],
+ getObstacles:()=>rendererCameraObstacles([...town.buildings,...contextBuildings.values()]),
  getSubject:()=>{if(livingWorld?.active)return livingWorld.getCameraSubject();if(selected?.type!=='person')return null;const p=smooth[selected.id];return p?{key:'legacy:'+String(town.people[selected.id].id??selected.id),position:{x:p.x,y:0,z:p.z}}:null;},
  stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
  reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
