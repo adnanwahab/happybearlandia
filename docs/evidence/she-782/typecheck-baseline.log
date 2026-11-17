@@ -1,0 +1,11 @@
+world/city/seed.js(3,58): error TS2339: Property 'districts' does not exist on type '{ seed?: number; households?: number; }'.
+world/city/systems.js(7,312): error TS2353: Object literal may only specify known properties, and 'geographyType' does not exist in type '{ metricId: string; value: any; }'.
+world/city/systems.js(173,31): error TS2339: Property 'experiencedMinutes' does not exist on type '{ personId: any; originId: any; destinationId: any; mode: string; plannedMinutes: any; route: any; }'.
+world/city/systems.js(173,124): error TS2339: Property 'delayMinutes' does not exist on type '{ personId: any; originId: any; destinationId: any; mode: string; plannedMinutes: any; route: any; }'.
+world/city/systems.js(173,150): error TS2339: Property 'experiencedMinutes' does not exist on type '{ personId: any; originId: any; destinationId: any; mode: string; plannedMinutes: any; route: any; }'.
+world/future-machine/data/index.js(144,56): error TS2345: Argument of type '{ schemaVersion: string; modelVersion: string; seed: 42; households: 30; months: number; intervention: Readonly<{ type: "housing"; districtId: "d1"; amount: 24; cost: 1000000; delay: 0; compliance: 1; }>; }' is not assignable to parameter of type 'Readonly<{ schemaVersion: "future-machine.v1"; modelVersion: "city-systems.1.1.0"; seed: 42; households: 30; months: 120; intervention: Readonly<{ type: "housing"; districtId: "d1"; amount: 24; cost: 1000000; delay: 0; compliance: 1; }>; }>'.
+  Types of property 'schemaVersion' are incompatible.
+    Type 'string' is not assignable to type '"future-machine.v1"'.
+world/future-machine/data/index.js(154,137): error TS2345: Argument of type '{ schemaVersion: string; modelVersion: string; seed: 42; households: 30; months: number; intervention: Readonly<{ type: "housing"; districtId: "d1"; amount: 24; cost: 1000000; delay: 0; compliance: 1; }>; }' is not assignable to parameter of type 'Readonly<{ schemaVersion: "future-machine.v1"; modelVersion: "city-systems.1.1.0"; seed: 42; households: 30; months: 120; intervention: Readonly<{ type: "housing"; districtId: "d1"; amount: 24; cost: 1000000; delay: 0; compliance: 1; }>; }>'.
+  Types of property 'schemaVersion' are incompatible.
+    Type 'string' is not assignable to type '"future-machine.v1"'.
