@@ -29,7 +29,21 @@ export function createPatchGithubWebhookHandler({ store, secret = process.env.HB
     try { data = JSON.parse(raw.toString('utf8')); }
     catch { return reply({ error: 'Invalid JSON.' }, 400); }
     if (data?.repository?.full_name !== PATCH_REPOSITORY) return reply({ accepted: false, reason: 'repository mismatch' }, 202);
-    if (request.headers.get('x-github-event') !== 'pull_request') return reply({ accepted: true, updated: false });
+    const githubEvent = request.headers.get('x-github-event');
+    if (githubEvent === 'workflow_run') {
+      const run = data.workflow_run;
+      if (run?.name !== 'HappyBearLandia core journeys' ||
+          !/^[a-f0-9]{40}$/i.test(run.head_sha || '') ||
+          !Array.isArray(run.pull_requests)) return reply({ accepted: true, updated: false });
+      const status = run.status !== 'completed' ? 'pending' :
+        run.conclusion === 'success' ? 'success' : 'failure';
+      let updated = false;
+      for (const pr of run.pull_requests.slice(0, 50)) {
+        updated = store.updateGithub(pr.number, { type: 'check', headSha: run.head_sha, status }) || updated;
+      }
+      return reply({ accepted: true, updated });
+    }
+    if (githubEvent !== 'pull_request') return reply({ accepted: true, updated: false });
     if (!['opened','reopened','ready_for_review','converted_to_draft','synchronize','closed'].includes(data.action)) return reply({ accepted: true, updated: false });
     const pr = data.pull_request;
     if (!Number.isSafeInteger(pr?.number) || pr.number < 1 ||
