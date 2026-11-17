@@ -10,13 +10,20 @@ Build reliable, maintainable features that work through the application’s norm
 
 ## Plan and implement
 
-- For substantial features, record the next end-to-end slice, prerequisites, acceptance criteria, and material risks in the implementation plan. Break the work into independently verifiable tasks.
+- For substantial features, record the next slice, prerequisites, acceptance and risks in `docs/reviews/<ISSUE-ID>.md`. The coordinator alone updates `docs/implementation-plan.md` after integration.
 - Carry implementation requests through code, integration, verification, and review. Follow existing conventions, preserve working behavior and compatible data contracts, and keep changes small. Update affected interface documentation and add tests for meaningful behavior and regressions.
 - Preserve unrelated changes. Keep credentials and sensitive data out of code, fixtures, and output. Obtain explicit authorization for deployment and production data changes. Make routine reversible decisions locally and ask when a consequential choice cannot be resolved from the available evidence.
 
 ## Parallel work
 
 When independent implementation tasks justify delegation and the environment permits it, use up to six agents within its concurrency limit. Map dependencies first. Give each agent an isolated worktree or branch, owned files and interfaces, acceptance criteria, and verification commands. Assign shared interfaces to one owner and integrate completed work in dependency order. The coordinating agent owns architecture, integration, and the final verification.
+
+## Parallel PR hygiene
+
+- `mini/*` and `symphony/*` workers must not edit `docs/implementation-plan.md`; keep issue records in `docs/reviews/<ISSUE-ID>.md`.
+- Reserve shared source interfaces and files to one owner. Park work on overlapping active PRs until reconciliation.
+- Do not commit generated `.mini-symphony-evidence/`, `test-results/`, `playwright-report/` screenshots or traces. Use trusted CI artifacts tied to tested head SHA. Reviewed golden fixtures are distinct.
+- See [PR hygiene](docs/pr-hygiene.md). Human review, branch protection, and release authorization remain separate.
 
 ## Simulation requirements
 
@@ -30,5 +37,5 @@ When independent implementation tasks justify delegation and the environment per
 
 - Review the diff against the request. Run the repository’s relevant tests, existing lint and type checks where available, and integration tests after combining independent changes. Verify important failure paths and fix introduced regressions.
 - Skip Playwright when the change does not affect browser behavior, when the user asks to skip it, or when browser or local server setup blocks the run. For browser-facing changes, use an available browser smoke check or focused integration tests and report what was verified and what remains unverified. If the user explicitly requires Playwright and setup blocks it, report the blocker.
-- Update the implementation plan with actual status, acceptance evidence, unresolved work, and commit or PR references when available. If a large scope remains, leave a working increment and document its dependencies and limits.
+- Report status, acceptance evidence, unresolved work and PR references in the per-issue review document. The integration coordinator updates shared plans after review.
 - Report delivered behavior, changed files, actual check results, material architectural decisions, limitations, and the next action when work remains.
