@@ -1,3 +1,4 @@
+import { mountRotationTheater } from './rotation-theater.js';
 import { createEditHistory } from './edit-history.js';
 import { mountPrediction } from './prediction.js';
 import { renderParameterDiff } from './parameter-diff.js';
@@ -45,6 +46,7 @@ const scenario = () => state.scenarios.find(s => s.id === state.selected);
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
 const status = (message, error = false) => { $('#app-status').textContent = message; $('#app-status').classList.toggle('error', error); if (error) { state.errors.push(message); diagnostics.update({ ...(state.results || {}), apiErrors: state.errors }); } };
 const prediction = mountPrediction($('#policy-prediction'), { getInput: () => { const input = currentInput(); try { return normalizeDecisionInput(input, activeModel); } catch { return input; } }, unavailable: () => state.busy || state.readonly });
+const rotationTheater = mountRotationTheater($('#rotation-theater'));
 const visuals = mountDecisionVisualizations($('#decision-visualizations'), { onSelectRun: selectRun, onEnterFuture: enterFuture });
 const badges = mountExplorationBadges($('#decision-visualizations'));
 const trust = mountDecisionTrust($('#decision-trust'));
@@ -333,7 +335,7 @@ function renderResults(result) {
   state.summaryResults = {...data,runs:summaryRows,previousResults:undefined};
   continuity.update(decisionSnapshot({ ...data, job: continuityJob, selectedRun: state.selectedRun }), { namespace: 'decision', experimentId: state.experiment?.id });
   prediction.reveal(data);
-  state.results = data; badges.update(data); visuals.update(data); trust.update(data); diagnostics.update(data);
+  state.results = data; rotationTheater.update(data); badges.update(data); visuals.update(data); trust.update(data); diagnostics.update(data);
   syncConstructionWorld(); worldTools?.update(); updateAdvancedStudio();
   const experiment = state.experiment;
   updateExecutiveSummary();
