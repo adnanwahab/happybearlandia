@@ -165,3 +165,11 @@ auto-starts on navigation. Essential recorded inventory and evidence stay visibl
 Parallax is reserved: no application parallax consumer was found in this checkout.
 Other independently owned decorative renderers are not yet universally migrated.
 See `docs/reviews/SHE-785.md` for acceptance limits and actual evidence.
+
+## Urban Noise Playground (SHE-738)
+
+The World ambient panel also offers a separate default-off geometric traffic
+exercise. Its authored sources, artistic falloff, capped digital gain, missing
+input behavior and lifecycle are documented in [the noise contract](../../world/noise/README.md).
+It supplies no observed acoustics or decibel estimates and changes no simulation
+rules. The shell Sound pill remains an independent decorative audio control.
