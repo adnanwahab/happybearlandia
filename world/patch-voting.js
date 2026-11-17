@@ -1,3 +1,9 @@
+// Restore the exact World scenario when returning from the patch ballot.
+const returnTo = new URLSearchParams(location.search).get('returnTo');
+if (returnTo && returnTo.startsWith('/world') && !returnTo.startsWith('//') && !/[\\\r\n]/.test(returnTo)) {
+  const back = document.querySelector('a.back');
+  if (back) { back.href = returnTo; back.textContent = '← Back to your world'; }
+}
 const consent = document.querySelector('#consent');
 const ballot = document.querySelector('#ballot');
 const status = document.querySelector('#status');
