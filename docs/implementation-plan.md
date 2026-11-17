@@ -10698,3 +10698,28 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+## SHE-788 — Ten-Minute Magic Tour, November 17, 2026
+
+Next bounded slice: an accessible, bookmarkable itinerary in `/routes`, reusing
+normal World/House and versioned Future Machine entry points. The guide must
+separate Population from monthly City, pin the City recipe, never report a
+navigation click as simulation completion, and keep unavailable prerequisites
+visible. No new simulation, cross-model identity adapter or sharing store.
+
+Acceptance for this increment: keyboard/mobile/reduced-motion navigation and
+browser back retain the selected stop; policy/comparison links decode to the same
+versioned seed-42 recipe; no results, saves or external messages are fabricated.
+Full issue acceptance additionally requires an uncut real-surface browser run,
+a saved Population household journey and rights-aware conclusion evidence.
+Evidence and remaining gates: `docs/reviews/SHE-788.md`.
+
+Delivered increment: six-stop preview at `/routes#tour=arrive`, strict City recipe
+links and explicit separate Population handoff; unknown bookmarks fail visibly.
+No completion tracking or new sharing state. 14focused tests/728assertions,
+7deterministic DOM checks, existing universe declaration typecheck and browser
+bundle pass. Installed Chrome launch aborts before2browser cases; isolated Bun
+server bind fails EADDRINUSE. Full uncut journey, single persisted tour run,
+normal-entry household evidence, access failures and sharing rights/deletion
+remain unverified. Existing unrelated homepage32/registry33count regression
+recorded in `docs/reviews/SHE-788.md`. No PR, merge or deployment.

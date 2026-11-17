@@ -1,0 +1,15 @@
+{
+  "scope": "Playwright launch attempt; no page or browser assertions executed",
+  "blocker": "Installed Chrome exited SIGABRT before either test (browserType.launch: Target page, context or browser has been closed).",
+  "realSurfaceServer": "Explicit Bun binary could not bind port39887 (EADDRINUSE).",
+  "tests": [
+    "desktop keyboard/history/invalid bookmark",
+    "mobile reduced motion keyboard/history/invalid bookmark"
+  ],
+  "observedLaunchOutcome": {
+    "cases": 2,
+    "blockedBeforePageAssertions": 2,
+    "passingBrowserCases": 0
+  },
+  "evidenceKind": "Manual summary of actual tool output; not a Playwright success report"
+}
