@@ -12,16 +12,27 @@ on:
       - '.github/workflows/auto-merge.yml'
       - '.github/scripts/auto-merge.cjs'
       - 'test/auto-merge.test.cjs'
+  schedule:
+    # Best-effort: GitHub schedules may be delayed or skipped.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview candidates without merging (default)'
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: auto-merge-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.event_name == 'push' && 'tests' || 'scheduled' }}
+  group: auto-merge-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'push' && 'tests' || 'merge' }}
   cancel-in-progress: false
 
 jobs:
   verify-merger:
+    if: ${{ github.event_name != 'schedule' || vars.HBL_GUARDED_AUTOMERGE_ENABLED == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
@@ -33,11 +44,10 @@ jobs:
 
   merge:
     needs: verify-merger
-    # Human-review safety hold: autonomous GitHub merges disabled.
-    # Do not re-enable without the repository owner's explicit approval.
-    if: ${{ false }}
+    # Owner must opt in via repository variable after review, rules and CI.
+    if: ${{ github.repository == 'adnanwahab/happybearlandia' && github.ref == 'refs/heads/main' && ((github.event_name == 'schedule' && vars.HBL_GUARDED_AUTOMERGE_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && (inputs.dry_run == true || vars.HBL_GUARDED_AUTOMERGE_ENABLED == 'true'))) }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 4
+    timeout-minutes: 12
     permissions:
       contents: write
       pull-requests: write
@@ -49,11 +59,11 @@ jobs:
         with:
           ref: main
           persist-credentials: false
-      - name: Merge the oldest eligible PR
+      - name: Merge at most one approved PR (or audit only)
         uses: actions/github-script@v9
         with:
           script: |
             const { run } = require('./.github/scripts/auto-merge.cjs');
-            const dryRun = context.eventName === 'workflow_dispatch' &&
-              context.payload.inputs?.dry_run !== 'false';
+            const dryRun = context.eventName !== 'schedule' &&
+              String(context.payload.inputs?.dry_run ?? 'true') !== 'false';
             await run({ github, context, core, dryRun });

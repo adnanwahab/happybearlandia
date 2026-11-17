@@ -96,7 +96,7 @@ async function reviewState(github, number) {
     }`, { owner: OWNER, repo: REPO, number, cursor });
     const pr = data.repository?.pullRequest;
     if (!pr || !pr.reviewThreads?.pageInfo || !Array.isArray(pr.reviewThreads.nodes)) throw new Error('Incomplete review-thread response');
-    if (pr.reviewDecision && pr.reviewDecision !== 'APPROVED') blockedDecision = pr.reviewDecision;
+    if (pr.reviewDecision !== 'APPROVED') blockedDecision = pr.reviewDecision || 'MISSING';
     unresolved ||= pr.reviewThreads.nodes.some(thread => thread.isResolved !== true);
     const page = pr.reviewThreads.pageInfo;
     if (page.hasNextPage && (!page.endCursor || page.endCursor === cursor)) throw new Error('Invalid review-thread pagination');
@@ -126,6 +126,11 @@ async function assessPullRequest({ github, number }) {
   if (typeof pr.changed_files !== 'number' || files.length !== pr.changed_files) return skip('changed-file inventory is incomplete');
   const paths = files.flatMap(file => [file.filename, file.previous_filename].filter(Boolean));
   if (paths.some(path => path.startsWith('.github/') || /(^|\/)AGENTS\.md$/.test(path))) return skip('workflow or agent-instruction changes require manual review');
+  if (paths.some(path =>
+    path.startsWith('.mini-symphony-evidence/') ||
+    path.split('/').some(segment => segment === 'test-results' || segment === 'playwright-report'))) {
+    return skip('generated browser evidence needs preservation outside PR Git history');
+  }
 
   const comments = await all(github, github.rest.issues.listComments, { issue_number: number });
   if (comments.some(comment => (MAINTAINERS.has(comment.author_association) || comment.user?.login?.toLowerCase() === OWNER) && hasHoldMarker(comment.body))) {
@@ -133,9 +138,18 @@ async function assessPullRequest({ github, number }) {
   }
   const reviews = await all(github, github.rest.pulls.listReviews, { pull_number: number });
   const decisive = reviews.filter(review => ['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(review.state));
-  if (latestPer(decisive, review => review.user?.id || review.user?.login || `unknown-${review.id}`).some(review => review.state === 'CHANGES_REQUESTED')) {
+  const latestReviews = latestPer(decisive, review => review.user?.id || review.user?.login || `unknown-${review.id}`);
+  if (latestReviews.some(review => review.state === 'CHANGES_REQUESTED')) {
     return skip('a current review requests changes');
   }
+  // Do not accept a missing approval, stale-head review, bot review or
+  // approval from the PR author. A protected-branch review is still required.
+  const authorLogin = pr.user?.login?.toLowerCase();
+  if (!authorLogin) return skip('PR author identity is unavailable');
+  const currentApproval = latestReviews.some(review =>
+    review.state === 'APPROVED' && review.commit_id === headSha &&
+    review.user?.type === 'User' && review.user?.login?.toLowerCase() !== authorLogin);
+  if (!currentApproval) return skip('no current-head human approval');
   const review = await reviewState(github, number);
   if (review.blockedDecision) return skip(`GitHub review decision is ${review.blockedDecision}`);
   if (review.unresolved) return skip('unresolved review threads');
