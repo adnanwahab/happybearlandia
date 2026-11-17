@@ -24,7 +24,7 @@ export function createAmbientMixer({createContext = () => new AudioContext()} = 
     if (!context || disposed) return;
     const audible = enabled && !hidden && scene && volume > 0;
     for (const voice of voices) {
-      const gain = audible && voice.name === scene.environment ? volume * (scene.night ? .22 : .38) : 0;
+      const gain = audible && voice.name === scene.environment ? volume * (scene.night ? .22 : .38) * (Number.isFinite(scene.strength) ? Math.max(0, Math.min(1, scene.strength)) : 1) : 0;
       const param = voice.gain.gain, now = context.currentTime;
       // Exponential retargeting is continuous even during rapid camera/time changes.
       param.cancelScheduledValues(now);
