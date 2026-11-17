@@ -49,8 +49,23 @@ async function readBody(request) {
   if (request.headers.get('content-type')?.split(';')[0].trim() !== 'application/json') throw error(415, 'Send application/json.');
   const length = Number(request.headers.get('content-length') || 0);
   if (length > MAX_BODY) throw error(413, 'Request is too large.');
-  const raw = await request.text();
-  if (Buffer.byteLength(raw) > MAX_BODY) throw error(413, 'Request is too large.');
+  const reader = request.body?.getReader();
+  const chunks = [];
+  let size = 0;
+  try {
+    while (reader) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_BODY) {
+        // Do not wait for an attacker-controlled stream to finish cancellation.
+        void reader.cancel().catch(() => {});
+        throw error(413, 'Request is too large.');
+      }
+      chunks.push(value);
+    }
+  } finally { reader?.releaseLock(); }
+  const raw = Buffer.concat(chunks).toString('utf8');
   try {
     const data = JSON.parse(raw);
     if (!data || Array.isArray(data) || typeof data !== 'object') throw new Error('not object');
@@ -128,6 +143,7 @@ export function createPatchVotingStore(options = {}) {
     if (![1, -1, 0].includes(value)) throw error(400, 'Vote must be 1, -1, or 0.');
     if (own.get(id, voterKey)?.value === value) return;
     throttle(voterKey, 'vote', 24, 3600000);
+    throttle('shared-public-budget', 'vote', 120, 60000);
     if (value === 0) db.query('DELETE FROM vote WHERE candidate_id=? AND voter_key=?').run(id, voterKey);
     else db.query('INSERT INTO vote (candidate_id,voter_key,value,updated_at) VALUES (?,?,?,?) ON CONFLICT(candidate_id,voter_key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at').run(id, voterKey, value, clock());
   });
@@ -142,6 +158,7 @@ export function createPatchVotingStore(options = {}) {
     if (replaySeed !== null && (kind !== 'problem' || !validString(replaySeed, 1, 128))) throw error(400, 'Replay seed must be 1–128 characters on a problem report.');
     if (!validString(title, 8, 100) || !validString(details, 12, 800)) throw error(400, 'Title must be 8–100 characters and details 12–800 characters.');
     throttle(voterKey, 'suggest', 3, 86400000);
+    throttle('shared-public-budget', 'suggest', 30, 3600000);
     const id = randomUUID();
     db.query('INSERT INTO suggestion (id,voter_key,title,details,created_at,status) VALUES (?,?,?,?,?,?)').run(id, voterKey, title.trim(), details.trim(), clock(), 'pending');
     db.query('UPDATE suggestion SET kind=?,replay_seed=?,world_context=? WHERE id=?').run(

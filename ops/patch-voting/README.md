@@ -83,3 +83,24 @@ bun test test/patch-voting.test.js test/patch-queue.test.js test/patch-governanc
 ```
 
 The importer verifies both artifact digests and the claimed run metadata/metrics before recording them. It does NOT independently prove empirical validity or confirm that the game engine actually produced the file; retain the underlying test receipt/CI artifact for human verification. If there is no evidence, the comparison UI explicitly says so.
+
+### Public-input abuse bounds (SHE-963)
+
+JSON bodies are read incrementally with a 2,048-byte limit, including chunked
+requests with missing or misleading Content-Length. Oversized streams are
+cancelled. Consent, exact Origin, JSON content type and field validation still
+apply; failed writes issue no browser token. Suggestions are private plain text,
+not HTML, links, GitHub payloads or executable prompts. Keep any later moderation
+renderer on text-only sinks; do not interpolate stored text into HTML/Markdown.
+
+The private SQLite throttle also enforces shared budgets: 120 changed votes per
+60 seconds and 30 suggestions per hour across all browser tokens. Existing
+per-token limits (24 changed votes/hour, 3 suggestions/day) remain. Exact vote
+retries do not consume the changed-vote budget. Counters and writes are atomic;
+429 leaves the prior ballot and suggestions intact. Limits apply to accepted
+changes, not network requests; reads and invalid requests still need upstream
+traffic protection. Shared budgets bound cookie-reset writes but can be exhausted
+by one attacker, temporarily denying legitimate submissions. No IP, user agent,
+new identifier or telemetry is collected. Browser tokens are still best effort,
+not proof of unique people. These limits assume the existing single-writer store;
+uncoordinated replicas would each have their own budget.

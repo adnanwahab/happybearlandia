@@ -1,3 +1,4 @@
+import './patch-voting-abuse.test.js';
 // The fast required CI gate already runs this file. Include the companion
 // governance and GitHub App regressions without widening workflow permissions.
 import './patch-governance.test.js';
