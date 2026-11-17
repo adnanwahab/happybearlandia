@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Energy Control Room · HappyBearLandia</title><link rel="stylesheet" href="/world/civilization/civilization.css">
+<style>main{max-width:860px;margin:auto;padding:24px}button,input{min-height:44px;margin:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere}label{display:block}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f9c95e}</style>
+<script type="module" src="./energy-page.js"></script></head><body><main>
+<nav><a href="./">Hidden Systems</a> · <a href="/">Home</a></nav>
+<h1>Energy Control Room</h1>
+<p>Keep a tiny synthetic neighborhood powered through three demand waves.</p>
+<p><strong>Independent synthetic toy model.</strong> The current City does not model an energy grid. Measured observations: unavailable. Wave names are scripted flavor.</p>
+<p>Artificial assumptions: generation 0–6 units each wave; lossless battery holds 4 units, starts at 2. Generation serves demand first, surplus charges then spills. Battery covers shortfalls automatically. Any unmet demand fails; serving all three waves wins. No network, physical power units, costs, fuel limits or real geography.</p>
+<button id="load">Load authored demo / Restart</button>
+<p id="energy-status" role="status">No source data. Load the authored demo explicitly.</p>
+<pre id="source" aria-label="Source fields"></pre>
+<form id="dispatch"><label>Generation units <input name="generation" type="number" min="0" max="6" step="1" value="6" required></label><button id="commit" disabled>Dispatch wave</button></form>
+<button id="cancel" disabled>Cancel run</button><button id="verify" disabled>Verify replay</button>
+<p id="verification" role="status"></p>
+<h2>Immutable checkpoints · modeled results</h2><pre id="checkpoints">No results.</pre>
+</main></body></html>
