@@ -281,3 +281,24 @@ reduced motion; static map caching and existing overlay throttling remain.
 History survives map collapse and local travel, and ends when the page unloads.
 It is not a saved-run or cross-model identity mapping. Living Population selection
 and the separate full Canvas2D World fallback are not wired to this trail.
+
+### Sky clock (SHE-666)
+
+World's main controls include **Sky clock · visual preview**. The sun arc and
+native quarter-hour range show the renderer's selected hour; keyboard arrows,
+Home/End and touch dragging use the same range. A separate readout always shows
+the committed legacy or Population minute. The existing default 14:00 override
+is correctly labeled cosmetic until Reset to committed time clears it.
+No hourly checkpoint adapter is supplied by this entry point, so this control
+never claims recorded hourly replay. Weather and resident state remain current;
+the solar palette and office-window gates remain authored presentation rules.
+No location, event, receipt, clock or model write is made by the control.
+
+The display is static, including under reduced motion. It samples from the
+existing World frame callback at most 10 Hz; input/reset refresh immediately.
+`window.hblSkyClock.getStats()` reports updates, failures, cumulative overlay CPU
+milliseconds, sampled frame count and maximum frame interval. Renderer benchmark
+statistics remain the source for full-scene frame percentiles. These counters
+are local diagnostics, not analytics or hardware performance certification.
+Pagehide removes the control/listeners and the diagnostics handle. Missing clocks
+disable controls; read and command failures show explicit messages.

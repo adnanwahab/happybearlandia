@@ -10698,3 +10698,28 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+## SHE-666 — sky-clock inspection (2026-11-17)
+
+Next slice: expose the existing visual lighting override as a sun dial in World,
+with a separate committed-clock readout and explicit cosmetic/no-hourly-history
+label. Reset clears the override only. Reuse active legacy/Population minutes and
+existing authored solar rules; no model, checkpoint, receipt or entity writes.
+Acceptance: keyboard/touch range alternative, static reduced-motion display,
+invalid/unavailable state, reset and unchanged committed state, bounded UI work
+on the existing frame loop and cleanup. Existing renderer pacing remains the
+measurement source; no additional animation loop. Verify focused unit and normal
+entry browser tests. Risk: historical hourly state is not exposed here, so this
+slice must not claim recorded replay. PR audit: targeted open sky-clock search
+returned no matches; existing camera/renderer controls inspected before changes.
+
+SHE-666 status: local slice implemented. Native quarter-hour drag/keyboard range,
+static sun marker, committed-clock readout, cosmetic labeling and reset are wired
+to World. Missing-clock and read/command failures, 10 Hz UI budget, frame-gap/CPU
+counters and pagehide cleanup are covered by component tests. Focused suite:
+27 passed / 242 assertions; browser bundle: 400 modules; syntax/diff checks pass.
+No module-wide typecheck is configured. Playwright server binding failed on two
+ports; desktop/mobile visual, touch and saved-run receipt browser acceptance
+remain pending. No hourly replay adapter claimed. Existing autonomous-merge
+human-review hold preserved. Full audit, policy and command evidence:
+[docs/reviews/SHE-666.md](reviews/SHE-666.md). No merge or deploy performed.
