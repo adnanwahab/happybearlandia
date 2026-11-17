@@ -38,7 +38,7 @@ export function allocateBrowserPort(value,{label='Browser test port',exclude=[]}
 }
 
 function environmentPaths(port,store){return{PORT:port,HBL_BIND_HOST:'127.0.0.1',
- HBL_WORLD_DB_PATH:join(store,'world.sqlite'),HBL_CITY_DATA_DIR:join(store,'city'),
+ HBL_GUEST_DB_PATH:join(store,'guest.sqlite'),HBL_WORLD_DB_PATH:join(store,'world.sqlite'),HBL_CITY_DATA_DIR:join(store,'city'),
  HBL_REALITY_SHARE_DB_PATH:join(store,'shares.sqlite'),HBL_JOURNAL_ROOT:join(store,'journals'),
  DECISION_STORE_DIR:join(store,'decision'),HBL_DETECTIVE_ROOT:join(store,'detective'),
  HBL_PATCH_VOTE_DB_PATH:join(store,'patch-votes.sqlite'),HBL_TEMPORAL_DB_PATH:join(store,'history.sqlite'),HBL_PLAYER_FEEDBACK_DIR:join(store,'player-feedback')};}
