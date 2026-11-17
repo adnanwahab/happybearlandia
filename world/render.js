@@ -17,6 +17,7 @@ import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
 import {createPanelManager} from './onboarding/panel-manager.js';
+import {mountStreetSteps} from './street-steps.js';
 import {mountCameraPresets} from './camera-presets.js';
 import {createCameraDirector} from './onboarding/camera-director.js';
 import {createSpotlight} from './onboarding/spotlight.js';
@@ -2438,7 +2439,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);cinematicCamera?.update(now);controls.update();
+  updateArrival(now);cinematicCamera?.update(now);streetSteps?.update(now);controls.update();
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
@@ -2635,6 +2636,8 @@ const cinematicCamera=!embedMode?mountCameraPresets({container:$('top'),camera,c
  stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
  reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
 addEventListener('pagehide',()=>cinematicCamera?.dispose(),{once:true});
+const streetSteps=!embedMode?mountStreetSteps({container:$('top'),camera,controls,canvas:renderer.domElement,projectPoint:point=>{const p=new THREE.Vector3(point[0],.2,point[1]).project(camera),r=renderer.domElement.getBoundingClientRect();return{x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2,visible:p.z>=-1&&p.z<=1&&Math.abs(p.x)<.95&&Math.abs(p.y)<.95};},getRoads:()=>town.roads,getBuildings:()=>[...town.buildings,...contextBuildings.values()],stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
+addEventListener('pagehide',()=>streetSteps?.dispose(),{once:true});
 
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);

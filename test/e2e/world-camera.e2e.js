@@ -54,3 +54,14 @@ for(const mobile of [false,true])test(`cinematic presets preserve selection and 
  await expect(picker.getByRole('status')).toContainText('interrupted');
  await page.screenshot({path:`.mini-symphony-evidence/SHE-474-after-${mobile?'mobile':'desktop'}-camera.png`});
 });
+
+test('street steps normal World entry exposes five camera-only hops on mobile',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
+ await page.route('**/api/area*',route=>route.abort());
+ await page.goto('/world?synthetic=1&people=16');await page.waitForFunction(()=>window.hblWorldStartup?.readyMs);
+ await page.locator('#top').evaluate(node=>node.open=true);
+ const steps=page.getByTestId('street-steps');await steps.locator('summary').click();
+ await steps.getByRole('button',{name:'Find nearby sidewalk'}).click();
+ await expect(steps.getByRole('status')).toContainText('Sidewalk ready');
+ for(let i=1;i<=5;i++){await steps.getByRole('button',{name:`${i} → Step`,exact:true}).click();await expect(steps.getByRole('status')).toContainText(`Step ${i} of 5`);}
+});

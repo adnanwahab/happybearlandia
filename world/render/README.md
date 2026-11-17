@@ -281,3 +281,27 @@ reduced motion; static map caching and existing overlay throttling remain.
 History survives map collapse and local travel, and ends when the page unloads.
 It is not a saved-run or cross-model identity mapping. Living Population selection
 and the separate full Canvas2D World fallback are not wired to this trail.
+
+### Street steps (SHE-655, local review candidate)
+
+World controls → Street steps → Find nearby sidewalk finds a loaded town road
+endpoint within 80m of the orbit target. It derives six stations on one sidewalk
+using `sidewalks.v1`, giving five hops of at most 12m. The initial entry is an
+explicit camera cut; subsequent hops interpolate for 450ms, offer Skip animation,
+and cut immediately with reduced motion. Numbered native buttons provide direction
+and unavailable labels, 44px minimum targets and visible keyboard focus. The same stations appear as clickable scene-projected stones (10Hz layout,
+frustum filtered); toolbar buttons remain available when a stone is offscreen.
+Projection does not raycast occlusion.
+
+Camera height 8m, look-ahead 8m and geometry clearance 3m are presentation
+assumptions. The planner never uses the resident route's straight-line fallback,
+never crosses a junction, and never writes resident/model state. Roads may be
+synthetic or mapped according to the loaded town; derived sidewalks are not
+surveyed access. Building AABBs are rechecked before and during each hop.
+Manual scene input, navigation keys, Escape and camera presets cancel the mode.
+The existing render loop owns updates; stats expose active frame count, maximum
+frame interval, cumulative CPU update time, and separate projection count/CPU time. No new RAF or model clock exists.
+Page exit removes DOM and listeners. Only base-town roads are supported; streamed
+context roads and standalone Canvas2D fallback are outside this increment.
+
+Checks and remaining browser prerequisites: `docs/reviews/SHE-655.md`.
