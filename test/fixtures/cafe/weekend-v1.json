@@ -1,0 +1,1230 @@
+{
+  "source": {
+    "id": "weekend-cafe.v1",
+    "model": "business-v1",
+    "modelVersion": "1.0.0",
+    "rulesVersion": 1,
+    "seed": 42,
+    "horizon": 2
+  },
+  "checkpoints": [
+    {
+      "schemaVersion": "business-state.v1",
+      "def": {
+        "schemaVersion": "business-def.v1",
+        "id": "weekend-cafe.v1",
+        "name": "Weekend Pop-up Café",
+        "description": "Authored synthetic toy café; two daily periods, no measured market observations.",
+        "archetype": "local-retail",
+        "scale": "day",
+        "unit": "cup",
+        "price": 2,
+        "unitCost": 0.65,
+        "quality": 75,
+        "startingCash": 500,
+        "capacity": 180,
+        "baseTraffic": 260,
+        "rent": 8,
+        "wage": 15,
+        "repeatRate": 0.24,
+        "churnRate": 0.06,
+        "startingAwareness": 0.18,
+        "growth": 0.01,
+        "fulfillment": "inventory",
+        "leadTime": 0,
+        "takeRate": 0.2,
+        "inputs": [
+          {
+            "id": "stock",
+            "unit": "cup",
+            "cost": 0.65,
+            "quality": 0.8
+          }
+        ],
+        "recipe": {
+          "knobs": [],
+          "batchYield": 1,
+          "ideal": {}
+        },
+        "production": {
+          "batchSize": 1,
+          "minutes": 1,
+          "hours": 8
+        },
+        "perishability": {
+          "per": "period",
+          "rate": 0.65
+        },
+        "referencePrice": {
+          "min": 1,
+          "typical": 2,
+          "max": 4
+        },
+        "demand": {
+          "weatherWeight": 0.5,
+          "seasonality": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "segments": [
+          {
+            "id": "value",
+            "label": "Value seekers",
+            "share": 0.45,
+            "budget": 1.05,
+            "sensitivity": 2.8,
+            "quality": 1.1,
+            "patience": 4,
+            "affinity": 1
+          },
+          {
+            "id": "regular",
+            "label": "Everyday buyers",
+            "share": 0.35,
+            "budget": 1.7,
+            "sensitivity": 1.8,
+            "quality": 1.8,
+            "patience": 7,
+            "affinity": 1
+          },
+          {
+            "id": "premium",
+            "label": "Quality enthusiasts",
+            "share": 0.2,
+            "budget": 2.8,
+            "sensitivity": 1.2,
+            "quality": 2.8,
+            "patience": 10,
+            "affinity": 1
+          }
+        ],
+        "channels": [
+          {
+            "id": "social",
+            "label": "Paid social",
+            "reach": 65,
+            "saturation": 1200,
+            "conversion": 0.018
+          },
+          {
+            "id": "creators",
+            "label": "Creators",
+            "reach": 90,
+            "saturation": 1800,
+            "conversion": 0.024
+          },
+          {
+            "id": "local",
+            "label": "Local / referrals",
+            "reach": 35,
+            "saturation": 400,
+            "conversion": 0.035
+          }
+        ],
+        "unlock": {
+          "tier": "stand"
+        },
+        "version": 1,
+        "approved": true
+      },
+      "period": 0,
+      "scale": "day",
+      "seed": 42,
+      "cash": 500,
+      "reputation": 0,
+      "inventory": 0,
+      "inventoryValue": 0,
+      "pipeline": [],
+      "awareness": 0.18,
+      "customers": 0,
+      "audience": 0,
+      "debt": 0,
+      "ownership": 1,
+      "financing": [],
+      "equipment": 0,
+      "location": 1,
+      "negativePeriods": 0,
+      "bankrupt": false,
+      "totalRevenue": 0,
+      "totalProfit": 0,
+      "totalSales": 0,
+      "logs": [],
+      "history": [
+        {
+          "period": 0,
+          "cash": 500,
+          "revenue": 0,
+          "profit": 0
+        }
+      ],
+      "lastPlan": {
+        "price": 2,
+        "quality": 75,
+        "production": 52,
+        "staff": 1,
+        "marketing": {
+          "social": 0,
+          "creators": 0,
+          "local": 0
+        },
+        "supplier": "standard",
+        "location": 1,
+        "equipment": 0,
+        "sellers": 25,
+        "recipe": {}
+      }
+    },
+    {
+      "schemaVersion": "business-state.v1",
+      "def": {
+        "schemaVersion": "business-def.v1",
+        "id": "weekend-cafe.v1",
+        "name": "Weekend Pop-up Café",
+        "description": "Authored synthetic toy café; two daily periods, no measured market observations.",
+        "archetype": "local-retail",
+        "scale": "day",
+        "unit": "cup",
+        "price": 2,
+        "unitCost": 0.65,
+        "quality": 75,
+        "startingCash": 500,
+        "capacity": 180,
+        "baseTraffic": 260,
+        "rent": 8,
+        "wage": 15,
+        "repeatRate": 0.24,
+        "churnRate": 0.06,
+        "startingAwareness": 0.18,
+        "growth": 0.01,
+        "fulfillment": "inventory",
+        "leadTime": 0,
+        "takeRate": 0.2,
+        "inputs": [
+          {
+            "id": "stock",
+            "unit": "cup",
+            "cost": 0.65,
+            "quality": 0.8
+          }
+        ],
+        "recipe": {
+          "knobs": [],
+          "batchYield": 1,
+          "ideal": {}
+        },
+        "production": {
+          "batchSize": 1,
+          "minutes": 1,
+          "hours": 8
+        },
+        "perishability": {
+          "per": "period",
+          "rate": 0.65
+        },
+        "referencePrice": {
+          "min": 1,
+          "typical": 2,
+          "max": 4
+        },
+        "demand": {
+          "weatherWeight": 0.5,
+          "seasonality": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "segments": [
+          {
+            "id": "value",
+            "label": "Value seekers",
+            "share": 0.45,
+            "budget": 1.05,
+            "sensitivity": 2.8,
+            "quality": 1.1,
+            "patience": 4,
+            "affinity": 1
+          },
+          {
+            "id": "regular",
+            "label": "Everyday buyers",
+            "share": 0.35,
+            "budget": 1.7,
+            "sensitivity": 1.8,
+            "quality": 1.8,
+            "patience": 7,
+            "affinity": 1
+          },
+          {
+            "id": "premium",
+            "label": "Quality enthusiasts",
+            "share": 0.2,
+            "budget": 2.8,
+            "sensitivity": 1.2,
+            "quality": 2.8,
+            "patience": 10,
+            "affinity": 1
+          }
+        ],
+        "channels": [
+          {
+            "id": "social",
+            "label": "Paid social",
+            "reach": 65,
+            "saturation": 1200,
+            "conversion": 0.018
+          },
+          {
+            "id": "creators",
+            "label": "Creators",
+            "reach": 90,
+            "saturation": 1800,
+            "conversion": 0.024
+          },
+          {
+            "id": "local",
+            "label": "Local / referrals",
+            "reach": 35,
+            "saturation": 400,
+            "conversion": 0.035
+          }
+        ],
+        "unlock": {
+          "tier": "stand"
+        },
+        "version": 1,
+        "approved": true
+      },
+      "period": 1,
+      "scale": "day",
+      "seed": 42,
+      "cash": 505.8897633017041,
+      "reputation": 0.06558333333333329,
+      "inventory": 3,
+      "inventoryValue": 1.9110236698295926,
+      "pipeline": [],
+      "awareness": 0.1821430769230769,
+      "customers": 24,
+      "audience": 0,
+      "debt": 0,
+      "ownership": 1,
+      "financing": [],
+      "equipment": 0,
+      "location": 1,
+      "negativePeriods": 0,
+      "bankrupt": false,
+      "totalRevenue": 48,
+      "totalProfit": 7.800786971533682,
+      "totalSales": 24,
+      "logs": [
+        {
+          "period": 1,
+          "defVersion": 1,
+          "seed": 42,
+          "weather": {
+            "period": 1,
+            "temperature": 69,
+            "rain": true,
+            "event": null,
+            "label": "Normal trading",
+            "warning": "No major event expected."
+          },
+          "rivals": [
+            {
+              "name": "Low-cost challenger",
+              "strategy": "Discounter",
+              "price": 1.8108949633352458,
+              "quality": 55,
+              "brand": 0.2
+            },
+            {
+              "name": "Premium neighbor",
+              "strategy": "Premium",
+              "price": 2.8,
+              "quality": 92,
+              "brand": 0.4
+            }
+          ],
+          "arrivals": 105,
+          "outcomes": {
+            "bought": 24,
+            "too expensive": 9,
+            "didn't like it": 41,
+            "sold out": 0,
+            "line too long": 0,
+            "not interested": 0,
+            "chose rival": 31
+          },
+          "traceCount": 0,
+          "segmentSales": {
+            "value": 5,
+            "regular": 9,
+            "premium": 10
+          },
+          "revenue": 48,
+          "cogs": 15.28818935863673,
+          "spoilageCost": 1.9110236698295926,
+          "spoiled": 3,
+          "rent": 8,
+          "wages": 15,
+          "marketingCost": 0,
+          "interest": 0,
+          "equipmentPurchase": 0,
+          "tierCost": 0,
+          "inputCash": 19.11023669829592,
+          "profit": 7.800786971533682,
+          "cashBefore": 500,
+          "cash": 505.8897633017041,
+          "cashChange": 5.889763301704079,
+          "availableCredit": 100,
+          "inventory": 3,
+          "reputation": 0.06558333333333329,
+          "satisfaction": 0.718611111111111,
+          "channelCards": [
+            {
+              "id": "social",
+              "label": "Paid social",
+              "spend": 0,
+              "impressions": 0,
+              "visitors": 0,
+              "customers": 0,
+              "cac": null
+            },
+            {
+              "id": "creators",
+              "label": "Creators",
+              "spend": 0,
+              "impressions": 0,
+              "visitors": 0,
+              "customers": 0,
+              "cac": null
+            },
+            {
+              "id": "local",
+              "label": "Local / referrals",
+              "spend": 0,
+              "impressions": 0,
+              "visitors": 0,
+              "customers": 0,
+              "cac": null
+            }
+          ],
+          "share": 0.22857142857142856,
+          "capacity": 180,
+          "used": 24,
+          "backlog": 0,
+          "churned": 0,
+          "mrr": 0,
+          "arr": 0,
+          "utilization": 0.13333333333333333,
+          "supplierDelivered": true,
+          "forecast": {
+            "period": 1,
+            "temperature": 70,
+            "rain": true,
+            "event": null,
+            "label": "Normal trading",
+            "warning": "No major event expected."
+          },
+          "bankrupt": false,
+          "externalInputs": {},
+          "operatingHours": 8,
+          "employment": {
+            "schemaVersion": "business-employment.v1",
+            "period": 1,
+            "workerHours": 8,
+            "requestedWorkerHours": 8,
+            "wages": 15,
+            "employedWorkers": 1,
+            "hourlyWage": 1.875
+          }
+        }
+      ],
+      "history": [
+        {
+          "period": 0,
+          "cash": 500,
+          "revenue": 0,
+          "profit": 0
+        },
+        {
+          "period": 1,
+          "cash": 505.8897633017041,
+          "revenue": 48,
+          "profit": 7.800786971533682
+        }
+      ],
+      "lastPlan": {
+        "price": 2,
+        "quality": 75,
+        "production": 30,
+        "staff": 1,
+        "marketing": {
+          "social": 0,
+          "creators": 0,
+          "local": 0
+        },
+        "supplier": "standard",
+        "location": 1,
+        "equipment": 0,
+        "sellers": 25,
+        "recipe": {}
+      },
+      "employment": {
+        "schemaVersion": "business-employment.v1",
+        "period": 1,
+        "workerHours": 8,
+        "requestedWorkerHours": 8,
+        "wages": 15,
+        "employedWorkers": 1,
+        "hourlyWage": 1.875
+      }
+    },
+    {
+      "schemaVersion": "business-state.v1",
+      "def": {
+        "schemaVersion": "business-def.v1",
+        "id": "weekend-cafe.v1",
+        "name": "Weekend Pop-up Café",
+        "description": "Authored synthetic toy café; two daily periods, no measured market observations.",
+        "archetype": "local-retail",
+        "scale": "day",
+        "unit": "cup",
+        "price": 2,
+        "unitCost": 0.65,
+        "quality": 75,
+        "startingCash": 500,
+        "capacity": 180,
+        "baseTraffic": 260,
+        "rent": 8,
+        "wage": 15,
+        "repeatRate": 0.24,
+        "churnRate": 0.06,
+        "startingAwareness": 0.18,
+        "growth": 0.01,
+        "fulfillment": "inventory",
+        "leadTime": 0,
+        "takeRate": 0.2,
+        "inputs": [
+          {
+            "id": "stock",
+            "unit": "cup",
+            "cost": 0.65,
+            "quality": 0.8
+          }
+        ],
+        "recipe": {
+          "knobs": [],
+          "batchYield": 1,
+          "ideal": {}
+        },
+        "production": {
+          "batchSize": 1,
+          "minutes": 1,
+          "hours": 8
+        },
+        "perishability": {
+          "per": "period",
+          "rate": 0.65
+        },
+        "referencePrice": {
+          "min": 1,
+          "typical": 2,
+          "max": 4
+        },
+        "demand": {
+          "weatherWeight": 0.5,
+          "seasonality": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "segments": [
+          {
+            "id": "value",
+            "label": "Value seekers",
+            "share": 0.45,
+            "budget": 1.05,
+            "sensitivity": 2.8,
+            "quality": 1.1,
+            "patience": 4,
+            "affinity": 1
+          },
+          {
+            "id": "regular",
+            "label": "Everyday buyers",
+            "share": 0.35,
+            "budget": 1.7,
+            "sensitivity": 1.8,
+            "quality": 1.8,
+            "patience": 7,
+            "affinity": 1
+          },
+          {
+            "id": "premium",
+            "label": "Quality enthusiasts",
+            "share": 0.2,
+            "budget": 2.8,
+            "sensitivity": 1.2,
+            "quality": 2.8,
+            "patience": 10,
+            "affinity": 1
+          }
+        ],
+        "channels": [
+          {
+            "id": "social",
+            "label": "Paid social",
+            "reach": 65,
+            "saturation": 1200,
+            "conversion": 0.018
+          },
+          {
+            "id": "creators",
+            "label": "Creators",
+            "reach": 90,
+            "saturation": 1800,
+            "conversion": 0.024
+          },
+          {
+            "id": "local",
+            "label": "Local / referrals",
+            "reach": 35,
+            "saturation": 400,
+            "conversion": 0.035
+          }
+        ],
+        "unlock": {
+          "tier": "stand"
+        },
+        "version": 1,
+        "approved": true
+      },
+      "period": 2,
+      "scale": "day",
+      "seed": 42,
+      "cash": 530.1062772006728,
+      "reputation": 0.11710621568029278,
+      "inventory": 0,
+      "inventoryValue": 0,
+      "pipeline": [],
+      "awareness": 0.18693946923076923,
+      "customers": 33,
+      "audience": 0,
+      "debt": 0,
+      "ownership": 1,
+      "financing": [],
+      "equipment": 0,
+      "location": 1,
+      "negativePeriods": 0,
+      "bankrupt": false,
+      "totalRevenue": 114,
+      "totalProfit": 30.106277200672764,
+      "totalSales": 57,
+      "logs": [
+        {
+          "period": 1,
+          "defVersion": 1,
+          "seed": 42,
+          "weather": {
+            "period": 1,
+            "temperature": 69,
+            "rain": true,
+            "event": null,
+            "label": "Normal trading",
+            "warning": "No major event expected."
+          },
+          "rivals": [
+            {
+              "name": "Low-cost challenger",
+              "strategy": "Discounter",
+              "price": 1.8108949633352458,
+              "quality": 55,
+              "brand": 0.2
+            },
+            {
+              "name": "Premium neighbor",
+              "strategy": "Premium",
+              "price": 2.8,
+              "quality": 92,
+              "brand": 0.4
+            }
+          ],
+          "arrivals": 105,
+          "outcomes": {
+            "bought": 24,
+            "too expensive": 9,
+            "didn't like it": 41,
+            "sold out": 0,
+            "line too long": 0,
+            "not interested": 0,
+            "chose rival": 31
+          },
+          "traceCount": 0,
+          "segmentSales": {
+            "value": 5,
+            "regular": 9,
+            "premium": 10
+          },
+          "revenue": 48,
+          "cogs": 15.28818935863673,
+          "spoilageCost": 1.9110236698295926,
+          "spoiled": 3,
+          "rent": 8,
+          "wages": 15,
+          "marketingCost": 0,
+          "interest": 0,
+          "equipmentPurchase": 0,
+          "tierCost": 0,
+          "inputCash": 19.11023669829592,
+          "profit": 7.800786971533682,
+          "cashBefore": 500,
+          "cash": 505.8897633017041,
+          "cashChange": 5.889763301704079,
+          "availableCredit": 100,
+          "inventory": 3,
+          "reputation": 0.06558333333333329,
+          "satisfaction": 0.718611111111111,
+          "channelCards": [
+            {
+              "id": "social",
+              "label": "Paid social",
+              "spend": 0,
+              "impressions": 0,
+              "visitors": 0,
+              "customers": 0,
+              "cac": null
+            },
+            {
+              "id": "creators",
+              "label": "Creators",
+              "spend": 0,
+              "impressions": 0,
+              "visitors": 0,
+              "customers": 0,
+              "cac": null
+            },
+            {
+              "id": "local",
+              "label": "Local / referrals",
+              "spend": 0,
+              "impressions": 0,
+              "visitors": 0,
+              "customers": 0,
+              "cac": null
+            }
+          ],
+          "share": 0.22857142857142856,
+          "capacity": 180,
+          "used": 24,
+          "backlog": 0,
+          "churned": 0,
+          "mrr": 0,
+          "arr": 0,
+          "utilization": 0.13333333333333333,
+          "supplierDelivered": true,
+          "forecast": {
+            "period": 1,
+            "temperature": 70,
+            "rain": true,
+            "event": null,
+            "label": "Normal trading",
+            "warning": "No major event expected."
+          },
+          "bankrupt": false,
+          "externalInputs": {},
+          "operatingHours": 8,
+          "employment": {
+            "schemaVersion": "business-employment.v1",
+            "period": 1,
+            "workerHours": 8,
+            "requestedWorkerHours": 8,
+            "wages": 15,
+            "employedWorkers": 1,
+            "hourlyWage": 1.875
+          }
+        },
+        {
+          "period": 2,
+          "defVersion": 1,
+          "seed": 42,
+          "weather": {
+            "period": 2,
+            "temperature": 87,
+            "rain": false,
+            "event": {
+              "id": "viral",
+              "label": "Creator mention",
+              "traffic": 1.35,
+              "cost": 1,
+              "warning": "A creator feature is scheduled."
+            },
+            "label": "Creator mention",
+            "warning": "A creator feature is scheduled."
+          },
+          "rivals": [
+            {
+              "name": "Low-cost challenger",
+              "strategy": "Discounter",
+              "price": 1.6069492684453726,
+              "quality": 55,
+              "brand": 0.2
+            },
+            {
+              "name": "Premium neighbor",
+              "strategy": "Premium",
+              "price": 2.8,
+              "quality": 92,
+              "brand": 0.7
+            }
+          ],
+          "arrivals": 298,
+          "outcomes": {
+            "bought": 33,
+            "too expensive": 61,
+            "didn't like it": 94,
+            "sold out": 15,
+            "line too long": 0,
+            "not interested": 0,
+            "chose rival": 95
+          },
+          "traceCount": 0,
+          "segmentSales": {
+            "value": 11,
+            "regular": 15,
+            "premium": 7
+          },
+          "revenue": 66,
+          "cogs": 20.69450977086092,
+          "spoilageCost": 0,
+          "spoiled": 0,
+          "rent": 8,
+          "wages": 15,
+          "marketingCost": 0,
+          "interest": 0,
+          "equipmentPurchase": 0,
+          "tierCost": 0,
+          "inputCash": 18.783486101031304,
+          "profit": 22.30549022913908,
+          "cashBefore": 505.8897633017041,
+          "cash": 530.1062772006728,
+          "cashChange": 24.2165138989687,
+          "availableCredit": 100,
+          "inventory": 0,
+          "reputation": 0.11710621568029278,
+          "satisfaction": 0.7213131313131311,
+          "channelCards": [
+            {
+              "id": "social",
+              "label": "Paid social",
+              "spend": 0,
+              "impressions": 0,
+              "visitors": 0,
+              "customers": 0,
+              "cac": null
+            },
+            {
+              "id": "creators",
+              "label": "Creators",
+              "spend": 0,
+              "impressions": 0,
+              "visitors": 0,
+              "customers": 0,
+              "cac": null
+            },
+            {
+              "id": "local",
+              "label": "Local / referrals",
+              "spend": 0,
+              "impressions": 0,
+              "visitors": 0,
+              "customers": 0,
+              "cac": null
+            }
+          ],
+          "share": 0.11073825503355705,
+          "capacity": 180,
+          "used": 33,
+          "backlog": 0,
+          "churned": 0,
+          "mrr": 0,
+          "arr": 0,
+          "utilization": 0.18333333333333332,
+          "supplierDelivered": true,
+          "forecast": {
+            "period": 2,
+            "temperature": 86,
+            "rain": false,
+            "event": {
+              "id": "viral",
+              "label": "Creator mention",
+              "traffic": 1.35,
+              "cost": 1,
+              "warning": "A creator feature is scheduled."
+            },
+            "label": "Creator mention",
+            "warning": "A creator feature is scheduled."
+          },
+          "bankrupt": false,
+          "externalInputs": {},
+          "operatingHours": 8,
+          "employment": {
+            "schemaVersion": "business-employment.v1",
+            "period": 2,
+            "workerHours": 8,
+            "requestedWorkerHours": 8,
+            "wages": 15,
+            "employedWorkers": 1,
+            "hourlyWage": 1.875
+          }
+        }
+      ],
+      "history": [
+        {
+          "period": 0,
+          "cash": 500,
+          "revenue": 0,
+          "profit": 0
+        },
+        {
+          "period": 1,
+          "cash": 505.8897633017041,
+          "revenue": 48,
+          "profit": 7.800786971533682
+        },
+        {
+          "period": 2,
+          "cash": 530.1062772006728,
+          "revenue": 66,
+          "profit": 22.30549022913908
+        }
+      ],
+      "lastPlan": {
+        "price": 2,
+        "quality": 75,
+        "production": 30,
+        "staff": 1,
+        "marketing": {
+          "social": 0,
+          "creators": 0,
+          "local": 0
+        },
+        "supplier": "standard",
+        "location": 1,
+        "equipment": 0,
+        "sellers": 25,
+        "recipe": {}
+      },
+      "employment": {
+        "schemaVersion": "business-employment.v1",
+        "period": 2,
+        "workerHours": 8,
+        "requestedWorkerHours": 8,
+        "wages": 15,
+        "employedWorkers": 1,
+        "hourlyWage": 1.875
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "stock": 30,
+      "price": 2,
+      "staff": 1
+    },
+    {
+      "stock": 30,
+      "price": 2,
+      "staff": 1
+    }
+  ],
+  "receipts": [
+    {
+      "period": 1,
+      "defVersion": 1,
+      "seed": 42,
+      "weather": {
+        "period": 1,
+        "temperature": 69,
+        "rain": true,
+        "event": null,
+        "label": "Normal trading",
+        "warning": "No major event expected."
+      },
+      "rivals": [
+        {
+          "name": "Low-cost challenger",
+          "strategy": "Discounter",
+          "price": 1.8108949633352458,
+          "quality": 55,
+          "brand": 0.2
+        },
+        {
+          "name": "Premium neighbor",
+          "strategy": "Premium",
+          "price": 2.8,
+          "quality": 92,
+          "brand": 0.4
+        }
+      ],
+      "arrivals": 105,
+      "outcomes": {
+        "bought": 24,
+        "too expensive": 9,
+        "didn't like it": 41,
+        "sold out": 0,
+        "line too long": 0,
+        "not interested": 0,
+        "chose rival": 31
+      },
+      "traceCount": 0,
+      "segmentSales": {
+        "value": 5,
+        "regular": 9,
+        "premium": 10
+      },
+      "revenue": 48,
+      "cogs": 15.28818935863673,
+      "spoilageCost": 1.9110236698295926,
+      "spoiled": 3,
+      "rent": 8,
+      "wages": 15,
+      "marketingCost": 0,
+      "interest": 0,
+      "equipmentPurchase": 0,
+      "tierCost": 0,
+      "inputCash": 19.11023669829592,
+      "profit": 7.800786971533682,
+      "cashBefore": 500,
+      "cash": 505.8897633017041,
+      "cashChange": 5.889763301704079,
+      "availableCredit": 100,
+      "inventory": 3,
+      "reputation": 0.06558333333333329,
+      "satisfaction": 0.718611111111111,
+      "channelCards": [
+        {
+          "id": "social",
+          "label": "Paid social",
+          "spend": 0,
+          "impressions": 0,
+          "visitors": 0,
+          "customers": 0,
+          "cac": null
+        },
+        {
+          "id": "creators",
+          "label": "Creators",
+          "spend": 0,
+          "impressions": 0,
+          "visitors": 0,
+          "customers": 0,
+          "cac": null
+        },
+        {
+          "id": "local",
+          "label": "Local / referrals",
+          "spend": 0,
+          "impressions": 0,
+          "visitors": 0,
+          "customers": 0,
+          "cac": null
+        }
+      ],
+      "share": 0.22857142857142856,
+      "capacity": 180,
+      "used": 24,
+      "backlog": 0,
+      "churned": 0,
+      "mrr": 0,
+      "arr": 0,
+      "utilization": 0.13333333333333333,
+      "supplierDelivered": true,
+      "forecast": {
+        "period": 1,
+        "temperature": 70,
+        "rain": true,
+        "event": null,
+        "label": "Normal trading",
+        "warning": "No major event expected."
+      },
+      "bankrupt": false,
+      "externalInputs": {},
+      "operatingHours": 8,
+      "employment": {
+        "schemaVersion": "business-employment.v1",
+        "period": 1,
+        "workerHours": 8,
+        "requestedWorkerHours": 8,
+        "wages": 15,
+        "employedWorkers": 1,
+        "hourlyWage": 1.875
+      }
+    },
+    {
+      "period": 2,
+      "defVersion": 1,
+      "seed": 42,
+      "weather": {
+        "period": 2,
+        "temperature": 87,
+        "rain": false,
+        "event": {
+          "id": "viral",
+          "label": "Creator mention",
+          "traffic": 1.35,
+          "cost": 1,
+          "warning": "A creator feature is scheduled."
+        },
+        "label": "Creator mention",
+        "warning": "A creator feature is scheduled."
+      },
+      "rivals": [
+        {
+          "name": "Low-cost challenger",
+          "strategy": "Discounter",
+          "price": 1.6069492684453726,
+          "quality": 55,
+          "brand": 0.2
+        },
+        {
+          "name": "Premium neighbor",
+          "strategy": "Premium",
+          "price": 2.8,
+          "quality": 92,
+          "brand": 0.7
+        }
+      ],
+      "arrivals": 298,
+      "outcomes": {
+        "bought": 33,
+        "too expensive": 61,
+        "didn't like it": 94,
+        "sold out": 15,
+        "line too long": 0,
+        "not interested": 0,
+        "chose rival": 95
+      },
+      "traceCount": 0,
+      "segmentSales": {
+        "value": 11,
+        "regular": 15,
+        "premium": 7
+      },
+      "revenue": 66,
+      "cogs": 20.69450977086092,
+      "spoilageCost": 0,
+      "spoiled": 0,
+      "rent": 8,
+      "wages": 15,
+      "marketingCost": 0,
+      "interest": 0,
+      "equipmentPurchase": 0,
+      "tierCost": 0,
+      "inputCash": 18.783486101031304,
+      "profit": 22.30549022913908,
+      "cashBefore": 505.8897633017041,
+      "cash": 530.1062772006728,
+      "cashChange": 24.2165138989687,
+      "availableCredit": 100,
+      "inventory": 0,
+      "reputation": 0.11710621568029278,
+      "satisfaction": 0.7213131313131311,
+      "channelCards": [
+        {
+          "id": "social",
+          "label": "Paid social",
+          "spend": 0,
+          "impressions": 0,
+          "visitors": 0,
+          "customers": 0,
+          "cac": null
+        },
+        {
+          "id": "creators",
+          "label": "Creators",
+          "spend": 0,
+          "impressions": 0,
+          "visitors": 0,
+          "customers": 0,
+          "cac": null
+        },
+        {
+          "id": "local",
+          "label": "Local / referrals",
+          "spend": 0,
+          "impressions": 0,
+          "visitors": 0,
+          "customers": 0,
+          "cac": null
+        }
+      ],
+      "share": 0.11073825503355705,
+      "capacity": 180,
+      "used": 33,
+      "backlog": 0,
+      "churned": 0,
+      "mrr": 0,
+      "arr": 0,
+      "utilization": 0.18333333333333332,
+      "supplierDelivered": true,
+      "forecast": {
+        "period": 2,
+        "temperature": 86,
+        "rain": false,
+        "event": {
+          "id": "viral",
+          "label": "Creator mention",
+          "traffic": 1.35,
+          "cost": 1,
+          "warning": "A creator feature is scheduled."
+        },
+        "label": "Creator mention",
+        "warning": "A creator feature is scheduled."
+      },
+      "bankrupt": false,
+      "externalInputs": {},
+      "operatingHours": 8,
+      "employment": {
+        "schemaVersion": "business-employment.v1",
+        "period": 2,
+        "workerHours": 8,
+        "requestedWorkerHours": 8,
+        "wages": 15,
+        "employedWorkers": 1,
+        "hourlyWage": 1.875
+      }
+    }
+  ],
+  "status": "success"
+}

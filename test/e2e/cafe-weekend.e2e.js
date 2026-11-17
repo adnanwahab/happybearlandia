@@ -1,0 +1,21 @@
+import { test, expect } from '@playwright/test';
+test('normal business entry opens, cancels, retries and verifies a weekend', async ({ page }) => {
+  await page.goto('/world/business.html');
+  await page.getByText('Pop-up Café Challenge · run one weekend', {exact:true}).click();
+  const sandbox=page.getByRole('region',{name:'Pop-up Café sandbox'});
+  await expect(sandbox).toContainText('No results generated');
+  await sandbox.getByRole('button',{name:'Start pinned café demo'}).click();
+  await expect(sandbox.getByLabel('Opening hours')).toBeDisabled();
+  await sandbox.getByRole('button',{name:'Cancel café weekend'}).click();
+  await expect(sandbox).toContainText('Cancelled');
+  await expect(sandbox.locator('[data-cafe-receipt]')).toHaveCount(0);
+  await sandbox.getByRole('button',{name:'Start pinned café demo'}).click();
+  await sandbox.getByRole('button',{name:'Run next café day'}).click();
+  await sandbox.getByRole('button',{name:'Run next café day'}).click();
+  await expect(sandbox).toContainText('Day 2 / 2 · success');
+  await expect(sandbox.locator('[data-cafe-receipt]')).toHaveCount(2);
+  await sandbox.getByRole('button',{name:'Verify recorded checkpoints'}).click();
+  await expect(sandbox).toContainText('Replay verified');
+  await page.setViewportSize({width:390,height:844});
+  await expect(sandbox.getByRole('button',{name:'Start pinned café demo'})).toBeVisible();
+});
