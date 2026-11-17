@@ -24,6 +24,12 @@
   #activity-dashboard-button{position:fixed;top:12px;left:358px;z-index:86;padding:9px 14px;background:#193c35;color:#eff8e9;border:1px solid #94b799;font-weight:650}
   @media(max-width:760px){#activity-dashboard-button{top:auto;bottom:54px;left:12px;max-width:calc(100vw - 24px);font-size:12px;padding:8px}}
   html.embed #activity-dashboard-button{display:none}
+  /* Persistent patch ballot entry: visible while playing and on the launch screen. */
+  #world-patches-link{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(74px,calc(env(safe-area-inset-bottom) + 74px));z-index:90;display:inline-flex;align-items:center;justify-content:center;min-height:44px;box-sizing:border-box;padding:10px 16px;border-radius:999px;background:#6b45d4;color:#fff;border:1px solid #c7b3ff;box-shadow:0 4px 22px #0006;text-decoration:none;font-size:13px;font-weight:700}
+  #world-patches-link:hover,#world-patches-link:focus-visible{background:#805bef;outline:2px solid #e4d9ff;outline-offset:2px}
+  html.embed #world-patches-link{display:none}
+  @media(max-width:700px){#world-patches-link{right:8px;bottom:max(86px,calc(env(safe-area-inset-bottom) + 86px));padding:9px 12px}}
+
   #view { position: fixed; inset: 0; }
   html.embed .panel, html.embed #tag { display: none !important; }
   .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; backdrop-filter: blur(6px); }
@@ -145,6 +151,9 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
 <body>
 <a class="constitution-link" href="/visualize-constitution" style="position:fixed;bottom:12px;right:12px;z-index:50;background:#152333;color:white;padding:10px;border-radius:8px">Visualize Constitution</a>
 <div id="view"></div>
+<a id="world-patches-link" href="/vote-on-patch" aria-label="Patches: propose improvements and vote" title="Propose an improvement or vote on patches">⚡ Patches</a>
+<script>document.getElementById('world-patches-link').href='/vote-on-patch?returnTo='+encodeURIComponent(location.pathname+location.search);</script>
+
 <nav id="world-quick-toolbar" aria-label="World shortcuts">
   <button type="button" id="world-guide-button" data-world-open="guide" aria-expanded="false">Start here</button>
   <button type="button" id="activity-dashboard-button" data-testid="activity-dashboard-button" aria-label="Activity dashboard" aria-haspopup="dialog">Activity</button>
