@@ -49,6 +49,8 @@ const handleDatePlaces=createDatePlacesHandler();
 import {createWorldPersistenceHandler,EXPERIMENT_MAX_BYTES} from './world/experiments/persistence-api.js';
 const handleWorldPersistence=createWorldPersistenceHandler({dbPath:releaseStorage.worldDbPath});
 import {createRealityShareHandler} from './world/reality/share-api.js';
+import {createGuestHandler} from './world/guest/api.js';
+const handleGuestSnapshots=createGuestHandler({dbPath:process.env.HBL_GUEST_DB_PATH||undefined});
 import {createOpenQuestionsHandler} from './world/questions/api.js';
 const handleRealityShares=createRealityShareHandler({dbPath:process.env.HBL_REALITY_SHARE_DB_PATH||undefined});
 const handleOpenQuestions=createOpenQuestionsHandler();
@@ -570,6 +572,7 @@ const server = serve({
     if (under(pathname, "/api/causality")) return handleCausality(request);
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
     if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
+    if (under(pathname, "/api/guest-snapshots")) return handleGuestSnapshots(request);
     if (under(pathname, "/api/world-homes")) return handleWorldPersistence(request);
     if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
     if (["/api/date-mystery/status","/api/date-mystery/generate"].includes(pathname)) return handleDateMystery(request);
@@ -611,6 +614,7 @@ const server = serve({
       if (decodedWorldPath === "/world/constitution-city/source-api.js") return notFound();
       if (/^\/world\/temporal\/(api|store)\.js$/.test(decodedWorldPath)) return notFound();
       if (decodedWorldPath === "/world/reality/share-store.js") return notFound();
+      if (decodedWorldPath === "/world/guest/api.js") return notFound();
       if (decodedWorldPath === "/world/experiments/persistence-store.js") return notFound();
       if (/^\/world\/decision\/(api|store|worker|optimization-api)\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/ai\//.test(decodedWorldPath) && !/^\/world\/ai\/(edit-schema|edit-validator|revisions)\.js$/.test(decodedWorldPath)) return notFound();

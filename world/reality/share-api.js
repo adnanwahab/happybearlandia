@@ -9,7 +9,7 @@ const ID=/^[A-Za-z0-9_-]{8,16}$/;
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 const canonical=value=>JSON.stringify(value,(_,row)=>row&&typeof row==='object'&&!Array.isArray(row)?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
-async function readBounded(request){
+export async function readBounded(request){
  if(Number(request.headers.get('content-length'))>SHARE_MAX_BYTES)fail('Share exceeds 8 MB.',413);
  const reader=request.body?.getReader();if(!reader)fail('A JSON share payload is required.');let bytes=0;const chunks=[];let timer;
  try{const read=(async()=>{while(true){const {done,value}=await reader.read();if(done)break;bytes+=value.byteLength;if(bytes>SHARE_MAX_BYTES)fail('Share exceeds 8 MB.',413);chunks.push(value);}const body=new Uint8Array(bytes);let offset=0;for(const chunk of chunks){body.set(chunk,offset);offset+=chunk.length;}try{return JSON.parse(new TextDecoder().decode(body));}catch{fail('Malformed JSON share payload.');}})();return await Promise.race([read,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Object.assign(new Error('Share upload timed out.'),{status:408})),10000);})]);}finally{clearTimeout(timer);void reader.cancel().catch(()=>{});}
