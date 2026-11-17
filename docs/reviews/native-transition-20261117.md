@@ -79,3 +79,18 @@ predates the bootstrap change. Baseline artifacts:
 Owner/next action: navigation accessibility owner must preserve or restore heading
 focus after Future Machine replaces its boot DOM; coordinator must rerun portal
 acceptance before release. The focused lifecycle repair can be reviewed separately.
+
+Focused diagnostic establishes the focus mechanism, rather than a missed native
+event: `window.hblNavigationAccessibility` is true; `pageshow` runs with `#boot`
+present and correctly focuses its `h1[data-navigation-focus="heading"]`.
+After `world/future-machine/main.js:66` calls `app.replaceChildren()`, that focused
+heading is detached. Final active element is BODY, with no focus marker left,
+while the status still says destination ready. The fix belongs to the asynchronous
+application-ready/accessibility handoff, with recovery only when the heading was
+detached and the user has not moved focus. Diagnostic artifacts:
+`/private/tmp/hbl-native-focus-diagnostic/run-s25rmt/summary.json`. Temporary
+instrumentation was removed; no production diagnostic hooks were added.
+
+Published for review as [PR #503](https://github.com/adnanwahab/happybearlandia/pull/503),
+stacked on #445. PR explicitly retains the focus acceptance blocker; no merge or
+deployment performed.
