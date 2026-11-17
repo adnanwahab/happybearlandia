@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Project Impact Handle</title>
+<link rel="stylesheet" href="/world/civilization/civilization.css">
+<style>
+main { max-width: 48rem; margin: auto; padding: 1rem; } label { display: block; margin-top: 1rem; }
+input, select, button { min-height: 44px; max-width: 100%; font: inherit; } input[type=range] { width: 100%; }
+:focus-visible { outline: 3px solid #ffa94d; outline-offset: 4px; } pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+</style></head><body><main>
+<nav><a href="/world/invention/">City Invention Studio</a></nav><h1>Project Impact Handle</h1>
+<p>Synthetic Riverside City scenario. Change proposed capacity to see a pre-run cost estimate. These catalog assumptions are illustrative USD, not a forecast or executed outcome.</p>
+<label for="project">Project</label><select id="project"><option value="transit">Riverside transit</option><option value="housing">Public housing (no handle)</option><option value="upzone">Zoning (no handle)</option></select>
+<p id="unsupported" hidden>This project has no supported handle here. Use the existing policy tools.</p>
+<section id="controls"><h2>Proposed transit capacity</h2>
+<label for="capacity">Additional capacity (catalog units)</label><input id="capacity" type="range" min="4" max="12" step="4" value="4">
+<label for="numeric">Enter additional capacity</label><input id="numeric" type="number" min="4" max="12" step="4" value="4" inputmode="numeric">
+<p>Supported values: 4, 8, 12. Values clamp and snap to the nearest catalog choice; ties use the lower value. Arrow keys or numeric entry provide the same static controls without animation.</p>
+<button id="undo" disabled>Undo capacity change</button><h2>Pre-run estimate</h2><p id="estimate" role="status"></p><pre id="manifest"></pre>
+<button id="run">Execute local City plan</button></section>
+<p id="error" role="alert"></p><section><h2>Executed outcome</h2><p id="outcome">No plan executed. Changing a handle does not run the model.</p><a id="replay" hidden>Inspect executed plan and monthly evidence</a></section>
+<details><summary>Interactive frame pacing</summary><p id="pacing">No queued paints yet.</p></details>
+<p>Source: living-city-commute.v1, month 2; seed 2911; 12 modeled months. No geographic placement or resident actions. Actual policy stages, spending and commute depend on the City model. Proposed cost is not a promise of delivery.</p>
+</main><script type="module" src="./page.js"></script></body></html>

@@ -71,3 +71,39 @@ Checks: `bun test test/block-diorama.test.js` and
 `bunx playwright test --config test/block-diorama.browser.config.mjs`.
 Browser acceptance and before/after screenshots require a host that permits server
 binding and Chromium launch; see `docs/reviews/SHE-567.md`.
+
+## Project impact handle (SHE-671)
+
+From the invention landing, open `/world/invention/impact/`. The Riverside transit
+handle selects exactly +4/+8/+12 from `POLICY_CATALOG`; its numeric value maps to
+`riverside-policy-plan.v1.policies` as `transit-d1-4`, `transit-d1-8` or
+`transit-d1-12`. Inputs clamp and snap (ties choose the lower catalog value).
+Native range arrows and numeric entry share validation and undo. Housing and
+zoning are explicitly unsupported in this handle UI and show no control.
+
+The estimate is the catalog's proposed cost, in illustrative USD. Dragging never
+executes the model or predicts commute effects. Execute runs the unchanged City
+engine from `living-city-commute.v1` month 2, seed 2911, for 12 months. The executed
+result retains its exact recipe and replay link; later edits label it as previous.
+Public balance, policy stage and recorded-trip commute come from that run. Balance
+is not project spending, and capacity is not guaranteed delivery. There is no
+geographic mapping, resident action, stored World mutation or new model rule.
+
+Updates coalesce into one requested animation frame; diagnostics expose sample
+count, maximum queued-paint wait and waits over 34 ms. These measure UI pacing,
+not engine performance or device acceptance. Page exit cancels pending work and
+aborts DOM listeners; a bfcache restore reloads to rebind them. No animation,
+continuous overlay loop, WebGL or motion-dependent control is required. Touch
+controls have a 44 px minimum height and keyboard focus is explicitly outlined.
+
+Checks:
+
+```sh
+bun test test/project-impact.test.js test/city-invention-plan.test.js
+bunx playwright test --config test/project-impact.browser.config.mjs
+HBL_DOM_MODULE=/path/to/happy-dom/lib/index.js bun scripts/check-project-impact-dom.mjs
+```
+
+Set `HBL_BUN_BIN` if the browser runner's PATH resolves a broken package-local Bun.
+The DOM check supplements browser testing; it does not verify touch, layout or
+visible focus. See `docs/reviews/SHE-671.md` for actual evidence and blockers.
