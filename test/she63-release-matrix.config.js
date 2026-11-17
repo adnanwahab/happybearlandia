@@ -1,11 +1,14 @@
 import { defineConfig } from '@playwright/test';
+import { randomInt } from 'node:crypto';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 // Separate from canonical suites and their owners. Never use personal saved data.
 const store = mkdtempSync(join(tmpdir(), 'she63-matrix-'));
-const port = process.env.HBL_SHE63_PORT || '54663';
+// The SHE-63 runner reserves an OS-selected free loopback port and sets
+// HBL_SHE63_PORT. Direct Playwright invocations use a randomized fallback.
+const port = process.env.HBL_SHE63_PORT || String(randomInt(35_000, 60_000));
 const baseURL = `http://127.0.0.1:${port}`;
 const artifacts = process.env.HBL_SHE63_ARTIFACT_DIR || join(tmpdir(), 'hbl-she63-matrix');
 const bun = process.env.HBL_BUN_EXECUTABLE || 'bun';
@@ -28,6 +31,6 @@ export default defineConfig({
   webServer: {
     command: `"${bun}" --no-env-file run server.js`, cwd: process.cwd(), url: baseURL,
     reuseExistingServer: false, timeout: 60000,
-    env: { PORT: port, HBL_WORLD_DB_PATH: join(store, 'world.sqlite'), HBL_CITY_DATA_DIR: join(store, 'city'), HBL_REALITY_SHARE_DB_PATH: join(store, 'shares.sqlite'), DECISION_STORE_DIR: join(store, 'decision') },
+    env: { PORT: port, HBL_BIND_HOST: '127.0.0.1', HBL_WORLD_DB_PATH: join(store, 'world.sqlite'), HBL_CITY_DATA_DIR: join(store, 'city'), HBL_REALITY_SHARE_DB_PATH: join(store, 'shares.sqlite'), DECISION_STORE_DIR: join(store, 'decision') },
   },
 });
