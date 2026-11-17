@@ -106,3 +106,31 @@ installed `happy-dom` entry module. The optional `HBL_PALETTE_STATIC=1` browser
 transport serves actual source documents with Playwright route fulfillment when
 local listening is unavailable; it does not verify Bun serving or simulation APIs.
 See `docs/reviews/SHE-444.md` for actual evidence and outstanding browser gates.
+
+## Native route accessibility (SHE-630)
+
+`navigation-accessibility.js` runs once in the top-level home, `/routes`, World
+and Future Machine documents. Native links own navigation. On `pageshow`, it
+focuses a visible h1 (or creates a visible title heading), or restores the exact
+href/ordinal opener recorded in the current history entry on Back/Forward. Missing
+or hidden openers fall back to the heading. Existing history state is retained;
+no model context, URL, seed or clock is changed. A visible directory link provides
+an exit, and Escape inside expanded standalone universe navigation closes it and
+returns to its toggle. Modal Escape remains owned by the modal.
+
+One persistent polite status exposes `data-destination` and
+`data-restored-focus`; the focus target exposes `data-navigation-focus` as
+`heading` or `restored`. Focus supplies the destination/control name; the live
+text reports readiness without repeating that name. No storage is required by this helper;
+portal session storage remains visual-only. History failure falls back to heading focus. No animation,
+requestAnimationFrame or view-transition event gates accessibility. Portal retains
+visual capture cleanup only. Embedded apps and same-document shell switches are
+outside this document-navigation slice.
+
+Checks: `HBL_NAV_DOM=<installed happy-dom/lib/index.js> bun test
+ test/navigation-accessibility.test.js` and `bunx playwright test --config
+ test/navigation-accessibility.browser.config.js`. `HBL_BUN_BIN` can select the
+installed Bun binary; `HBL_STARTUP_SMOKE_PORT` overrides the local test port.
+`HBL_NAV_STATIC=1` serves actual source documents via Playwright interception when
+listening is blocked; it does not supply model API fixtures or qualify server/model
+startup. See the issue review for actual executed evidence and browser blockers.
