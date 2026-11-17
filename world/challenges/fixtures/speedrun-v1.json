@@ -1,0 +1,870 @@
+{
+  "schemaVersion": "city-challenge.v1",
+  "engineVersion": "city-systems.1.1.0",
+  "title": "Change One Thing: synthetic housing shortage",
+  "initialState": {
+    "schemaVersion": "CityState.v1",
+    "version": "city-systems.1.1.0",
+    "seed": 42,
+    "month": 0,
+    "revision": 0,
+    "provenance": {
+      "type": "synthetic-assumption",
+      "datasetVersion": "illustrative-city.v1",
+      "populationSnapshot": "synthetic-42-6",
+      "worldRevision": "seed.v1",
+      "confidence": "low"
+    },
+    "districts": [
+      {
+        "id": "d0",
+        "name": "Center",
+        "floodRisk": 0.1,
+        "accessibility": 1,
+        "parkingPrice": 8
+      },
+      {
+        "id": "d1",
+        "name": "Riverside",
+        "floodRisk": 0.7,
+        "accessibility": 1,
+        "parkingPrice": 2
+      },
+      {
+        "id": "d2",
+        "name": "Uptown",
+        "floodRisk": 0.1,
+        "accessibility": 1,
+        "parkingPrice": 2
+      }
+    ],
+    "parcels": [
+      {
+        "id": "parcel-d0",
+        "districtId": "d0",
+        "landArea": 20000,
+        "currentUse": "residential",
+        "far": 8,
+        "heightLimit": 12,
+        "existingFloors": 1,
+        "landValue": 1000000,
+        "capacity": 0
+      },
+      {
+        "id": "parcel-d1",
+        "districtId": "d1",
+        "landArea": 20000,
+        "currentUse": "residential",
+        "far": 8,
+        "heightLimit": 12,
+        "existingFloors": 1,
+        "landValue": 1000000,
+        "capacity": 0
+      },
+      {
+        "id": "parcel-d2",
+        "districtId": "d2",
+        "landArea": 20000,
+        "currentUse": "residential",
+        "far": 8,
+        "heightLimit": 12,
+        "existingFloors": 1,
+        "landValue": 1000000,
+        "capacity": 0
+      }
+    ],
+    "buildings": [
+      {
+        "id": "building-d0",
+        "parcelId": "parcel-d0",
+        "districtId": "d0",
+        "floors": 1
+      },
+      {
+        "id": "building-d1",
+        "parcelId": "parcel-d1",
+        "districtId": "d1",
+        "floors": 1
+      },
+      {
+        "id": "building-d2",
+        "parcelId": "parcel-d2",
+        "districtId": "d2",
+        "floors": 1
+      }
+    ],
+    "units": [
+      {
+        "id": "unit-d0-0",
+        "buildingId": "building-d0",
+        "districtId": "d0",
+        "bedrooms": 1,
+        "floorArea": 50,
+        "quality": 1,
+        "rent": 1000,
+        "tenure": "rental",
+        "status": "under construction",
+        "householdId": null,
+        "daysVacant": 0
+      },
+      {
+        "id": "unit-d0-1",
+        "buildingId": "building-d0",
+        "districtId": "d0",
+        "bedrooms": 2,
+        "floorArea": 70,
+        "quality": 1,
+        "rent": 1000,
+        "tenure": "rental",
+        "status": "under construction",
+        "householdId": null,
+        "daysVacant": 0
+      },
+      {
+        "id": "unit-d0-2",
+        "buildingId": "building-d0",
+        "districtId": "d0",
+        "bedrooms": 3,
+        "floorArea": 90,
+        "quality": 1,
+        "rent": 1000,
+        "tenure": "rental",
+        "status": "under construction",
+        "householdId": null,
+        "daysVacant": 0
+      },
+      {
+        "id": "unit-d1-0",
+        "buildingId": "building-d1",
+        "districtId": "d1",
+        "bedrooms": 1,
+        "floorArea": 50,
+        "quality": 1,
+        "rent": 1150,
+        "tenure": "rental",
+        "status": "under construction",
+        "householdId": null,
+        "daysVacant": 0
+      },
+      {
+        "id": "unit-d1-1",
+        "buildingId": "building-d1",
+        "districtId": "d1",
+        "bedrooms": 2,
+        "floorArea": 70,
+        "quality": 1,
+        "rent": 1150,
+        "tenure": "rental",
+        "status": "under construction",
+        "householdId": null,
+        "daysVacant": 0
+      },
+      {
+        "id": "unit-d1-2",
+        "buildingId": "building-d1",
+        "districtId": "d1",
+        "bedrooms": 3,
+        "floorArea": 90,
+        "quality": 1,
+        "rent": 1150,
+        "tenure": "rental",
+        "status": "under construction",
+        "householdId": null,
+        "daysVacant": 0
+      },
+      {
+        "id": "unit-d2-0",
+        "buildingId": "building-d2",
+        "districtId": "d2",
+        "bedrooms": 1,
+        "floorArea": 50,
+        "quality": 1,
+        "rent": 1300,
+        "tenure": "rental",
+        "status": "under construction",
+        "householdId": null,
+        "daysVacant": 0
+      },
+      {
+        "id": "unit-d2-1",
+        "buildingId": "building-d2",
+        "districtId": "d2",
+        "bedrooms": 2,
+        "floorArea": 70,
+        "quality": 1,
+        "rent": 1300,
+        "tenure": "rental",
+        "status": "under construction",
+        "householdId": null,
+        "daysVacant": 0
+      },
+      {
+        "id": "unit-d2-2",
+        "buildingId": "building-d2",
+        "districtId": "d2",
+        "bedrooms": 3,
+        "floorArea": 90,
+        "quality": 1,
+        "rent": 1300,
+        "tenure": "rental",
+        "status": "under construction",
+        "householdId": null,
+        "daysVacant": 0
+      }
+    ],
+    "households": [
+      {
+        "id": "household-0",
+        "districtId": "d0",
+        "unitId": null,
+        "size": 2,
+        "children": 1,
+        "income": 5346.323733218014,
+        "otherIncome": 1603.8971199654043,
+        "bedrooms": 1,
+        "leaseUntil": 1,
+        "age": 25,
+        "savings": 16038.971199654043
+      },
+      {
+        "id": "household-1",
+        "districtId": "d1",
+        "unitId": null,
+        "size": 3,
+        "children": 0,
+        "income": 5688.635645899922,
+        "otherIncome": 1706.5906937699765,
+        "bedrooms": 2,
+        "leaseUntil": 2,
+        "age": 26,
+        "savings": 17065.906937699765
+      },
+      {
+        "id": "household-2",
+        "districtId": "d2",
+        "unitId": null,
+        "size": 4,
+        "children": 0,
+        "income": 5708.70512817055,
+        "otherIncome": 1712.611538451165,
+        "bedrooms": 1,
+        "leaseUntil": 3,
+        "age": 27,
+        "savings": 17126.11538451165
+      },
+      {
+        "id": "household-3",
+        "districtId": "d0",
+        "unitId": null,
+        "size": 2,
+        "children": 1,
+        "income": 7729.656015988439,
+        "otherIncome": 2318.896804796532,
+        "bedrooms": 2,
+        "leaseUntil": 4,
+        "age": 28,
+        "savings": 23188.968047965318
+      },
+      {
+        "id": "household-4",
+        "districtId": "d1",
+        "unitId": null,
+        "size": 3,
+        "children": 0,
+        "income": 3778.2561774365604,
+        "otherIncome": 1133.4768532309681,
+        "bedrooms": 1,
+        "leaseUntil": 5,
+        "age": 29,
+        "savings": 11334.768532309681
+      },
+      {
+        "id": "household-5",
+        "districtId": "d2",
+        "unitId": null,
+        "size": 4,
+        "children": 0,
+        "income": 6231.333119329065,
+        "otherIncome": 1869.3999357987195,
+        "bedrooms": 2,
+        "leaseUntil": 6,
+        "age": 30,
+        "savings": 18693.999357987195
+      }
+    ],
+    "workers": [
+      {
+        "id": "worker-0",
+        "householdId": "household-0",
+        "districtId": "d0",
+        "occupation": "general",
+        "jobId": null,
+        "available": true,
+        "age": 25
+      },
+      {
+        "id": "worker-1",
+        "householdId": "household-1",
+        "districtId": "d1",
+        "occupation": "general",
+        "jobId": null,
+        "available": true,
+        "age": 26
+      },
+      {
+        "id": "worker-2",
+        "householdId": "household-2",
+        "districtId": "d2",
+        "occupation": "general",
+        "jobId": null,
+        "available": true,
+        "age": 27
+      },
+      {
+        "id": "worker-3",
+        "householdId": "household-3",
+        "districtId": "d0",
+        "occupation": "general",
+        "jobId": null,
+        "available": true,
+        "age": 28
+      },
+      {
+        "id": "worker-4",
+        "householdId": "household-4",
+        "districtId": "d1",
+        "occupation": "general",
+        "jobId": null,
+        "available": true,
+        "age": 29
+      },
+      {
+        "id": "worker-5",
+        "householdId": "household-5",
+        "districtId": "d2",
+        "occupation": "general",
+        "jobId": null,
+        "available": true,
+        "age": 30
+      }
+    ],
+    "businesses": [
+      {
+        "id": "business-d0",
+        "districtId": "d0",
+        "type": "services",
+        "status": "open",
+        "badMonths": 0,
+        "commercialRent": 1000,
+        "operatingCost": 1000,
+        "viability": 0,
+        "demand": 0
+      },
+      {
+        "id": "business-d1",
+        "districtId": "d1",
+        "type": "services",
+        "status": "open",
+        "badMonths": 0,
+        "commercialRent": 1000,
+        "operatingCost": 1000,
+        "viability": 0,
+        "demand": 0
+      },
+      {
+        "id": "business-d2",
+        "districtId": "d2",
+        "type": "services",
+        "status": "open",
+        "badMonths": 0,
+        "commercialRent": 1000,
+        "operatingCost": 1000,
+        "viability": 0,
+        "demand": 0
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-d0-0",
+        "businessId": "business-d0",
+        "districtId": "d0",
+        "occupation": "general",
+        "wage": 4000,
+        "workerId": null
+      },
+      {
+        "id": "job-d0-1",
+        "businessId": "business-d0",
+        "districtId": "d0",
+        "occupation": "general",
+        "wage": 4000,
+        "workerId": null
+      },
+      {
+        "id": "job-d1-0",
+        "businessId": "business-d1",
+        "districtId": "d1",
+        "occupation": "general",
+        "wage": 4000,
+        "workerId": null
+      },
+      {
+        "id": "job-d1-1",
+        "businessId": "business-d1",
+        "districtId": "d1",
+        "occupation": "general",
+        "wage": 4000,
+        "workerId": null
+      },
+      {
+        "id": "job-d2-0",
+        "businessId": "business-d2",
+        "districtId": "d2",
+        "occupation": "general",
+        "wage": 4000,
+        "workerId": null
+      },
+      {
+        "id": "job-d2-1",
+        "businessId": "business-d2",
+        "districtId": "d2",
+        "occupation": "general",
+        "wage": 4000,
+        "workerId": null
+      }
+    ],
+    "links": [
+      {
+        "id": "road-d0-d1",
+        "from": "d0",
+        "to": "d1",
+        "mode": "road",
+        "capacity": 25,
+        "freeTime": 12,
+        "flow": 0,
+        "travelTime": 12
+      },
+      {
+        "id": "transit-d0-d1",
+        "from": "d0",
+        "to": "d1",
+        "mode": "transit",
+        "capacity": 15,
+        "freeTime": 18,
+        "flow": 0,
+        "travelTime": 18
+      },
+      {
+        "id": "road-d0-d2",
+        "from": "d0",
+        "to": "d2",
+        "mode": "road",
+        "capacity": 25,
+        "freeTime": 12,
+        "flow": 0,
+        "travelTime": 12
+      },
+      {
+        "id": "transit-d0-d2",
+        "from": "d0",
+        "to": "d2",
+        "mode": "transit",
+        "capacity": 15,
+        "freeTime": 18,
+        "flow": 0,
+        "travelTime": 18
+      },
+      {
+        "id": "road-d1-d0",
+        "from": "d1",
+        "to": "d0",
+        "mode": "road",
+        "capacity": 25,
+        "freeTime": 12,
+        "flow": 0,
+        "travelTime": 12
+      },
+      {
+        "id": "transit-d1-d0",
+        "from": "d1",
+        "to": "d0",
+        "mode": "transit",
+        "capacity": 15,
+        "freeTime": 18,
+        "flow": 0,
+        "travelTime": 18
+      },
+      {
+        "id": "road-d1-d2",
+        "from": "d1",
+        "to": "d2",
+        "mode": "road",
+        "capacity": 25,
+        "freeTime": 12,
+        "flow": 0,
+        "travelTime": 12
+      },
+      {
+        "id": "transit-d1-d2",
+        "from": "d1",
+        "to": "d2",
+        "mode": "transit",
+        "capacity": 15,
+        "freeTime": 18,
+        "flow": 0,
+        "travelTime": 18
+      },
+      {
+        "id": "road-d2-d0",
+        "from": "d2",
+        "to": "d0",
+        "mode": "road",
+        "capacity": 25,
+        "freeTime": 12,
+        "flow": 0,
+        "travelTime": 12
+      },
+      {
+        "id": "transit-d2-d0",
+        "from": "d2",
+        "to": "d0",
+        "mode": "transit",
+        "capacity": 15,
+        "freeTime": 18,
+        "flow": 0,
+        "travelTime": 18
+      },
+      {
+        "id": "road-d2-d1",
+        "from": "d2",
+        "to": "d1",
+        "mode": "road",
+        "capacity": 25,
+        "freeTime": 12,
+        "flow": 0,
+        "travelTime": 12
+      },
+      {
+        "id": "transit-d2-d1",
+        "from": "d2",
+        "to": "d1",
+        "mode": "transit",
+        "capacity": 15,
+        "freeTime": 18,
+        "flow": 0,
+        "travelTime": 18
+      }
+    ],
+    "facilities": [
+      {
+        "id": "school-d0",
+        "districtId": "d0",
+        "type": "school",
+        "capacity": 1,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "park-d0",
+        "districtId": "d0",
+        "type": "park",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "healthcare-d0",
+        "districtId": "d0",
+        "type": "healthcare",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "emergency-d0",
+        "districtId": "d0",
+        "type": "emergency",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "library-d0",
+        "districtId": "d0",
+        "type": "library",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "school-d1",
+        "districtId": "d1",
+        "type": "school",
+        "capacity": 1,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "park-d1",
+        "districtId": "d1",
+        "type": "park",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "healthcare-d1",
+        "districtId": "d1",
+        "type": "healthcare",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "emergency-d1",
+        "districtId": "d1",
+        "type": "emergency",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "library-d1",
+        "districtId": "d1",
+        "type": "library",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "school-d2",
+        "districtId": "d2",
+        "type": "school",
+        "capacity": 1,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "park-d2",
+        "districtId": "d2",
+        "type": "park",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "healthcare-d2",
+        "districtId": "d2",
+        "type": "healthcare",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "emergency-d2",
+        "districtId": "d2",
+        "type": "emergency",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      },
+      {
+        "id": "library-d2",
+        "districtId": "d2",
+        "type": "library",
+        "capacity": 6,
+        "demand": 0,
+        "utilization": 0
+      }
+    ],
+    "utilities": [
+      {
+        "id": "electric-d0",
+        "districtId": "d0",
+        "type": "electric",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "water-d0",
+        "districtId": "d0",
+        "type": "water",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "sewer-d0",
+        "districtId": "d0",
+        "type": "sewer",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "stormwater-d0",
+        "districtId": "d0",
+        "type": "stormwater",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "electric-d1",
+        "districtId": "d1",
+        "type": "electric",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "water-d1",
+        "districtId": "d1",
+        "type": "water",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "sewer-d1",
+        "districtId": "d1",
+        "type": "sewer",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "stormwater-d1",
+        "districtId": "d1",
+        "type": "stormwater",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "electric-d2",
+        "districtId": "d2",
+        "type": "electric",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "water-d2",
+        "districtId": "d2",
+        "type": "water",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "sewer-d2",
+        "districtId": "d2",
+        "type": "sewer",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      },
+      {
+        "id": "stormwater-d2",
+        "districtId": "d2",
+        "type": "stormwater",
+        "capacity": 10000,
+        "demand": 0,
+        "serviceLevel": 1
+      }
+    ],
+    "projects": [],
+    "policies": [],
+    "shocks": [],
+    "finance": {
+      "balance": 10000000,
+      "debt": 0,
+      "allowDebt": false,
+      "maxDebt": 50000000,
+      "revenue": 0,
+      "operatingExpense": 0,
+      "capitalExpense": 0
+    },
+    "parameters": {
+      "contractors": 100,
+      "labor": 80,
+      "materials": 90,
+      "equipment": 100,
+      "permits": 3,
+      "administration": 3,
+      "interestRate": 0.05,
+      "constructionCost": 140000,
+      "annualGrowth": 0.01
+    },
+    "systems": {},
+    "flows": []
+  },
+  "initialHash": "8f37cacfaa63b3d828e13bd98c551ac77f1f50441835cf716b711f3b6f3d94d9",
+  "seed": 42,
+  "months": 20,
+  "budget": {
+    "metric": "cumulativeCapitalExpense",
+    "cap": 5000,
+    "numericalTolerance": 0.000001,
+    "unit": "synthetic USD",
+    "comparison": "same frozen cap for both plans; actual spending may differ",
+    "source": "Sum actual complete monthly finance.capitalExpense observations after the frozen initial month. Treasury balance, debt and revenue are not budget proxies."
+  },
+  "actions": [
+    {
+      "id": "housing",
+      "label": "Build two homes · 1,000 synthetic USD",
+      "intervention": {
+        "type": "housing",
+        "districtId": "d0",
+        "amount": 2,
+        "cost": 1000,
+        "compliance": 1,
+        "delay": 0,
+        "utility": "sewer"
+      }
+    },
+    {
+      "id": "transit",
+      "label": "Add transit capacity · 2,000 synthetic USD",
+      "intervention": {
+        "type": "transit",
+        "districtId": "d1",
+        "amount": 10,
+        "cost": 2000,
+        "compliance": 1,
+        "delay": 0,
+        "utility": "sewer"
+      }
+    }
+  ],
+  "referenceSelection": [],
+  "metrics": [
+    {
+      "id": "unhousedHouseholds",
+      "label": "Unhoused synthetic households",
+      "unit": "raw households",
+      "direction": "lower",
+      "tolerance": 0,
+      "source": "Households without an assigned unitId."
+    }
+  ],
+  "guards": {
+    "populationNotBelowReference": true,
+    "unhousedNotAboveReference": true,
+    "employmentNotBelowReference": false
+  },
+  "rule": "Pareto: no selected metric worse beyond its explicit tolerance, and at least one strictly better; all enabled guards and both budget caps must pass.",
+  "provenance": {
+    "synthetic": true,
+    "empiricallyCalibrated": false,
+    "identity": "Same frozen complete initial CityState, seed, location geometry, engine version, horizon and action menu.",
+    "scope": "Coarse monthly city engine; no medical, election, happiness or lane-level claims.",
+    "capitalScope": "Existing public capital-expense ledger only; private construction cost and operating expenses are separate and are not declared covered.",
+    "authenticity": "SHA256 detects envelope changes; this is not a server signature, anti-cheat service or authenticated leaderboard."
+  },
+  "id": "challenge-e786404a9d355c702d971836",
+  "digest": "e786404a9d355c702d97183622847c355b102e9765f24a8faf5d7404067936ed"
+}

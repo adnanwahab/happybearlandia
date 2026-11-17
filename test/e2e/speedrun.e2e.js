@@ -1,0 +1,40 @@
+import {test,expect} from '@playwright/test';
+for(const width of [1440,390])test(`normal challenge navigation and honest outcomes at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:900});
+ await page.goto('/world/challenges.html');
+ await page.getByRole('link',{name:'Try the Change-One-Thing Speedrun'}).click();
+ await expect(page).toHaveURL(/#speedrun$/);
+ const panel=page.getByRole('region',{name:'Change-One-Thing Speedrun'});
+ await expect(panel.locator('[data-status]')).toContainText('Pinned source loaded');
+ await panel.getByRole('button',{name:'Start timer'}).focus();await page.keyboard.press('Enter');
+ await panel.getByRole('button',{name:'Pause timer'}).click();
+ await expect(panel.locator('[data-clock]')).toContainText('paused');
+ await panel.getByRole('radio',{name:'Build two homes'}).check();
+ await panel.getByRole('button',{name:'Run one decision'}).click();
+ await expect(panel.locator('[data-score]')).toContainText('33/100');
+ await expect(panel.locator('[data-score]')).toContainText('Baseline 6, candidate 4');
+ await panel.getByRole('radio',{name:'Add transit capacity'}).check();
+ await expect(panel.locator('[data-score]')).toHaveText('No verified run. No placement.');
+ await panel.getByRole('button',{name:'Run one decision'}).click();
+ await expect(panel.locator('[data-score]')).toContainText('0/100 · No placement');
+ await panel.getByRole('button',{name:'Run one decision'}).click();
+ await panel.getByRole('button',{name:'Cancel run'}).click();
+ await expect(panel.locator('[data-status]')).toContainText('cancelled');
+ await expect(panel.locator('[data-score]')).toHaveText('No verified run. No placement.');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+test('unavailable pinned source never manufactures a score',async({page})=>{
+ await page.route('**/challenges/fixtures/speedrun-v1.json',route=>route.fulfill({contentType:'application/json',body:'{}'}));
+ await page.goto('/world/challenges.html');
+ await expect(page.locator('#speedrun [data-status]')).toContainText('Source unavailable');
+ await expect(page.locator('#speedrun [data-run]')).toBeDisabled();
+ await expect(page.locator('#speedrun [data-score]')).toHaveText('No verified run. No placement.');
+});
+test('replay mismatch error leaves no placement',async({page})=>{
+ await page.route('**/challenges/speedrun.worker.js',route=>route.fulfill({contentType:'text/javascript',body:`self.onmessage=()=>self.postMessage({type:'ERROR',error:'Replay mismatch; no score or placement.'});`}));
+ await page.goto('/world/challenges.html');
+ await page.getByRole('radio',{name:'Build two homes'}).check();
+ await page.locator('#speedrun [data-run]').click();
+ await expect(page.locator('#speedrun [data-status]')).toContainText('Replay mismatch');
+ await expect(page.locator('#speedrun [data-score]')).toHaveText('No verified run. No placement.');
+});

@@ -5,3 +5,5 @@
 .memory-summary{display:flex;flex-wrap:wrap;gap:14px 28px;padding:18px;background:#edf4e9;border-radius:10px;font-size:14px}#memory-upcoming,#memory-history{padding-left:22px;line-height:1.7;font-size:14px;color:#66766c}#memory-upcoming li,#memory-history li{padding:7px 0}.memory-overdue{color:#9a4c20;font-weight:600}.actions button:disabled{opacity:.45;cursor:default}#city-memory .actions{flex-wrap:wrap}#repair-defenses{white-space:normal;text-align:left}
 
 #tournament .actions{flex-wrap:wrap}#tournament pre{white-space:pre-wrap;overflow-wrap:anywhere}#tournament input:focus-visible{outline:3px solid #da9b44}#tournament fieldset{border:1px solid #dce1d7;min-width:0}
+
+#speedrun .actions{flex-wrap:wrap}#speedrun fieldset{min-width:0;margin-top:20px;border:1px solid #b9c8bc}#speedrun pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:28rem;overflow:auto}#speedrun input:focus-visible{outline:3px solid #da9b44;outline-offset:3px}
