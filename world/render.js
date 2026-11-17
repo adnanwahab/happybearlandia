@@ -1,3 +1,4 @@
+import {mountCityWalk} from './vr/city-walk.js';
 import {mountDistrictTitle} from './district-title.js';
 import {mountInfrastructureScanner} from './infrastructure-scanner.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
@@ -2350,7 +2351,11 @@ routePrewarmer.start();window.hblRoutePrewarmer=routePrewarmer;
 addEventListener('pagehide',()=>routePrewarmer.dispose(),{once:true});
 let lastStreamUpdate=-Infinity;
 
+let cityWalk=null;
 function frame(now) {
+  // Walk owns a frozen presentation. Do not advance models, directors, streaming,
+  // culling or the desktop renderer while an XR frame owns render submission.
+  if(cityWalk?.active){last=now;if(!cityWalk.immersive)cityWalk.draw();requestAnimationFrame(frame);return;}
   if(startupAbort.signal.aborted)return;
   if(!inspectionFreeze.frozen){gamepadControls?.update(now);mapControls.update(now);}fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
   if(!inspectionFreeze.frozen&&(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
@@ -2624,6 +2629,13 @@ if(loadedExperiment){
  if(saved.view.buildingWorkspace){if(!buildingBridge?.restoreCheckpoint)throw Error('Construction checkpoint adapter unavailable');await buildingBridge.ready;buildingBridge.restoreCheckpoint(saved.view.buildingWorkspace);}
  experimentRestored=true;
  }catch(error){playback.pause();startup.restoreError=error.message;const notice=document.createElement('p');notice.style.cssText='position:fixed;top:80px;left:20px;z-index:999;background:#641f28;color:white;padding:16px';notice.textContent='Saved experiment restoration failed; playback paused: '+error.message;document.body.append(notice);}
+}
+if(!embedMode){
+ cityWalk=mountCityWalk({container:$('top'),renderer,scene,camera,controls,town,
+  eligible:()=>Boolean(loadedExperiment&&experimentRestored),
+  sourceLabel:()=>`Saved ${loadedExperiment.id} · ${loadedExperiment.save.checkpoint.schemaVersion} · minute ${livingWorld?.active?livingWorld.getSnapshot()?.minute:world.t} · geometry ${town.source}`,
+  pause:()=>{const wasPaused=playback.getState().paused;playback.pause();return()=>{last=performance.now();if(!wasPaused)playback.resume();};}});
+ addEventListener('pagehide',()=>{cityWalk.destroy();cityWalk=null;},{once:true});
 }
 let questionsPanel=null,questionsDisposed=false;
 if(!embedMode)void import('./questions/panel.js').then(({mountOpenQuestions})=>{if(questionsDisposed)return;questionsPanel=mountOpenQuestions({container:$('top'),getContext:async()=>{camera.updateMatrixWorld();const frustum=new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));const visible=[...town.buildings,...contextBuildings.values()].filter(b=>b.mesh?.visible&&frustum.intersectsObject(b.mesh)).sort((a,b)=>Math.hypot(a.center[0]-controls.target.x,a.center[1]-controls.target.z)-Math.hypot(b.center[0]-controls.target.x,b.center[1]-controls.target.z));const frame=livingWorld?.active?livingWorld.getSnapshot():null;const person=livingWorld?.active?livingWorld.getSelection():selected;const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),groundCorners=[];for(const x of [-1,1])for(const y of [-1,1]){const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(x,y),camera);const point=ray.ray.intersectPlane(groundPlane,new THREE.Vector3());if(point&&ray.ray.origin.distanceTo(point)<=camera.far)groundCorners.push(point);}return{origin,bounds:groundCorners.length?{minX:Math.min(...groundCorners.map(p=>p.x)),maxX:Math.max(...groundCorners.map(p=>p.x)),minZ:Math.min(...groundCorners.map(p=>p.z)),maxZ:Math.max(...groundCorners.map(p=>p.z))}:{},visibleBuildingIds:visible.map(b=>String(b.id)),selectedEntity:person?{id:String(person.id??person.personId),kind:livingWorld?.active?'person':person.type}:null,config:frame?.config??world.params,metrics:frame?.metrics??{minute:world.t,population:world.people.length},recentLogs:[{id:'observation-scope',time:livingWorld?.active?livingWorld.getClockMinute():world.t,type:'source-scope',text:'Resident metrics and logs describe the original modeled region at '+origin.lat+','+origin.lng+'; streamed neighboring map geometry does not extend the resident simulation.'},...(livingWorld?.active?frame?.events??[]:world.events).slice(0,39)].map(e=>({id:String(e.id??e.t??e.minute),time:e.minute??e.t??e.time,type:e.type,text:e.text,entityId:e.personId?String(e.personId):undefined}))};}});window.hblOpenQuestions=questionsPanel;}).catch(error=>console.error('Open questions unavailable',error));

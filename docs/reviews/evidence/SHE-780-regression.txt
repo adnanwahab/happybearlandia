@@ -1,0 +1,63 @@
+bun test v1.4.2 (744846f84)
+
+test/legacy-checkpoint.test.js:
+(pass) RNG captures and restores the actual uint32 cursor without changing draw semantics [0.31ms]
+(pass) full legacy checkpoint continues exactly for10minutes including RNG, shared cash, events, history, journals and weather [239.97ms]
+(pass) full legacy checkpoint continues exactly for30minutes including RNG, shared cash, events, history, journals and weather [106.91ms]
+(pass) restore rewinds same live objects and keeps render resources and wallet accessors while removing post-checkpoint data [32.87ms]
+(pass) mismatched topology or missing history authority fails before mutation; history disabled state is explicit [21.54ms]
+
+test/world-persistence.test.js:
+(pass) full save and list preserve every submitted checkpoint/view/geometry field [4.06ms]
+(pass) fork gets a new immutable identity while preserving original exact state [1.09ms]
+(pass) saves survive SQLite reopen and arbitrary future time without expiry [8.81ms]
+(pass) validation rejects unsupported modes/codecs, unsafe JSON, invalid origin and malformed/oversized bodies [1.10ms]
+(pass) record and byte quotas reject without eviction; repeated identity cannot overwrite [2.33ms]
+(pass) writes have persistent attempt rate bounds and missing parent never saves [0.75ms]
+(pass) actual legacy authoritative state survives database save/load and identical continuation [56.79ms]
+
+test/city-walk.test.js:
+(pass) street stops are deterministic, bounded, finite and exclude supplied interiors [0.40ms]
+(pass) snap turn requires release; invalid axes cannot rotate [0.02ms]
+(pass) desktop entry freezes, manual teleport and snap preserve viewer height and scene identities; exit restores [1.06ms]
+(pass) missing saved admission or road geometry never pauses or acquires an XR session [0.45ms]
+(pass) access denial stays inactive and keeps desktop fallback usable [0.14ms]
+(pass) late headset acquisition after disposal is ended without touching the scene [0.12ms]
+(pass) renderer attachment failure ends session and restores prior camera and playback [0.18ms]
+(pass) normal entry gates admission on checkpoint restoration and bypasses all normal frame work [0.53ms]
+(pass) successful XR owns one loop, controller pointers, snap release and end cleanup over repeated sessions [1.11ms]
+(pass) controller rays select road teleport stops and headset comfort/exit buttons [1.04ms]
+
+test/world-cycle-lifecycle.test.js:
+(pass) weekly progress, cancellation and late worker replies stay consistent [0.50ms]
+(pass) native worker failure, unreadable messages and timeout enable retry [0.32ms]
+
+test/shader-warmup.test.js:
+(pass) uncompiled visible objects wait off-frame and restore visibility even when rendering fails [1.59ms]
+(pass) unsupported compilation preserves renderer and rejected warmup fails open [1.23ms]
+(pass) pending compilation is bounded and delayed assets become visible after timeout [0.40ms]
+(pass) buffer replacements with identical layout reuse warmed shader; new layout recompiles [1.60ms]
+
+test/world-visual-camera.test.js:
+(pass) World visual camera guidance > focus and follow use current resolved positions, preserving identity [0.28ms]
+(pass) World visual camera guidance > missing, wrong-authority and malformed positions never invent a location [0.03ms]
+(pass) World visual camera guidance > manual orbit interruption persists until explicit replay [0.04ms]
+(pass) World visual camera guidance > loss of entity cancels; stop and disposal do not restore or steal the view [0.04ms]
+(pass) World visual camera guidance > reduced motion frames once and leaves camera stationary as the resident moves [0.03ms]
+(pass) World visual camera guidance > published resident API resolves only explicit legacy IDs and supports injected clock [0.25ms]
+(pass) World visual camera guidance > WebGL absence and thrown resolver are safe [0.03ms]
+(pass) World entity spotlight > ring tracks the actual entity and is reusable for buildings [0.09ms]
+(pass) World entity spotlight > unknown or vanished entity has no highlight; resources are disposed once [0.07ms]
+
+test/world-webgpu-only.test.js:
+(pass) native initialization disables implicit fallback and returns the sole supported backend [0.10ms]
+(pass) adapter rejection releases the partial backend without invoking init-retrying renderer disposal [0.06ms]
+(pass) unexpected non-WebGPU backend is rejected and fully initialized resources are disposed [0.03ms]
+(pass) cleanup failures preserve the original initialization error [0.05ms]
+(pass) null adapter rejection remains a readable Error and releases partial resources [0.02ms]
+(pass) unsupported browser fails before constructing a graphics backend [0.05ms]
+
+ 43 pass
+ 0 fail
+ 293 expect() calls
+Ran 43 tests across 7 files. [575.00ms]

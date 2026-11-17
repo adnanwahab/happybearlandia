@@ -377,3 +377,25 @@ existing camera/clock/context only, with no timers, model commands or extra fram
 loop. Page exit removes its DOM/style. Legacy World, Canvas2D, embedded/tile
 views, missing clocks and empty geometry have no district cards. See
 `docs/reviews/SHE-611.md` for verification and remaining browser acceptance.
+
+## Saved-scene VR City Walk (SHE-780)
+
+On canonical `/world?experiment=<id>`, VR City Walk is available only after the
+saved checkpoint restores successfully and has road viewpoints. Enter VR
+explicitly requests `immersive-vr` with required `local-floor` and `webgpu`.
+This needs a secure context, WebGPU XR and XRGPUBinding; access denial and
+unsupported headsets retain Street view as a desktop/touch/keyboard alternative.
+No automatic session entry, smooth locomotion or sharing is added.
+
+During a walk the main frame skips models, streaming, culling and camera
+directors; the same scene is rendered from a view-only rig. Road viewpoints use
+flat loaded centerlines and exclude building interiors; they are schematic,
+not pedestrian safety data. Trigger rays select road teleport stops or the
+headset's Turn left/right, Comfort and Exit controls. Stick deflection snaps
+30 degrees once per release. Comfort uses an optional fixed peripheral mask,
+including under reduced motion. Desktop uses labeled buttons and destination
+select; Escape exits. Exit restores camera, controls and previous playback;
+page teardown ends the owned XR session and disposes walk resources.
+
+Hardware acceptance remains open. See [the issue record](../../docs/reviews/SHE-780.md)
+for test evidence and limitations; no headset comfort/frame-rate claim is made.

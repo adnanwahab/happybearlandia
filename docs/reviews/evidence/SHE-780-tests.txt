@@ -1,0 +1,18 @@
+bun test v1.4.2 (744846f84)
+
+test/city-walk.test.js:
+(pass) street stops are deterministic, bounded, finite and exclude supplied interiors [0.55ms]
+(pass) snap turn requires release; invalid axes cannot rotate [0.02ms]
+(pass) desktop entry freezes, manual teleport and snap preserve viewer height and scene identities; exit restores [1.12ms]
+(pass) missing saved admission or road geometry never pauses or acquires an XR session [0.45ms]
+(pass) access denial stays inactive and keeps desktop fallback usable [0.14ms]
+(pass) late headset acquisition after disposal is ended without touching the scene [0.11ms]
+(pass) renderer attachment failure ends session and restores prior camera and playback [0.17ms]
+(pass) normal entry gates admission on checkpoint restoration and bypasses all normal frame work [0.28ms]
+(pass) successful XR owns one loop, controller pointers, snap release and end cleanup over repeated sessions [0.96ms]
+(pass) controller rays select road teleport stops and headset comfort/exit buttons [1.06ms]
+
+ 10 pass
+ 0 fail
+ 95 expect() calls
+Ran 10 tests across 1 file. [32.00ms]
