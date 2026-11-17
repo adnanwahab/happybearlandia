@@ -32,6 +32,12 @@ function prEvent({ number = 42, state = 'open', draft = false, merged = false, h
 test('public patch API lists curated ballots and does not publish private suggestions', async () => {
   const h = createPatchVotingHandler({ dbPath: ':memory:', secret:'secret-for-test' });
   try {
+    const alias = await h(new Request('https://hbl.example/api/patches/U06/vote', {method:'POST'}));
+    expect(alias.status).toBe(307);
+    expect(alias.headers.get('location')).toBe('https://hbl.example/api/patch-votes/U06/vote');
+    const submitAlias = await h(new Request('https://hbl.example/api/patches', {method:'POST'}));
+    expect(submitAlias.status).toBe(307);
+    expect(submitAlias.headers.get('location')).toBe('https://hbl.example/api/patch-votes/suggestions');
     const listed = await h(new Request('https://hbl.example/api/patches'));
     expect(listed.status).toBe(200);
     const body = await listed.json();
