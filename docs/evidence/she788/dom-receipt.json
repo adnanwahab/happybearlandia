@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "magic-tour-dom-receipt.v1",
+  "scope": "DOM interactions and recipe links only; no browser, camera, gameplay, access API or simulation acceptance",
+  "checks": [
+    {
+      "stop": "arrive",
+      "passed": true
+    },
+    {
+      "stop": "household",
+      "passed": true
+    },
+    {
+      "stop": "fork",
+      "passed": true
+    },
+    {
+      "stop": "compare",
+      "passed": true
+    },
+    {
+      "stop": "sources",
+      "passed": true
+    },
+    {
+      "stop": "conclude",
+      "passed": true
+    },
+    {
+      "stop": "history-event, invalid bookmark, recovery, no fetch/storage, disposal",
+      "passed": true
+    }
+  ],
+  "sources": {
+    "routes.html": "0bd32d17e07821734659d6ef8f5fa673bd8a7dace126a55c9888ea950f5ff5ea",
+    "world/universe/magic-tour.js": "06782057c528891098647e7dee2c236d79b90194eb6b89bee7a1104235574d0a",
+    "world/future-machine/contracts.js": "e59a52be8e3152c10c7b49f238bf5bebd41bac653431c7d9d6195fb696726a40",
+    "world/future-machine/share/index.js": "2f7718c118cdc707e9b856453a8e750b82749688358783d51fc778b7fbaab4c1"
+  }
+}

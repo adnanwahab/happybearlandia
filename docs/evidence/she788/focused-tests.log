@@ -1,0 +1,29 @@
+bun test v1.4.2 (744846f84)
+
+test/html-navigation.test.js:
+(pass) registered experience HTML integration > every registered route resolves its own experience, including shared documents [0.72ms]
+(pass) registered experience HTML integration > registered documents exist and receive exactly one bootstrap [5.78ms]
+(pass) registered experience HTML integration > server aliases and direct HTML entries identify their experience [0.21ms]
+(pass) registered experience HTML integration > unsupported routes and shell are not mislabeled or transformed [0.08ms]
+(pass) registered experience HTML integration > Bun file responses retain HTML MIME after conversion to text [0.20ms]
+(pass) registered experience HTML integration > response transform preserves status, content type and cache headers [0.09ms]
+
+test/magic-tour.test.js:
+(pass) City stops pin the exact supported recipe, never invent a saved run [0.54ms]
+(pass) Population handoff and missing evidence remain explicit [0.06ms]
+
+test/future-machine-paired.test.js:
+{"recipe":{"schemaVersion":"future-machine.v1","modelVersion":"city-systems.1.1.0","seed":42,"households":30,"months":120,"intervention":{"type":"housing","districtId":"d1","amount":24,"cost":1000000,"delay":0,"compliance":1}},"initialHash":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","digests":{"initial":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","baseline":"9dbadec39af6ce3c14f742ba44dc9f52dae39c99402a20a59cabd6e3769fff29","plan":"eb2744e2b7fda6f9677300bf9ded8a058d5d448cd2ecdf091ba850c5789eaa68","diff":"1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee"},"stateDigest":"22bfa1c1126c976ef4ee73ade8234bb4264a47248ea4352d9cb2ab9a52cb84ef","diffDigest":"1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee","firstPhysical":{"month":16,"entities":[{"collection":"buildings","id":"building-project-policy-1-0","kind":"added","before":null,"after":{"id":"building-project-policy-1-0","districtId":"d1","parcelId":null,"floors":3},"changedFields":[],"physical":true,"buildingIds":["building-project-policy-1-0"]}],"housingUnits":{"baseline":36,"plan":60,"delta":24,"unit":"homes","status":"available","missing":[]},"capitalSpending":{"baseline":0,"plan":1000000,"delta":1000000,"unit":"USD cumulative","status":"available","missing":[]}},"completion":{"schemaVersion":"SystemEvent.v1","id":"16-0","simulationTime":16,"system":"construction","eventType":"PROJECT_COMPLETE","geographyId":"d1","severity":1,"payload":{"projectId":"project-policy-1-0","type":"housing","units":24,"displacedUnits":[],"displacedBusinesses":[],"rule":{"id":"city.construction","version":"city-systems.1.1.0","evidenceType":"synthetic-assumption","source":"world/city/README.md"}},"modelId":"construction","modelVersion":"city-systems.1.1.0"}}
+(pass) seed-42 paired state and diff digests reproduce with real physical evidence [3844.91ms]
+(pass) zero intervention produces identical full histories and zero deltas at every month [909.12ms]
+
+test/universe-shell.test.js:
+(pass) universe navigation > catalog preserves original experiences and registers the verified map and flagship [0.24ms]
+(pass) universe navigation > round trip retains scope and app-specific parameters/hash [0.46ms]
+(pass) universe navigation > rejects ambiguous, malformed and cross-origin links [0.14ms]
+(pass) universe navigation > iframe requires exact source, origin, version, context and registered route; disposes [0.89ms]
+
+ 14 pass
+ 0 fail
+ 728 expect() calls
+Ran 14 tests across 4 files. [4.78s]

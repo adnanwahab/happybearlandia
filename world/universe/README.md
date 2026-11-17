@@ -106,3 +106,14 @@ installed `happy-dom` entry module. The optional `HBL_PALETTE_STATIC=1` browser
 transport serves actual source documents with Playwright route fulfillment when
 local listening is unavailable; it does not verify Bun serving or simulation APIs.
 See `docs/reviews/SHE-444.md` for actual evidence and outstanding browser gates.
+
+## Magic Tour preview (SHE-788)
+
+`/routes#tour=arrive` opens a six-stop, history-backed itinerary. `magic-tour.js`
+uses the existing strict Future Machine share codec to pin the monthly City
+recipe. Stops never read/write simulation state or mark completion. World/House
+uses the Population handoff, separately from City; navigation is not an identity
+mapping. Unknown stops fail visibly. No storage, analytics, hosted sharing,
+clipboard writes, timers or motion are introduced. Existing share/report actions
+remain in the owning comparison, and existing save access checks remain in House.
+Full uncut cross-surface acceptance remains open; see `docs/reviews/SHE-788.md`.
