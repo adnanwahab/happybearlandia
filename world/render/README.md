@@ -388,3 +388,35 @@ restore the prior camera state without issuing a model command. Missing or inval
 route geometry disables the control. The feature does not synthesize stops,
 passengers, service frequency, or real-world travel times; those remain unknown
 unless represented by a separate verified data source.
+
+## Truth Lens (SHE-748, partial)
+
+The native `/world` Truth Lens toggle reveals a text legend and field-scoped
+legacy inspector readouts, plus outlines/labels on experiment charts. Color is
+supplemental; category names and descriptions are ordinary accessible text.
+Unknown is a separate state, never a guessed fifth provenance mode. Unsupported
+views and unadapted claims/props remain Unknown as stated beside the legend.
+This slice does not implement per-mesh scene highlighting or adapters for every
+independent panel, Living Population or Canvas2D.
+
+Data contract `hbl-truth-lens.v1`: each field adapter supplies `{field, category,
+source}`; category is observed/assumed/modeled/decorative/unknown. Missing or
+unrecognized category, or blank source, presents Unknown. Existing provenance
+`synthetic` maps to assumed; source text uses the existing provenance presenter.
+No confidence value is converted into probability or empirical support.
+`markTruth(element, record)` sets data-truth/data-truth-label and an explanatory
+title; `mountTruthReadout` appends accessible descriptions. Categories apply only
+to the named fields. OSM geometry requires an exact ID in the original loaded API
+area with source osm; streamed/unmatched geometry is Unknown. API metadata is not
+independently verified or a claim of current accuracy. Simulation occupancy is
+never a measured population. Missing chart values remain unavailable/Unknown.
+
+The representative JSON in `test/fixtures/truth-lens` is invented test data,
+not a real observation. Repeated classification is deterministic and read-only;
+it does not alter random streams, clocks, identities or snapshots. Readouts are
+replaced with the inspector; pagehide removes the toggle listener and resets
+lens state. No GPU allocations, material changes or animation loop are added.
+Run `bun test test/truth-lens.test.js` and the focused
+`test/truth-lens.browser.config.mjs` suite. `HBL_BUN_BIN` can select the installed
+Bun when the package-runner PATH contains an uninitialized dependency binary.
+Consumer-device frame pacing/resource measurements remain required for acceptance.

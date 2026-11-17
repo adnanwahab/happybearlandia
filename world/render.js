@@ -1,3 +1,4 @@
+import {inspectedTruth,mountTruthReadout} from './truth-lens.js';
 import {mountDistrictTitle} from './district-title.js';
 import {mountInfrastructureScanner} from './infrastructure-scanner.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
@@ -1057,7 +1058,7 @@ function lineChartSvg(title, byPkg, key, colorByPkg, opts = {}) {
       const value=metricValue(row);if(value!==undefined)ptsAll.push(value);
     }
   }
-  if(!ptsAll.length)return `<div class="exp-chart"><h2>${title}</h2><p class="muted">Unavailable: no recorded values were supplied.</p></div>`;
+  if(!ptsAll.length)return `<div class="exp-chart" data-truth="unknown" data-truth-label="Unknown · no recorded values"><h2>${title}</h2><p class="muted">Unavailable: no recorded values were supplied.</p></div>`;
   const min = ptsAll.length ? Math.min(...ptsAll) : 0;
   const max = ptsAll.length ? Math.max(...ptsAll) : 1;
   const lo = min === max ? min - 1 : min;
@@ -1098,7 +1099,7 @@ function lineChartSvg(title, byPkg, key, colorByPkg, opts = {}) {
     return `<path d="${d}" fill="none" stroke="${colorByPkg[name]}" stroke-width="2" />`;
   }).join("");
 
-  return `<div class="exp-chart"><h2>${title}</h2><svg viewBox="0 0 ${w} ${h}" width="100%" height="120" aria-label="${title}">
+  return `<div class="exp-chart" data-truth="modeled" data-truth-label="Modeled · synthetic experiment outputs" title="Computed scenario values, not observations, probabilities or causal proof"><h2>${title}</h2><svg viewBox="0 0 ${w} ${h}" width="100%" height="120" aria-label="${title}">
     <line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="currentColor" opacity="0.22" />
     <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h - pad}" stroke="currentColor" opacity="0.22" />
     ${xTicks}
@@ -2324,6 +2325,7 @@ function renderInspector() {
     $("restock")?.addEventListener("click", () => { s.stock = s.maxStock; world.log(`${b.name} got a delivery (by you)`, "restock", b); renderInspector(); });
     $("litterBtn")?.addEventListener("click", () => { s.litter = Math.min(100, s.litter + 40); renderInspector(); });
   }
+  mountTruthReadout(el,inspectedTruth({type:selected.type,area:originalAreaGeometry,buildingId:selected.type==='building'?town.buildings[selected.id]?.id:null}));
   el.querySelectorAll("[data-b]").forEach((btn) => (btn.onclick = () => select({ type: "building", id: Number(btn.dataset.b) })));
 }
 

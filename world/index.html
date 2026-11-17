@@ -141,6 +141,7 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
 <link rel="stylesheet" href="/world/universe/portal.css">
 <script src="/world/universe/navigation-accessibility.js" defer></script>
 <script src="/world/universe/portal.js" defer></script>
+<link rel="stylesheet" href="/world/truth-lens.css">
 </head>
 <body>
 <a class="constitution-link" href="/visualize-constitution" style="position:fixed;bottom:12px;right:12px;z-index:50;background:#152333;color:white;padding:10px;border-radius:8px">Visualize Constitution</a>
@@ -258,6 +259,9 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
     <button id="rerunExperimentSeed" type="button" aria-label="Rerun with this seed">Rerun</button>
   </div>
 
+  <button id="truthLensToggle" type="button" aria-pressed="false" aria-controls="truthLensLegend">Truth Lens</button>
+  <ul id="truthLensLegend" aria-label="Truth Lens provenance legend" hidden></ul>
+  <p class="truth-readout">Unlabeled claims, props and unsupported views: Unknown. Building footprints do not establish measured heights or real resident counts. Inspect an object for field-level evidence.</p>
   <details id="simulationModelDisclosure" class="muted"><summary>Model assumptions &amp; limitations</summary><div id="simulationModelMetadata">Legacy daily residents, living population and monthly Constitution forecasts are separate models. No empirical calibration claim. Parameter provenance is loading. If it stays unavailable, the model information can be inspected independently of the 3D scene.</div></details>
   <div class="muted" id="policyNote"></div>
   <div class="legend">
@@ -310,5 +314,6 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
 <script type="module" src="/world/session-recorder.js"></script>
 <script type="module" src="/world/launch-context.js"></script>
 <script type="module" src="/world/social/journey.js" data-social-experience="living-city"></script>
+<script type="module" src="/world/truth-lens.js"></script>
 </body>
 </html>
