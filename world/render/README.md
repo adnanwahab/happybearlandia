@@ -302,3 +302,28 @@ ID-buffer readback: transparent fragment discard, antialiasing and asynchronous
 asset/geometry replacement can differ from exact raster pixels. Full GPU/browser
 acceptance, including streaming and mode changes during freeze, remains pending;
 see `docs/reviews/SHE-659.md`.
+
+## Selected-object affordance
+
+`anchored-affordance.js` owns one native Inspect button for the selected object.
+World resolves the current source ID and interpolated render position each frame:
+legacy residents, bounded Living Population samples, building geometry, or actual
+visible decorative traffic instances. Living keys include runtime ID/revision;
+missing samples and unsupported modes have no action. Traffic remains explicitly
+illustrative and never gains a resident/trip identity.
+
+Projection rejects behind-camera/off-frustum targets and ray-tests opaque building
+geometry (including streamed context), respecting hidden/faded/transparent meshes.
+One button is clamped with an 8px inset to the canvas/visual viewport intersection;
+it has a 44px touch target and no animation or easing, including reduced motion.
+Focus stays on that DOM node while the target moves; hiding or changing its identity
+returns focused users to the canvas. Inspection validates the current target again.
+Existing scene-target keyboard navigation provides selection. This is presentation
+only; it does not advance or rewrite model state. Small viewports unable to fit the
+button hide it. Other HUD panels can still cover the overlay; this does not provide
+a general multi-panel layout/collision system.
+
+Checks: `bun test test/anchored-affordance.test.js` and
+`HBL_BUN=/absolute/path/to/bun bunx playwright test --config test/anchored-affordance.browser.config.js`.
+The browser suite includes a component touch/keyboard/reduced-motion journey and
+normal `/world` building selection; execution requires loopback and Chrome access.

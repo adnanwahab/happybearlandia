@@ -1,3 +1,4 @@
+import {mountAnchoredAffordance} from './render/anchored-affordance.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
 import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
@@ -2170,6 +2171,18 @@ function rankCityTargets(x,y){
   return hits.sort((a,b)=>a.distance-b.distance)[0]||null;
  }});
 }
+// Resolve only current render samples; no entity, run or clock mutation.
+const anchoredAffordance=!embedMode?mountAnchoredAffordance({container:document.body,canvas:renderer.domElement,THREE,camera,
+ getOccluders:()=>[...meshes,...[...contextBuildings.values()].map(building=>building.mesh)].filter(Boolean),
+ resolve:()=>{
+  if(businessUI||window.hblWorldTileViewActive)return null;
+  if(livingWorld?.active){const subject=livingWorld.getCameraSubject(),person=livingWorld.getSelection();if(!subject||!person)return null;const run=livingWorld.getSnapshot()?.runtime;return {key:`${run?.id}:${run?.revision}:${subject.key}`,id:person.id??person.personId,label:`resident ${person.id??person.personId}`,position:{...subject.position,y:2.4},inspect:()=>livingWorld.selectPerson(person.id??person.personId)};}
+  if(selectedVehicle){const vehicle=cityRenderer.getVehicle(selectedVehicle);if(!vehicle?.active)return null;return {key:`vehicle:${vehicle.id}`,id:vehicle.id,label:'illustrative car',position:{...vehicle.position,y:vehicle.position.y+2},inspect:()=>vehicleInspector?.select(vehicle)};}
+  if(selected?.type==='person'){const person=town.people[selected.id],position=smooth[selected.id];if(!person||!position||person.travelMode==='transit'&&!(person.transitWaitMinutesRemaining>0))return null;return {key:`legacy:${person.id}`,id:person.id,label:person.name,position:{x:position.x,y:2.4,z:position.z},inspect:()=>select({...selected})};}
+  if(selected?.type==='building'){const building=town.buildings[selected.id];if(!building?.mesh?.visible)return null;return {key:`building:${building.id}`,id:building.id,label:building.name||'place',position:(()=>{const mesh=building.mesh;if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();mesh.updateWorldMatrix(true,false);const box=mesh.geometry.boundingBox,point=box.getCenter(new THREE.Vector3());point.y=box.max.y+1;return point.applyMatrix4(mesh.matrixWorld);})(),object:building.mesh,inspect:()=>select({...selected})};}
+  return null;
+ }}):null;
+addEventListener('pagehide',()=>anchoredAffordance?.destroy(),{once:true});
 let frozenCamera=null;
 const inspectionFreeze=createInspectionFreeze({supported:()=>!livingWorld?.active&&!businessUI&&!window.hblWorldTileViewActive,
  capture:()=>{frozenCamera={position:camera.position.clone(),quaternion:camera.quaternion.clone(),target:controls.target.clone(),enabled:controls.enabled};controls.enabled=false;return frozenCamera;},
@@ -2356,7 +2369,7 @@ function frame(now) {
   freezeUI?.update();
   if(inspectionFreeze.frozen){
     camera.position.copy(frozenCamera.position);camera.quaternion.copy(frozenCamera.quaternion);controls.target.copy(frozenCamera.target);camera.updateMatrixWorld(true);
-    globalIllumination.render();inspectionFreeze.record(frameMs);
+    anchoredAffordance?.update();globalIllumination.render();inspectionFreeze.record(frameMs);
     cityRenderer.afterFrame(now,performance.now()-cpuStart,frameMs);
     requestAnimationFrame(frame);return;
   }
@@ -2427,17 +2440,15 @@ function frame(now) {
     ring.visible = true;
     ring.position.set(s.x, 0.3, s.z);
     if (follow) controls.target.lerp(new THREE.Vector3(s.x, 0, s.z), 0.1);
-    const v = new THREE.Vector3(s.x, 12, s.z).project(camera);
-    tag.style.display = "block";
-    tag.style.left = `${(v.x * 0.5 + 0.5) * innerWidth}px`;
-    tag.style.top = `${(-v.y * 0.5 + 0.5) * innerHeight}px`;
-    tag.textContent = `${town.people[selected.id].name} · ${town.people[selected.id].doing}`;
+    tag.style.display = "none";
   } else if (selected?.type === "building") {
     const b = town.buildings[selected.id];
     ring.visible = true;
     ring.position.set(b.center[0], b.height + 0.5, b.center[1]);
     tag.style.display = "none";
   } else { ring.visible = false; tag.style.display = "none"; }
+
+  anchoredAffordance?.update();
 
   for (const p of journalPins) p.mesh.visible = overlayMode === "journals";
 
