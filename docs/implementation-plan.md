@@ -1,5 +1,22 @@
 # HappyBearLandia implementation plan
 
+## SHE-672 — recorded park-bench observation audit (2026-11-17)
+
+Analysis-only audit at `926d4edd`; feature remains unimplemented. Current World
+history supports exact park destination-event highlights, but does not retain a
+minute of street-position frames. Current trips, decorative wildlife and City
+documentary cards cannot stand in for recorded nearby motion. Related open PRs
+#362/#369/#421 were inspected; preserve their authority/camera boundaries.
+Next integrated slice: versioned read-only observation manifest and event selector,
+validated supported park anchor, normal `/world` session with instant exit,
+static low-power scene and explicit missing/unsupported evidence. Historical
+animation additionally requires bounded source-owned scene recordings. Acceptance
+tasks and risks: [SHE-672 review](reviews/SHE-672.md). History regressions passed
+17 tests/151 assertions; checkpoint suite passed 10/35. Camera/trip suites could
+not load missing `three`. No root typecheck/lint script; Playwright skipped for
+docs-only work. Mobile/focus/motion, frame pacing and cleanup acceptance remain
+open. No model/governance changes, external writes, commit, PR, merge or deployment.
+
 ## SHE-477 — curated Surprise Me (2026-11-14)
 
 Bounded slice: seeded homepage choice → labeled synthetic native preset →
