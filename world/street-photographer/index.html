@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Street Photographer Detective · HappyBearLandia</title><link rel="stylesheet" href="./page.css"><script type="module" src="./page.js"></script></head>
+<body><main>
+<nav aria-label="World navigation"><a href="/world">Back to World</a></nav>
+<header><p class="eyebrow">A case in three photographs</p><h1>Street Photographer Detective</h1><p>Why did the corner bakery go quiet? Find the right subject at the right date.</p></header>
+<aside><strong>Authored synthetic toy street</strong><p>These are pinned scripted checkpoints, not measured observations or a city model prediction. Dates, places and the mystery are fictional. No image generation, device camera, uploads or account.</p><p id="provenance">Pinned scenario street-mystery.1 · rules street-photo.1 · seed 712 (identity only; no random draws).</p></aside>
+<p id="status" role="status" aria-live="polite">Load the pinned demo to investigate.</p>
+<button id="load" type="button">Load pinned demo</button><button id="cancel" type="button" disabled>Cancel investigation</button><button id="resume" type="button" hidden>Resume case</button>
+<section id="case" hidden aria-label="Investigation">
+<h2 id="clue" tabindex="-1"></h2><p id="flavor"></p><details id="hint"><summary>Reveal investigation hint</summary><p id="hint-text"></p></details>
+<div class="controls"><label>Checkpoint date <select id="date"></select></label><label>Subject <select id="subject"></select></label></div>
+<figure><svg id="street" viewBox="0 0 240 150" role="img" aria-label="Camera view of authored street"></svg><figcaption id="caption"></figcaption></figure>
+<label>Camera position <input id="camera" type="range" min="0" max="360" step="20" value="0"></label><p>Use arrow keys on the slider to pan. The whole subject must fit inside the frame. This is a flat illustrative street with no occlusion.</p>
+<div class="controls"><button id="photo" type="button">Capture clue</button><button id="inspect" type="button">Inspect text record instead</button></div>
+<details><summary>Available checkpoint records · non-camera view</summary><ul id="records"></ul></details>
+</section>
+<section aria-label="Case evidence"><h2>Evidence notebook <span id="progress">0 / 3</span></h2><ol id="notebook"></ol><button id="restart" type="button" disabled>Restart case</button><p>Progress stays in this page only. Cancel preserves earned records; restart or reload clears them.</p></section>
+</main></body></html>

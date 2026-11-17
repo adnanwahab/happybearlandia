@@ -1,0 +1,93 @@
+{
+  "id": "street-mystery.1",
+  "rulesVersion": "street-photo.1",
+  "source": "authored-synthetic-checkpoints",
+  "seed": 712,
+  "runId": "toy:street:712:v1",
+  "checkpoints": [
+    {
+      "id": "street-cp-1",
+      "date": "2046-05-01",
+      "tick": 0,
+      "entities": [
+        {
+          "id": "toy:bakery",
+          "name": "Corner bakery",
+          "x": 60,
+          "width": 80,
+          "label": "Bakery open"
+        },
+        {
+          "id": "toy:notice",
+          "name": "Notice board",
+          "x": 240,
+          "width": 70,
+          "label": "Old notice"
+        },
+        {
+          "id": "toy:bench",
+          "name": "East bench",
+          "x": 440,
+          "width": 70,
+          "label": "Empty bench"
+        }
+      ]
+    },
+    {
+      "id": "street-cp-2",
+      "date": "2046-06-01",
+      "tick": 1,
+      "entities": [
+        {
+          "id": "toy:bakery",
+          "name": "Corner bakery",
+          "x": 60,
+          "width": 80,
+          "label": "Bakery closed"
+        },
+        {
+          "id": "toy:notice",
+          "name": "Notice board",
+          "x": 240,
+          "width": 70,
+          "label": "Repairs through June"
+        },
+        {
+          "id": "toy:bench",
+          "name": "East bench",
+          "x": 440,
+          "width": 70,
+          "label": "Empty bench"
+        }
+      ]
+    },
+    {
+      "id": "street-cp-3",
+      "date": "2046-07-01",
+      "tick": 2,
+      "entities": [
+        {
+          "id": "toy:bakery",
+          "name": "Corner bakery",
+          "x": 60,
+          "width": 80,
+          "label": "Bakery reopened"
+        },
+        {
+          "id": "toy:notice",
+          "name": "Notice board",
+          "x": 240,
+          "width": 70,
+          "label": "Repairs complete"
+        },
+        {
+          "id": "toy:bench",
+          "name": "East bench",
+          "x": 440,
+          "width": 70,
+          "label": "Delivery crate"
+        }
+      ]
+    }
+  ]
+}
