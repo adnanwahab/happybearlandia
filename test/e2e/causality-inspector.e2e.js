@@ -199,3 +199,32 @@ test('an outcome never pulses backwards across an incoming connection', async ({
   await expect(page.locator('.evidence-graph__pulse')).toHaveCount(0);
   await expect(page.getByText('Showing 0 of 0 eligible connections.', {exact:false})).toBeVisible();
 });
+
+test.describe('checkpoint return', () => {
+ test.use({ hasTouch: true });
+for (const mobile of [false, true]) test(`returns through evidence checkpoints (${mobile ? 'touch' : 'keyboard'})`, async ({ page }) => {
+  if (mobile) {
+    await page.setViewportSize({ width: 390, height: 844 });
+  }
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route(explanation, route => {
+    const id = new URL(route.request().url()).searchParams.get('targetId');
+    return route.fulfill({ json: id === source.id
+      ? { nodes: [source], edges: [], evidence: [], incomplete: true, reasons: ['missing-dependency'], missingIds: ['lost'] }
+      : { nodes: [target, source], edges: [edge], evidence: [source] } });
+  });
+  await page.goto(inspect(target) + '&entityId=origin-entity&tick=5');
+  const origin = page.url();
+  const select = page.getByRole('button', { name: 'Inspect Construction inputs' });
+  if (mobile) await select.tap(); else await select.press('Enter');
+  await expect(page.getByText('A dependency record is unavailable.', { exact: true })).toBeVisible();
+  const back = page.getByRole('button', { name: 'Return to previous checkpoint' });
+  if (mobile) await back.tap(); else await back.press('Enter');
+  await expect(page.getByRole('textbox', { name: 'Entity', exact: true })).toHaveValue('origin-entity');
+  await expect(page.getByRole('textbox', { name: 'Record', exact: true })).toHaveValue(target.id);
+  await expect(page.getByRole('spinbutton', { name: 'Tick', exact: true })).toHaveValue('5');
+  await expect(back).toHaveCount(0);
+  expect(new URL(page.url()).searchParams.toString()).toBe(new URL(origin).searchParams.toString());
+});
+
+});

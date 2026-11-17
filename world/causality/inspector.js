@@ -34,6 +34,7 @@ export class CausalInspector extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.tab = 'Why';
     this.serial = 0;
+    this.checkpoints = [];
   }
 
   connectedCallback() {
@@ -78,6 +79,8 @@ export class CausalInspector extends HTMLElement {
   }
 
   selectRecord(record) {
+    if (record.id === this.context.targetId) return;
+    this.checkpoints.push({ context: this.context, tab: this.tab, associations: this.includeAssociations });
     this.tab = 'Why';
     this.focusRecord = record.id;
     this.context = {
@@ -108,6 +111,7 @@ export class CausalInspector extends HTMLElement {
     form.append(submit);
     form.onsubmit = event => {
       event.preventDefault();
+      this.checkpoints = [];
       this.context = { ...this.context, ...Object.fromEntries(new FormData(form)) };
       this.navigate();
     };
@@ -180,6 +184,18 @@ export class CausalInspector extends HTMLElement {
     const focusRecord = this.focusRecord;
     this.focusRecord = null;
     root.replaceChildren(element('style', inspectorStyles + graphStyles), element('h2', 'Causal inspector'));
+    if (this.checkpoints.length) {
+      const back = element('button', 'Return to previous checkpoint');
+      back.onclick = () => {
+        const previous = this.checkpoints.pop();
+        this.tab = previous.tab;
+        this.includeAssociations = previous.associations;
+        this.focusRecord = previous.context.targetId;
+        this.context = previous.context;
+        this.navigate();
+      };
+      root.append(back);
+    }
     this.renderForm(root, context);
     this.renderTabs(root);
 
