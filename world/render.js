@@ -1,3 +1,4 @@
+import {mountUnknowns} from './unknowns/map.js';
 import {mountDistrictTitle} from './district-title.js';
 import {mountInfrastructureScanner} from './infrastructure-scanner.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
@@ -2134,6 +2135,8 @@ async function publishSyntheticJournalsForDay(day) {
   }
 }
 
+const unknownsMap=!embedMode?mountUnknowns({container:$('top'),getData:()=>({scope:livingWorld?.active?'world-population':'world-legacy',entities:town.buildings.map(b=>({id:String(b.id)})),metadata:null})}):null;
+addEventListener('pagehide',()=>unknownsMap?.destroy(),{once:true});
 const infrastructureScanner=!embedMode?mountInfrastructureScanner({container:$('top'),canvas:renderer.domElement,
  getData:()=>({source:town.source,roads:town.roads}),toGround:event=>{
  const rect=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();
