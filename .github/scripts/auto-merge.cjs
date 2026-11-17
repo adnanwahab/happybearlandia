@@ -126,8 +126,9 @@ async function assessPullRequest({ github, number }) {
   if (typeof pr.changed_files !== 'number' || files.length !== pr.changed_files) return skip('changed-file inventory is incomplete');
   const paths = files.flatMap(file => [file.filename, file.previous_filename].filter(Boolean));
   if (paths.some(path => path.startsWith('.github/') || /(^|\/)AGENTS\.md$/.test(path))) return skip('workflow or agent-instruction changes require manual review');
-  if (paths.some(path => path.startsWith('.mini-symphony-evidence/') ||
-      /(^|\\/)(test-results|playwright-report)\\//.test(path))) {
+  if (paths.some(path =>
+    path.startsWith('.mini-symphony-evidence/') ||
+    path.split('/').some(segment => segment === 'test-results' || segment === 'playwright-report'))) {
     return skip('generated browser evidence needs preservation outside PR Git history');
   }
 
