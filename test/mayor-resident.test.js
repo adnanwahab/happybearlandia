@@ -1,0 +1,27 @@
+import {test,expect} from 'bun:test';
+import {createMayorResidentHandler} from '../world/mayor-resident/api.js';
+import {runExercise,VERSION} from '../world/mayor-resident/model.js';
+const setup=async(options={})=>{const handle=createMayorResidentHandler(options);const call=async(id='',key='',method='GET',body)=>{const response=await handle(new Request('http://localhost/api/mayor-resident'+(id?'/'+id:''),{method,headers:{authorization:'Bearer '+key},...(body!==undefined?{body:JSON.stringify(body)}:{})}));return {status:response.status,data:await response.json()};};const {data:room}=await call('','','POST',{});return {call,room};};
+test('authoritative shared exercise, denial, strict input, immutable matched receipt and deletion',async()=>{
+ const {call,room:r}=await setup();let revision=0;
+ const post=(key,action,value)=>call(r.id,key,'POST',{revision,action,...(value!==undefined?{value}:{})});
+ expect((await call(r.id,'wrong')).status).toBe(403);
+ expect((await post(r.residentKey,'policy','voucher')).status).toBe(403);
+ expect((await post(r.mayorKey,'strategy','conserve')).status).toBe(403);
+ expect((await post(r.residentKey,'run')).status).toBe(422);
+ expect((await post(r.mayorKey,'policy','invented')).status).toBe(422);
+ expect((await call(r.id,r.mayorKey,'POST',{revision,action:'policy',value:'voucher',outcomes:{savings:1e9}})).status).toBe(400);
+ expect((await post(r.mayorKey,'policy','voucher')).status).toBe(200);revision++;
+ expect((await call(r.id,r.residentKey,'POST',{revision:0,action:'strategy',value:'conserve'})).status).toBe(409);
+ expect((await post(r.residentKey,'strategy','conserve')).status).toBe(200);revision++;
+ expect((await post(r.mayorKey,'run')).status).toBe(403);
+ const result=await post(r.residentKey,'run');expect(result.status).toBe(200);revision++;
+ expect(result.data.receipt.success).toBe(true);expect(result.data.receipt.deltaSavings).toBe(300);
+ const mayor=await call(r.id,r.mayorKey);expect(mayor.data.receipt).toEqual(result.data.receipt);expect(mayor.data.modelVersion).toBe(VERSION);expect(mayor.data.checkpoint).toBe(result.data.checkpoint);
+ expect((await post(r.mayorKey,'policy','unchanged')).status).toBe(409);
+ expect((await call(r.id,r.residentKey,'DELETE')).status).toBe(200);expect((await call(r.id,r.mayorKey)).status).toBe(404);
+});
+test('two-party role switch preserves checkpoint and enforces new roles',async()=>{const {call,room:r}=await setup();const switchRole=(key,revision)=>call(r.id,key,'POST',{action:'switch',revision});await switchRole(r.mayorKey,0);expect((await call(r.id,r.mayorKey)).data.role).toBe('mayor');await switchRole(r.residentKey,1);expect((await call(r.id,r.mayorKey)).data.role).toBe('resident');expect((await call(r.id,r.mayorKey,'POST',{action:'policy',value:'voucher',revision:2})).status).toBe(403);expect((await call(r.id,r.residentKey,'POST',{action:'policy',value:'voucher',revision:2})).status).toBe(200);});
+test('expiry, restart and capacity explicitly withhold outcomes',async()=>{let time=0;const {call,room:r}=await setup({now:()=>time,maxRooms:1});expect((await call('','','POST',{})).status).toBe(429);time=3600001;expect((await call(r.id,r.mayorKey)).status).toBe(404);expect((await setup()).room.id).not.toBe(r.id);});
+test('deterministic replay, fixed strategy control and non-success boundary',()=>{for(const policy of ['unchanged','voucher'])for(const strategy of ['usual','conserve']){expect(runExercise(policy,strategy)).toEqual(runExercise(policy,strategy));expect(runExercise(policy,strategy).inputs.seed).toBe(42);}expect(runExercise('unchanged','usual').success).toBe(false);expect(runExercise('voucher','conserve').control).toEqual(runExercise('unchanged','conserve').selected);expect(()=>runExercise('other','usual')).toThrow();});
+test('cross-origin mutation and malformed creation rejected; reads never leak keys',async()=>{const handler=createMayorResidentHandler();const cross=await handler(new Request('http://localhost/api/mayor-resident',{method:'POST',headers:{origin:'https://elsewhere.example'},body:'{}'}));expect(cross.status).toBe(403);const bad=await handler(new Request('http://localhost/api/mayor-resident',{method:'POST',body:'{"seed":1}'}));expect(bad.status).toBe(400);const {call,room:r}=await setup();const view=await call(r.id,r.mayorKey);expect(JSON.stringify(view)).not.toContain(r.residentKey);expect(JSON.stringify(view)).not.toContain(r.mayorKey);});

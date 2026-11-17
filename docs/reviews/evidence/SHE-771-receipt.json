@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "local-verification.v1",
+  "runtime": "1.4.2",
+  "sourceHashes": {
+    "world/mayor-resident/model.js": "170f1d8fbad3dc07c652dede1fb1f5fa08583333825b1b8fd09506fb46dd2530",
+    "world/mayor-resident/api.js": "05fed1ccb351c423d39f32046c349deda4a7394dadb8ef83fa293c43a5b82bd0",
+    "world/mayor-resident/page.js": "f4a0cda33f435f5927d0b0622669d9ef6b73942771f4aab77c1f46aa455b4e28",
+    "test/mayor-resident.test.js": "705d5a936778a28efbc04e6c7d384888ad805e84fef0db027f71997862c2ac1e"
+  },
+  "deterministicReplayEqual": true,
+  "receipt": {
+    "modelVersion": "mayor-resident.1.0.0",
+    "rulesVersion": "mayor-resident.1.0.0",
+    "checkpoint": "exercise-household-1:month-0",
+    "inputs": {
+      "householdId": "exercise-household-1",
+      "seed": 42,
+      "month": 0,
+      "income": 4000,
+      "rent": 1800,
+      "expenses": 1800,
+      "savings": 2400
+    },
+    "policy": "voucher",
+    "strategy": "conserve",
+    "shock": 39,
+    "control": {
+      "month": 1,
+      "rent": 1800,
+      "expenses": 1689,
+      "balance": 511,
+      "savings": 2911,
+      "publicCost": 0
+    },
+    "selected": {
+      "month": 1,
+      "rent": 1500,
+      "expenses": 1689,
+      "balance": 811,
+      "savings": 3211,
+      "publicCost": 300
+    },
+    "deltaSavings": 300,
+    "success": true,
+    "provenance": {
+      "classification": "authored synthetic assumptions",
+      "source": "world/mayor-resident/model.js",
+      "unit": "illustrative USD per modeled month",
+      "comparison": "Same checkpoint, seed, household strategy and expense draw; only policy differs",
+      "limitations": "No empirical calibration, housing allocation, wellbeing or City/Population identity mapping. Conserving assumes $150 lower spending without modeled welfare effects. Success is an authored $500 monthly balance target."
+    }
+  },
+  "browserVerified": false
+}

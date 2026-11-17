@@ -1,3 +1,5 @@
+import {createMayorResidentHandler} from './world/mayor-resident/api.js';
+const handleMayorResident=createMayorResidentHandler();
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
@@ -574,6 +576,7 @@ const server = serve({
     if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
     if (["/api/date-mystery/status","/api/date-mystery/generate"].includes(pathname)) return handleDateMystery(request);
     if (pathname === "/api/session-survey") return handleSessionSurvey(request);
+    if (under(pathname, "/api/mayor-resident")) return handleMayorResident(request);
     if (pathname === "/api/world-questions") return handleOpenQuestions(request);
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
     if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);
@@ -588,6 +591,7 @@ const server = serve({
     if (/^\/r\/[A-Za-z0-9_-]{8,16}\/?$/.test(pathname)) return serveFile("./world/reality-compiler.html");
     if (["/change", "/reality-compiler", "/city-speaks"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/reality-compiler.html");
     // Bar night is an independent social scene with its own local progress.
+    if (pathname === "/world/mayor-resident" || pathname === "/world/mayor-resident/") return serveFile("./world/mayor-resident/index.html");
     if (/^\/world\/bar\/?$/.test(pathname)) return serveFile("./world/bar/index.html");
     // House mode observes/restores the same saved population authority as /world.
     // Asset URLs in this entry point are absolute so household IDs are not directories.

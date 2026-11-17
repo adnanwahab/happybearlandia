@@ -1,0 +1,31 @@
+bun test v1.4.2 (744846f84)
+
+test/mayor-resident.test.js:
+(pass) authoritative shared exercise, denial, strict input, immutable matched receipt and deletion [1.38ms]
+(pass) two-party role switch preserves checkpoint and enforces new roles [0.10ms]
+(pass) expiry, restart and capacity explicitly withhold outcomes [0.06ms]
+(pass) deterministic replay, fixed strategy control and non-success boundary [0.06ms]
+(pass) cross-origin mutation and malformed creation rejected; reads never leak keys [0.06ms]
+
+test/challenge-contract.test.js:
+(pass) challenge freezes exact state/seed/location/action costs/metrics and survives local encoding [5.18ms]
+(pass) equal action selections cannot claim to beat the same actual replay [13.04ms]
+(pass) capital budget uses complete actual spending rather than final accumulator, treasury, debt or revenue [7.83ms]
+(pass) candidate initial, seed, budget, outcome and cost overrides reject [4.97ms]
+(pass) tampered frozen inputs or definitions fail transport-integrity checks [2.04ms]
+(pass) incomplete or final-only capital records never become a cumulative budget [0.05ms]
+(pass) missing trip observations remain unavailable and canceled replays never claim a score [6.78ms]
+(pass) unsupported engines, metrics and unspecified capital caps refuse without assigning fictional budgets [0.60ms]
+(pass) a genuine evaluated housing improvement can beat the frozen reference within actual capital budget [32.28ms]
+(pass) floating-point currency dust does not fail an exact decimal cap; recorded spending stays unrounded [7.67ms]
+
+test/challenge-ui.test.js:
+(pass) challenge links retain frozen seed, geometry, cap and objective definitions through compression [3.94ms]
+(pass) district policy menu has three bounded alternatives and an enforceable allocation cap [0.27ms]
+(pass) each district policy replays deterministically against an unchanged same-seed control [107.08ms]
+(pass) imported frozen challenge verifies actual spending despite a larger delayed authorization [17.29ms]
+
+ 19 pass
+ 0 fail
+ 137 expect() calls
+Ran 19 tests across 3 files. [227.00ms]

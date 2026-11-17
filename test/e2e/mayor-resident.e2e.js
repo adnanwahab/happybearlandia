@@ -1,0 +1,19 @@
+import {test,expect} from '@playwright/test';
+test('two roles share a sealed result, switch, and delete through normal entry',async({page,context})=>{
+ await page.goto('/world/challenges.html');await page.getByRole('link',{name:'Open the private two-player exercise'}).click();
+ await page.getByRole('button',{name:'Create private exercise'}).click();await expect(page.locator('#keys')).toContainText('Resident key:');
+ const keys=await page.locator('#keys').innerText(),id=await page.locator('#room').inputValue(),residentKey=keys.match(/Resident key: (.+)/)[1];
+ await page.getByRole('button',{name:'Open / refresh exercise'}).click();await expect(page.locator('#identity')).toContainText('Role: mayor');await expect(page.locator('#strategy-box')).toBeDisabled();
+ const resident=await context.newPage();await resident.goto('/world/mayor-resident/index.html');await resident.locator('#room').fill(id);await resident.locator('#key').fill(residentKey);await resident.locator('#open').click();await expect(resident.locator('#policy-box')).toBeDisabled();
+ await page.locator('#policy').selectOption('voucher');await page.locator('#choose-policy').click();await expect(page.locator('#identity')).toContainText('revision 1');
+ await resident.locator('#open').click();await expect(resident.locator('#identity')).toContainText('revision 1');await resident.locator('#strategy').selectOption('conserve');await resident.locator('#choose-strategy').click();await expect(resident.locator('#identity')).toContainText('revision 2');await resident.locator('#run').click();await expect(resident.locator('#status')).toContainText('target met');
+ await page.locator('#open').click();await expect(page.locator('#result')).toContainText('"deltaSavings": 300');
+ const a=JSON.parse(await page.locator('#result').innerText()),b=JSON.parse(await resident.locator('#result').innerText());expect(a.receipt).toEqual(b.receipt);
+ await page.locator('#switch').click();await expect(page.locator('#status')).toContainText('Role switch requested');await resident.locator('#open').click();await expect(resident.locator('#status')).toContainText('Role switch requested');await resident.locator('#switch').click();await expect(resident.locator('#identity')).toContainText('Role: mayor');await page.locator('#open').click();await expect(page.locator('#identity')).toContainText('Role: resident');
+ await page.screenshot({path:'.mini-symphony-evidence/SHE-771-exercise-desktop.png',fullPage:true});
+ await resident.locator('#delete').click();await expect(resident.locator('#status')).toContainText('deleted');await page.locator('#open').click();await expect(page.locator('#status')).toContainText('missing, expired or deleted');
+});
+test('mobile keyboard and reduced motion, denial and missing choices',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/world/mayor-resident/index.html');await page.locator('#create').focus();await page.keyboard.press('Enter');await expect(page.locator('#keys')).toContainText('Resident key:');const key=(await page.locator('#keys').innerText()).match(/Resident key: (.+)/)[1];await page.locator('#key').fill(key);await page.locator('#open').focus();await page.keyboard.press('Enter');await expect(page.locator('#identity')).toContainText('Role: resident');await page.locator('#run').focus();await page.keyboard.press('Enter');await expect(page.locator('#status')).toContainText('Both choices required');
+ await page.locator('#key').fill('wrong');await page.locator('#open').click();await expect(page.locator('#status')).toContainText('Access denied');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'.mini-symphony-evidence/SHE-771-exercise-mobile.png',fullPage:true});
+});
