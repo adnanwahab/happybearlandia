@@ -54,7 +54,7 @@ test('app publishes one issue and draft PR from an already-pushed scoped branch'
   const publisher=createGitHubPatchPublisher({appId:'101',installationId:'202',privateKey,fetchImpl:fake});
   const issue=await publisher.publishIssue(task);
   expect(issue.issueNumber).toBe(14);
-  const pr=await publisher.publishDraft(task,branch);
+  const pr=await publisher.publishDraft(task,branch,sha);
   expect(pr).toMatchObject({prNumber:21,status:'draft',headSha:sha});
   const created=calls.find(x=>x.url.endsWith('/pulls') && x.method==='POST');
   expect(created.json.draft).toBe(true);
@@ -67,6 +67,6 @@ test('app never creates a PR for an unapproved task', async () => {
   let called=false;
   const publisher=createGitHubPatchPublisher({appId:'101',installationId:'202',privateKey,
     fetchImpl:async()=>{ called=true; throw Error('should never be called'); }});
-  await expect(publisher.publishDraft({...task,source:'player-suggestion'},branch)).rejects.toThrow();
+  await expect(publisher.publishDraft({...task,source:'player-suggestion'},branch,sha)).rejects.toThrow();
   expect(called).toBe(false);
 });
