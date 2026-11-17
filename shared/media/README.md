@@ -116,3 +116,9 @@ Verification: `bun test test/motion.test.js`; browser checks:
 keyboard, live OS reduction, canonical computed values and desktop/mobile image
 capture on all three normal routes. Screenshot capture is evidence only when the
 suite actually runs, not when a test is merely added.
+
+Preference compatibility: missing/throwing `matchMedia` uses still presentation;
+legacy MediaQueryList `addListener`/`removeListener` remains supported. Unavailable
+local storage does not prevent live controls. The World scene now shares this
+preference for arrival, legacy follow, presets and onboarding guidance. This does
+not certify every animation in every surface; SHE-632 records remaining coverage.

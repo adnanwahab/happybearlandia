@@ -302,3 +302,23 @@ ID-buffer readback: transparent fragment discard, antialiasing and asynchronous
 asset/geometry replacement can differ from exact raster pixels. Full GPU/browser
 acceptance, including streaming and mode changes during freeze, remains pending;
 see `docs/reviews/SHE-659.md`.
+
+## Still scene context (SHE-632)
+
+The native Reduce scene motion checkbox in World controls uses the shared
+`hbl-media-v1` system/reduce preference. OS reduction always wins. Arrival cuts
+to its existing destination immediately, including a live reduction during the
+flight; manual pointer or navigation-key interruption cancels that arrival.
+Orbit damping is disabled while reduced. Legacy resident Follow frames once,
+retaining selection, its static ring and inspector, and preserves follow-button
+focus when its label is refreshed. Camera presets and onboarding guidance read
+the same live preference. A nonmodal context card explains these equivalents;
+it has no animation or focus transfer. All are presentation changes only.
+
+This is a bounded legacy-World increment. Living Population follow and other
+surfaces are not certified by this change. Unsupported WebGPU still follows the
+existing city-view fallback and does not mount this Three camera card. Tests:
+`bun test test/scene-motion.test.js test/motion.test.js test/world-visual-camera.test.js
+ test/camera-presets.test.js test/media-pipeline.test.js`; normal-entry browser
+candidate: `bunx playwright test --config test/scene-motion.browser.config.js`.
+See `docs/reviews/SHE-632.md` for actual evidence and remaining prerequisites.

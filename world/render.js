@@ -1,3 +1,5 @@
+import {createMediaPreferences} from '../shared/media/preferences.js';
+import {createSceneArrival,mountSceneContext} from './scene-motion.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
 import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
@@ -189,18 +191,21 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 30, 0);
 controls.maxPolarAngle = Math.PI * 0.47;
 controls.enableDamping = true;
-// Arrival is visual only; the selected URL is the simulation authority.
-if(params.get('arrival')==='1'&&matchMedia('(prefers-reduced-motion: reduce)').matches){camera.position.set(22,18,32);controls.target.set(0,8,0);}
-let arrivalStart=null,arrivalDone=params.get('arrival')!=='1'||matchMedia('(prefers-reduced-motion: reduce)').matches;
-function updateArrival(now){
-  if(arrivalDone)return;
-  arrivalStart??=now;
-  const t=Math.min(1,(now-arrivalStart)/2600),ease=1-Math.pow(1-t,3);
-  camera.position.set(320*(1-ease)+22*ease,3000*(1-ease)+18*ease,450*(1-ease)+32*ease);
-  controls.target.set(0,8,0);
-  if(t===1)arrivalDone=true;
-}
-renderer.domElement.addEventListener('pointerdown',()=>{arrivalDone=true;},{once:true});
+// Presentation preferences never change the selected URL or simulation clock.
+const scenePreferences=createMediaPreferences(window);
+const sceneContext=!embedMode?mountSceneContext({container:$('top'),preferences:scenePreferences}):null;
+const reducedSceneMotion=()=>scenePreferences.get().reducedMotion;
+const arrival=createSceneArrival({camera,controls,enabled:params.get('arrival')==='1',reducedMotion:reducedSceneMotion});
+const updateArrival=now=>arrival.update(now);
+const stopArrival=()=>arrival.cancel();
+renderer.domElement.addEventListener('pointerdown',stopArrival);
+const stopArrivalKey=e=>{if(['Escape','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))stopArrival();};
+addEventListener('keydown',stopArrivalKey);
+const offSceneMotion=scenePreferences.subscribe(({reducedMotion})=>{
+  controls.enableDamping=!reducedMotion;
+  if(reducedMotion)arrival.update(performance.now());
+});
+addEventListener('pagehide',()=>{offSceneMotion();sceneContext?.dispose();scenePreferences.dispose();renderer.domElement.removeEventListener('pointerdown',stopArrival);removeEventListener('keydown',stopArrivalKey);},{once:true});
 
 const resizeWorldView = () => {camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);};
 addEventListener("resize",resizeWorldView);
@@ -2425,7 +2430,15 @@ function frame(now) {
     const s = smooth[selected.id];
     ring.visible = true;
     ring.position.set(s.x, 0.3, s.z);
-    if (follow) controls.target.lerp(new THREE.Vector3(s.x, 0, s.z), 0.1);
+    if (follow) {
+      if(reducedSceneMotion()){
+        controls.target.set(s.x,0,s.z);follow=false;
+        const restoreFollowFocus=document.activeElement?.id==='followBtn';
+        renderInspector();
+        if(restoreFollowFocus)$('followBtn')?.focus({preventScroll:true});
+      }
+      else controls.target.lerp(new THREE.Vector3(s.x,0,s.z),.1);
+    }
     const v = new THREE.Vector3(s.x, 12, s.z).project(camera);
     tag.style.display = "block";
     tag.style.left = `${(v.x * 0.5 + 0.5) * innerWidth}px`;
@@ -2649,8 +2662,8 @@ if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
 const cinematicCamera=!embedMode?mountCameraPresets({container:$('top'),camera,controls,canvas:renderer.domElement,
  getBuildings:()=>[...town.buildings,...contextBuildings.values()],
  getSubject:()=>{if(livingWorld?.active)return livingWorld.getCameraSubject();if(selected?.type!=='person')return null;const p=smooth[selected.id];return p?{key:'legacy:'+String(town.people[selected.id].id??selected.id),position:{x:p.x,y:0,z:p.z}}:null;},
- stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
- reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
+ stopGuidance:()=>{arrival.cancel();follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
+ reducedMotion:reducedSceneMotion}):null;
 addEventListener('pagehide',()=>cinematicCamera?.dispose(),{once:true});
 
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
@@ -2662,7 +2675,7 @@ requestAnimationFrame(frame);
 if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark){
   const integrationStyles=document.createElement('link');integrationStyles.rel='stylesheet';integrationStyles.href=new URL('./onboarding/integration.css',import.meta.url).href;document.head.append(integrationStyles);
   const feedbackAdapter=createFeedbackAdapter();
-  const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reducedMotion=reducedSceneMotion;
   const residentById=id=>town.people.find(p=>String(p.id)===String(id));
   const residentPosition=id=>{if(livingWorld?.active)return null;const p=residentById(id);return p&&Number.isFinite(p.x)&&Number.isFinite(p.z)?{x:p.x,y:0,z:p.z}:null;};
   visualPanels=createPanelManager({document,onChange:({active,previous})=>{if(!active&&previous)queueMicrotask(()=>{if(document.activeElement===document.body||!document.activeElement?.getClientRects().length)$('world-guide-button')?.focus();});}});
