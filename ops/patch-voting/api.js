@@ -88,7 +88,7 @@ export function createPatchVotingStore(options = {}) {
     'CREATE TABLE IF NOT EXISTS github_patch (candidate_id TEXT PRIMARY KEY, pr_number INTEGER NOT NULL, pr_url TEXT NOT NULL, head_sha TEXT NOT NULL, status TEXT NOT NULL, ci_status TEXT NOT NULL, updated_at INTEGER NOT NULL)',
     'CREATE TABLE IF NOT EXISTS impact_evidence (candidate_id TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at INTEGER NOT NULL)'
   ].join(';') + ';');
-  for (const column of ['kind TEXT NOT NULL DEFAULT \'idea\'', 'replay_seed TEXT', 'merged_into TEXT']) {
+  for (const column of ['kind TEXT NOT NULL DEFAULT \'idea\'', 'replay_seed TEXT', 'merged_into TEXT', 'world_context TEXT']) {
     const name = column.split(' ')[0];
     if (!db.query('PRAGMA table_info(suggestion)').all().some(row => row.name === name)) db.exec('ALTER TABLE suggestion ADD COLUMN ' + column);
   }
@@ -131,14 +131,21 @@ export function createPatchVotingStore(options = {}) {
     if (value === 0) db.query('DELETE FROM vote WHERE candidate_id=? AND voter_key=?').run(id, voterKey);
     else db.query('INSERT INTO vote (candidate_id,voter_key,value,updated_at) VALUES (?,?,?,?) ON CONFLICT(candidate_id,voter_key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at').run(id, voterKey, value, clock());
   });
-  const suggest = db.transaction((voterKey, title, details, kind = 'idea', replaySeed = null) => {
+  const suggest = db.transaction((voterKey, title, details, kind = 'idea', replaySeed = null, worldContext = null) => {
+    if (worldContext !== null && (typeof worldContext !== 'object' || Array.isArray(worldContext) ||
+      Object.keys(worldContext).some(key => !['universeId','worldId','scenarioId','seed'].includes(key)) ||
+      !Object.values(worldContext).every(value => typeof value === 'string' && value.length <= 128 &&
+        /^[A-Za-z0-9:_.-]*$/.test(value)))) {
+      throw error(400, 'Invalid World context.');
+    }
     if (!['idea', 'problem', 'confusing', 'favorite'].includes(kind)) throw error(400, 'Invalid feedback kind.');
     if (replaySeed !== null && (kind !== 'problem' || !validString(replaySeed, 1, 128))) throw error(400, 'Replay seed must be 1–128 characters on a problem report.');
     if (!validString(title, 8, 100) || !validString(details, 12, 800)) throw error(400, 'Title must be 8–100 characters and details 12–800 characters.');
     throttle(voterKey, 'suggest', 3, 86400000);
     const id = randomUUID();
     db.query('INSERT INTO suggestion (id,voter_key,title,details,created_at,status) VALUES (?,?,?,?,?,?)').run(id, voterKey, title.trim(), details.trim(), clock(), 'pending');
-    db.query('UPDATE suggestion SET kind=?,replay_seed=? WHERE id=?').run(kind, replaySeed, id);
+    db.query('UPDATE suggestion SET kind=?,replay_seed=?,world_context=? WHERE id=?').run(
+      kind, replaySeed, worldContext ? JSON.stringify(worldContext) : null, id);
     return { id, status: 'pending' };
   });
   return {
@@ -183,7 +190,7 @@ export function createPatchVotingStore(options = {}) {
       db.query("UPDATE suggestion SET status='merged',merged_into=? WHERE id=?").run(target, source);
     }),
     triageVotes: () => list().map(({yourVote, ...item}) => ({...item, status: 'pending', advisory: true})),
-    listSuggestions: () => db.query('SELECT id,title,details,created_at,status,kind,replay_seed,merged_into FROM suggestion ORDER BY created_at DESC LIMIT 200').all(),
+    listSuggestions: () => db.query('SELECT id,title,details,created_at,status,kind,replay_seed,merged_into,world_context FROM suggestion ORDER BY created_at DESC LIMIT 200').all(),
     close: () => db.close()
   };
 }
@@ -228,9 +235,9 @@ export function createPatchVotingHandler(options = {}) {
       }
       if (pathname === '/api/patch-votes/suggestions') {
         const body = await readBody(request);
-        if (Object.keys(body).some(key => !['title', 'details', 'kind', 'replaySeed', 'consent'].includes(key))) throw error(400, 'Unexpected suggestion field.');
+        if (Object.keys(body).some(key => !['title', 'details', 'kind', 'replaySeed', 'worldContext', 'consent'].includes(key))) throw error(400, 'Unexpected suggestion field.');
         if (body.consent !== true) throw error(400, 'Explicit consent required.');
-        return json({ message: 'Feedback sent for moderation; it is not an agent instruction.', ...store.suggest(voterKey, body.title, body.details, body.kind, body.replaySeed) }, 202, setCookie);
+        return json({ message: 'Feedback sent for moderation; it is not an agent instruction.', ...store.suggest(voterKey, body.title, body.details, body.kind, body.replaySeed, body.worldContext ?? null) }, 202, setCookie);
       }
       return json({ error: 'Not found.' }, 404);
     } catch (e) {
