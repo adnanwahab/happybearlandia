@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 
 const baseURL = 'http://127.0.0.1:54388';
@@ -20,7 +19,9 @@ export default defineConfig({
     },
   },
   webServer: {
-    cwd: fileURLToPath(new URL('..', import.meta.url)),
+    // Repository-root invocation matches the other browser configs and works
+    // when Playwright loads this .js config as CommonJS on CI Node.
+    cwd: process.cwd(),
     command: 'bun --no-env-file run server.js',
     env: { PORT: '54388', HBL_WORLD_DB_PATH: ':memory:' },
     url: baseURL,
