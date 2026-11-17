@@ -1,3 +1,4 @@
+import { mountAblation } from './ablation-view.js';
 import { mountRotationTheater } from './rotation-theater.js';
 import { createEditHistory } from './edit-history.js';
 import { mountPrediction } from './prediction.js';
@@ -45,6 +46,7 @@ let constructionView = null, worldTools = null, advancedStudio = null;
 const scenario = () => state.scenarios.find(s => s.id === state.selected);
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
 const status = (message, error = false) => { $('#app-status').textContent = message; $('#app-status').classList.toggle('error', error); if (error) { state.errors.push(message); diagnostics.update({ ...(state.results || {}), apiErrors: state.errors }); } };
+const ablation = mountAblation($('#erase-one'), { client, getContext: () => ({ experiment: state.experiment, readonly: state.readonly, busy: state.busy }) });
 const prediction = mountPrediction($('#policy-prediction'), { getInput: () => { const input = currentInput(); try { return normalizeDecisionInput(input, activeModel); } catch { return input; } }, unavailable: () => state.busy || state.readonly });
 const rotationTheater = mountRotationTheater($('#rotation-theater'));
 const visuals = mountDecisionVisualizations($('#decision-visualizations'), { onSelectRun: selectRun, onEnterFuture: enterFuture });
@@ -323,12 +325,12 @@ function useExample() {
 }
 
 function setBusy(busy) {
-  state.busy = busy; updateEditHistory(); updateAdvancedStudio(); $('#run-experiment').disabled = busy || state.readonly; $('#cancel-experiment').disabled = !busy || state.readonly || state.experiment?.status !== 'running';
+  state.busy = busy; ablation.update(); updateEditHistory(); updateAdvancedStudio(); $('#run-experiment').disabled = busy || state.readonly; $('#cancel-experiment').disabled = !busy || state.readonly || state.experiment?.status !== 'running';
   $('#save-experiment').disabled = busy || state.readonly; $('#try-example').disabled = busy;
 }
 function successfulRuns(runs = []) { return runs.filter(run => ['completed', 'successful', 'succeeded'].includes(run.status) && !run.error && run.metrics && Object.values(run.metrics).some(Number.isFinite)); }
 function renderResults(result) {
-  state.experiment = result.experiment || state.experiment;
+  state.experiment = result.experiment || state.experiment; ablation.update();
   runTraces.setExperiment(state.experiment?.id || null);
   const summaryRows = successfulRuns(result.runs);
   const data = { ...result, experiment: state.experiment, runs: summaryRows.map(row=>mergeRunTrace(row,runTraces.peek(state.experiment.id,row.id))), previousResults: state.previousResults, model: result.model || resolveHousingModel(state.experiment?.modelVersion || activeModel.version).model, readOnly: state.readonly, evidence: state.evidence, apiErrors: state.errors };
@@ -388,7 +390,7 @@ async function runExperiment({ preview = false, reproduction = null } = {}) {
 let activeRequest = 0;
 function updateExperimentUrl(id) { const url = new URL(location.href); url.searchParams.set('experiment', id); url.searchParams.delete('project'); url.searchParams.delete('demo'); url.searchParams.delete('share'); if (!state.readonly) url.searchParams.delete('readonly'); history.replaceState(null, '', url); }
 function setReadonly(value) {
-  state.readonly = value; worldTools?.update({readOnly: value}); document.body.classList.toggle('readonly', value); $('#readonly-banner').hidden = !value; applyReadonly();
+  state.readonly = value; ablation.update(); worldTools?.update({readOnly: value}); document.body.classList.toggle('readonly', value); $('#readonly-banner').hidden = !value; applyReadonly();
   if (state.results) trust.update({ ...state.results, readOnly: value });
   updateAdvancedStudio();
 }
@@ -750,6 +752,7 @@ on('apply-import', () => {
 });
 function resetResults() {
   clearTimeout(previewTimer); stopConstructionPlayback(); constructionRun = null; constructionMonth = 0; worldPreview = null; worldVisualPreview = null; state.watch?.destroy(); activeRequest++; runTraces.clear();traceSelectionToken++;automaticTraceKey=null;state.summaryResults=null;state.tracePending=false;state.traceError=null; state.experiment = null; state.results = null; state.previousResults = null; state.selectedRun = null; state.hasRun = false; state.dirty = false; state.preview = false;
+  ablation.update();
   const empty = { experiment: null, runs: [], aggregates: [], comparisons: [], model: housingModel, evidence: state.evidence };
   badges.update(empty); visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
   $('#share-experiment').disabled = $('#download-manifest').disabled = $('#reproduce-experiment').disabled = true;
