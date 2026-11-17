@@ -474,6 +474,14 @@ const server = serve({
     if (pathname === "/tools/operations-observatory") return Response.redirect(new URL("/tools/operations-observatory/",request.url),302);
     const admission=admitSimulation(request,server.requestIP(request)?.address);
     if(admission)return admission;
+    // Exact public media allowlist; do not expose arbitrary repository files.
+    if (pathname === '/preview.mp4' || pathname === '/preview.jpg') {
+      const file = Bun.file(`.${pathname}`);
+      return await file.exists() ? new Response(file, { headers: {
+        'content-type': pathname.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg',
+        'cache-control': 'public, max-age=3600',
+      } }) : notFound();
+    }
     if (pathname === "/api/health" || pathname === "/api/ready" || pathname === "/api/demo/ready") return handleReleaseHealth(request);
     if (pathname === "/api/law-behavior") return handleLawBehavior(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
