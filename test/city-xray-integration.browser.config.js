@@ -1,0 +1,4 @@
+import {defineConfig} from '@playwright/test';
+import {createBrowserEnvironment} from './support/browser-environment.js';
+const {baseURL,serverEnv,descriptor}=createBrowserEnvironment({name:'city-xray-integration',portEnv:'HBL_XRAY_TEST_PORT'});
+export default defineConfig({globalSetup:'./support/browser-global-setup.js',metadata:{browserEnvironments:[descriptor]},testDir:'./e2e',testMatch:'city-xray-integration.e2e.js',workers:1,timeout:60000,expect:{timeout:20000},outputDir:process.env.XRAY_ARTIFACTS||'/private/tmp/SHE1048-browser',use:{baseURL,browserName:'chromium',channel:'chrome',launchOptions:{args:['--enable-unsafe-webgpu']},trace:'retain-on-failure'},webServer:{cwd:require('node:path').resolve(__dirname,'..'),command:'bun --no-env-file server.js',url:baseURL+'/api/health',env:serverEnv,reuseExistingServer:false,timeout:60000}});

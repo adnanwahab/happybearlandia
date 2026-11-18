@@ -1,9 +1,15 @@
+import {installPresentationHost} from './city-xray/render-host.js';
 import { WebGPURenderer, ACESFilmicToneMapping } from 'three/webgpu';
 
 /** One native backend, shared by every World mode. */
 export async function createWorldGPU({antialias=true,canvas}={}){
   if(!globalThis.navigator?.gpu)throw new Error('This browser does not expose WebGPU.');
-  return initializeWorldGPU(new WebGPURenderer({antialias,trackTimestamp:true,...(canvas?{canvas}:{})}));
+  // Reuse the entrypoint's native preflight; retain its reference for pagehide cleanup.
+  const prepared=globalThis.window?.hblPreparedWorldGraphics;
+  if(prepared?.renderer.backend?.isWebGPUBackend&&!prepared.claimed){prepared.claimed=true;return prepared;}
+  const graphics=await initializeWorldGPU(new WebGPURenderer({antialias,trackTimestamp:true,...(canvas?{canvas}:{})}));
+  if(globalThis.document?.getElementById('city-xray-toggle'))installPresentationHost(graphics.renderer,{announce:(type,host)=>window.dispatchEvent(new CustomEvent('hbl:world-presentation',{detail:{type,host}}))});
+  return graphics;
 }
 
 /** Kept separate so adapter rejection and partial-device cleanup are testable. */
