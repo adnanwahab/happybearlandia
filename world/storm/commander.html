@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Storm Commander · HappyBearLandia</title><link rel="stylesheet" href="/world/civilization/civilization.css"><link rel="stylesheet" href="./storm.css">
+<script type="module" src="./commander-page.js"></script></head><body><main>
+<nav><a href="./">Back to Sculpt a Storm</a></nav><h1>Storm Commander</h1>
+<p>Protect three blocks. One crew has four preparation shifts before the storm. Budget: 960,000 illustrative USD.</p>
+<p>Synthetic toy model, seed 2911 · storm-neighborhood.v1 · heightfield-water.v1. No measured observations or real forecast. Structural uncertainty is unquantified; one storm is not a probability estimate.</p>
+<p>Scripted challenge: jobs run top to bottom. Standard: 240,000 USD, two shifts. Express: 360,000 USD, one shift. Each installs two existing model drains. Jobs finishing after shift four have no effect; their cost still counts. Preparation shifts have no physical duration.</p>
+<form id="plan"><div id="choices"></div><p id="cost"></p><button>Run challenge</button></form>
+<button id="demo">Load authored demo</button> <button id="cancel" disabled>Cancel</button>
+<button id="replay" disabled>Verify recorded replay</button>
+<p id="status" role="status">Choose a plan. Success requires all three building footprints dry at every recorded storm step.</p>
+<div id="results"></div>
+<label>Recorded storm step <input id="step" type="range" min="0" max="60" value="0" disabled></label>
+<button id="play" disabled>Play recorded steps</button><p id="frame"></p>
+<details><summary>Immutable checkpoint and provenance</summary><pre id="receipt" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></details>
+</main></body></html>
