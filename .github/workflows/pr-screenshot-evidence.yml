@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - name: Check out exact PR head
+      - name: Check out PR merge result
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           path: candidate
           persist-credentials: false
       - name: Check out exact PR base

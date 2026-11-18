@@ -41,7 +41,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Finder (MacOS) folder config
 .DS_Store
 
-# Generated browser evidence belongs to CI artifacts
+# Generated browser evidence belongs in trusted CI artifacts
 /.mini-symphony-evidence/
 **/test-results/
 **/playwright-report/

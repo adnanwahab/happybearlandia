@@ -37,5 +37,6 @@ When independent implementation tasks justify delegation and the environment per
 
 - Review the diff against the request. Run the repository’s relevant tests, existing lint and type checks where available, and integration tests after combining independent changes. Verify important failure paths and fix introduced regressions.
 - Skip Playwright when the change does not affect browser behavior, when the user asks to skip it, or when browser or local server setup blocks the run. For browser-facing changes, use an available browser smoke check or focused integration tests and report what was verified and what remains unverified. If the user explicitly requires Playwright and setup blocks it, report the blocker.
+- Report status, acceptance evidence, unresolved work and PR references in the per-issue review document. The integration coordinator updates shared plans after review.
 - The coordinator updates the implementation plan with actual status, acceptance evidence, unresolved work, and commit or PR references. Issue workers update their per-issue record instead. If a large scope remains, leave a working increment and document its dependencies and limits.
 - Report delivered behavior, changed files, actual check results, material architectural decisions, limitations, and the next action when work remains.

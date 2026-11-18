@@ -1,10 +1,32 @@
 <!doctype html>
 <html lang="en">
 <head>
+<!-- Native cross-document opt-in must exist before delayed external CSS arrives. -->
+<style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
+  <link rel="icon" href="/favicon.ico" sizes="64x64">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Explore HappyBearLandia's apps and tools in embedded previews.">
-  <title>HappyBearLandia — One living world</title>
+  <meta name="description" content="Change one housing decision. Compare two synthetic city futures and inspect why they differ.">
+  <meta property="og:title" content="HappyBearLandia — Explore Possible Futures">
+  <meta property="og:description" content="Build a world. Change the rules. See what happens.">
+  <meta property="og:image" content="https://happybearlandia.fly.dev/preview.jpg">
+  <meta property="og:video" content="https://happybearlandia.fly.dev/preview.mp4">
+  <meta property="og:video:type" content="video/mp4">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://happybearlandia.fly.dev/">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Two modeled city futures compared side by side, with and without a housing plan.">
+  <meta property="og:video:secure_url" content="https://happybearlandia.fly.dev/preview.mp4">
+  <meta property="og:video:width" content="1200">
+  <meta property="og:video:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="HappyBearLandia — Explore Possible Futures">
+  <meta name="twitter:description" content="Build a world. Change the rules. See what happens.">
+  <meta name="twitter:image" content="https://happybearlandia.fly.dev/preview.jpg">
+  <meta name="twitter:image:alt" content="Two modeled city futures compared side by side, with and without a housing plan.">
+  <title>HappyBearLandia — One city, two futures</title>
   <style>
     :root { color-scheme: dark; font: 15px/1.5 system-ui, sans-serif; background: #08111f; color: #edf3fa; }
     * { box-sizing: border-box; }
@@ -22,9 +44,6 @@
     section header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; }
     h2 { font-size: 20px; margin: 0; }
     section header a { flex-shrink: 0; }
-    .evidence-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 16px 24px; padding: 0 22px 20px; }
-    .evidence-links li { margin-inline-start: 1.2em; }
-    .evidence-links p { margin-block-end: 0; }
     iframe { display: block; width: 100%; height: 760px; height: clamp(480px, 82vh, 960px); border: 0; border-block: 1px solid #2b3b51; background: #08111f; }
     .carousel { background: radial-gradient(ellipse at 50% 95%, #203754 0, #0b1525 65%); }
     .carousel > header { flex-wrap: wrap; }
@@ -32,7 +51,7 @@
     .gallery-toolbar { padding: 0 22px 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #9caec4; }
     .gallery-toolbar select { color: #edf3fa; background: #15263d; border: 1px solid #49627f; border-radius: 7px; padding: 9px; max-width: 100%; }
     .carousel-rail { position: relative; display: flex; gap: 30px; overflow-x: auto; overflow-y: hidden; padding: 32px max(18px, calc((100% - clamp(290px, 32vw, 460px)) / 2)) 42px; scroll-snap-type: x mandatory; perspective: 1600px; perspective-origin: 50% 50%; scrollbar-color: #5a82ac #101d2f; scrollbar-width: thin; overscroll-behavior-x: contain; }
-    .gallery-card { flex: 0 0 clamp(290px, 32vw, 460px); min-width: 0; scroll-snap-align: center; border: 1px solid #3c5779; border-radius: 14px; background: #101e31; box-shadow: 0 20px 40px #0006; transform-style: preserve-3d; transform: rotateY(var(--angle, 0deg)) translateZ(var(--depth, 0px)); transition: transform 180ms ease, border-color 180ms; }
+    .gallery-card { flex: 0 0 clamp(290px, 32vw, 460px); min-width: 0; scroll-snap-align: center; border: 1px solid #3c5779; border-radius: 14px; background: #101e31; box-shadow: 0 20px 40px #0006; transform-style: preserve-3d; transform: rotateY(var(--angle, 0deg)) translateZ(var(--depth, 0px)); transition: transform var(--hbl-duration-feedback) var(--hbl-easing-standard), border-color var(--hbl-duration-feedback); }
     .gallery-card.is-current { border-color: #94dbe9; }
     .gallery-card header { padding: 14px; display: block; height: 84px; }
     .gallery-card h3 { font-size: 15px; margin: 0 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -64,29 +83,114 @@
       .carousel-rail { padding-top: 18px; }
     }
   .flagship-demo{display:inline-block;padding:12px 20px;background:#b9f488;color:#142319;border-radius:9px;font-weight:750;text-decoration:none}
+
+    .launch { display: grid; grid-template-columns: 1fr 1.1fr; gap: 40px; align-items: center; margin: 24px 0 36px; }
+    .launch h1 { font-size: clamp(32px, 4vw, 56px); line-height: 1.12; max-width: 22ch; }
+    /* Keep the normal text color as a fallback when text clipping is unavailable. */
+    @supports ((background-clip: text) or (-webkit-background-clip: text)) {
+      .launch h1 {
+        background: linear-gradient(110deg, #ffb8d9, #ffe6b8, #b9f4ce, #b8ddff, #dfb8ff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .launch h1 { animation: title-hues 18s linear infinite; }
+      }
+    }
+    @keyframes title-hues { to { filter: hue-rotate(360deg); } }
+    @media (forced-colors: active) {
+      .launch h1 { background: none; color: CanvasText; animation: none; }
+    }
+    .launch-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .launch-actions a { max-width: 100%; }
+    .launch p { max-width: 56ch; margin: 18px 0; font-size: 17px; }
+    .launch .eyebrow { color: #b9f488; font-size: 12px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    .launch .limits, .launch figcaption { font-size: 13px; color: #b5c5d7; }
+    .launch figure { margin: 0; min-width: 0; }
+    .launch img { display: block; width: 100%; height: 410px; object-fit: cover; object-position: center 20%; border: 1px solid #49627f; border-radius: 12px; }
+    .launch figcaption { padding-top: 12px; }
+    .launch-steps { padding-left: 22px; color: #c8d7e6; }
+    .launch-steps li { margin: 8px 0; }
+    .intro > details { border-top: 1px solid #2b3b51; padding-top: 18px; }
+    .intro summary { cursor: pointer; color: #94dbe9; padding: 8px 0; }
+    @media (max-width: 760px) { .launch { grid-template-columns: 1fr; gap: 24px; } .launch img { height: 300px; } }
+    #surprise-wonder [data-change-world]:not([hidden]) { display: inline-flex; align-items: center; min-height: 44px; }
+    .simulation-faq { padding: clamp(16px, 3vw, 28px); scroll-margin-top: 20px; }
+    .simulation-faq h2 { font-size: 24px; }
+    .simulation-faq h3 { font-size: 18px; line-height: 1.4; margin: 22px 0 6px; }
+    .simulation-faq p { max-width: 72ch; font-size: 16px; line-height: 1.6; }
 </style>
   <link rel="stylesheet" href="/world/universe/shell.css">
+<link rel="stylesheet" href="/world/universe/portal.css">
+<script src="/world/universe/navigation-accessibility.js" defer></script>
+<script src="/world/universe/portal.js" defer></script>
+<script type="module" src="/shared/media/motion-entry.js"></script>
 </head>
 <body>
+  <nav aria-label="Developer previews" style="padding:12px 20px"><a href="/github">GitHub / Try a version</a></nav>
   <header class="intro">
-    <h1>HappyBearLandia</h1>
-    <p>Explore living cities, animated worlds, unusual games, and experiments in possible futures.</p>
-    <p><a class="flagship-demo" href="/world/future-machine.html?demo=1">Play Demo</a> · One City, Two Futures · a reproducible housing comparison</p>
-    <nav aria-label="Explore"><a href="/world/future-machine.html">Future Machine · 10 Years, 2 Futures</a> · <a href="/tools/future-journey.html">Try Today’s Features</a> · <a href="/vote-on-patch">Vote on the next patch</a> · <a href="/world/future-split.html">Future Split Theater</a> · <a href="#evidence-and-futures">Evidence &amp; Futures</a> · <a href="#explore">Explore the worlds</a> · <a href="/world/civilization/">Emergent Civilizations</a> · <a href="/world/laboratory/">Civilization Laboratory</a> · <a href="/world/invention/">City Invention Studio</a> · <a href="/world/hidden-systems/">Hidden Systems</a> · <a href="/world/learning/">Learning Civilization</a> · <a href="/world/storm/">Sculpt a Storm</a> · <a href="/world/storm/response.html">Crisis Control Room</a> · <a href="/world/connected-lives/">Connected Lives</a> · <a href="/tools/simulation-health">Simulation Health</a> · <a href="/routes">Route directory →</a></nav>
+    <div class="launch">
+      <div class="demo-entry">
+        <p class="eyebrow">HappyBearLandia · Start here · Synthetic city demo</p>
+        <h1>Choose a housing policy. Watch two possible futures. Discover why they differ.</h1>
+        <p id="demo-explanation">Watch a guided comparison of ten modeled years with and without a housing plan. Pause to explore the city and inspect why outcomes changed. No setup needed.</p>
+        <p class="launch-actions"><a class="flagship-demo" data-demo-start href="/world/future-machine.html?demo=1" aria-describedby="demo-explanation demo-disclaimer">Try the 60-second simulation <span aria-hidden="true">→</span></a><a href="#explore">Explore all experiments</a></p>
+        <section id="surprise-wonder" hidden aria-label="Discover a curated wonder">
+          <form>
+            <label for="wonder-seed">Selection seed</label>
+            <input id="wonder-seed" type="number" min="0" max="4294967295" step="1" value="42" required style="width:10ch;min-height:44px">
+            <button type="submit" style="min-height:44px">Surprise Me</button>
+          </form>
+          <p>Discover a synthetic city experiment. The selection seed repeats your choice; each preset keeps its own model seed. Choosing stays local and opens nothing until you select Change world.</p>
+          <p role="status" aria-live="polite"></p>
+          <a data-change-world hidden style="min-height:44px"></a>
+        </section>
+        <ol class="launch-steps">
+          <li>Start from the same city and random seed.</li>
+          <li>Watch the housing plan and baseline unfold side by side.</li>
+          <li>Select a changed building or an outcome’s WHY to inspect recorded model evidence.</li>
+        </ol>
+        <p class="limits" id="demo-disclaimer">This is a reproducible synthetic scenario: fictional people and an illustrative city governed by explicit rules. Results depend on the model’s assumptions. They are not predictions of a real city or evidence that a policy will work in practice.</p>
+      </div>
+      <figure>
+        <img src="/data/launch/two-futures.png" width="1440" height="3006" alt="Actual demo capture: baseline buildings beside the housing-plan future, with 24 added homes highlighted in green.">
+        <figcaption>Actual demo capture · Month 120 · seed 42 · city-systems.1.0.0. Synthetic schematic; building heights are illustrative. Preview shows the comparison area of a retained demo screenshot.</figcaption>
+      </figure>
+    </div>
+    <p><a href="/privacy">Privacy &amp; cookies</a> · Browser records, saved simulations and your choices.</p>
+    <div id="onboarding-experiment" data-enabled="true" hidden>
+      <label><input type="checkbox"> Join the optional onboarding experiment</label>
+      <p>Compare two ways to start the same synthetic housing demo. Assignment and interaction records stay in this tab for this session; nothing is uploaded.</p>
+      <p role="status" aria-live="polite"></p>
+      <button type="button" data-export hidden>Download session records</button>
+      <div data-choices hidden><h2>Which policy question would you inspect first?</h2>
+        <p>Both choices open the same housing policy comparison, with identical model inputs and results.</p>
+        <button type="button" data-focus="homes">How many homes can the policy add?</button>
+        <button type="button" data-focus="budget">What does the policy cost?</button>
+      </div>
+    </div>
+    <details><summary>More worlds and tools</summary>
+    <nav aria-label="Explore"><a href="/demo-gallery">Demo gallery</a> · <a href="/world">Open World</a> · <a href="/world/future-machine.html">Future Machine · 10 Years, 2 Futures</a> · <a href="/tools/future-journey.html">Try Today’s Features</a> · <a href="/vote-on-patch">Vote on the next patch</a> · <a href="#simulation-faq">Simulation FAQ</a> · <a href="#explore">Explore the worlds</a> · <a href="/world/civilization/">Emergent Civilizations</a> · <a href="/world/laboratory/">Civilization Laboratory</a> · <a href="/world/invention/">City Invention Studio</a> · <a href="/world/hidden-systems/">Hidden Systems</a> · <a href="/world/learning/">Learning Civilization</a> · <a href="/world/storm/">Sculpt a Storm</a> · <a href="/world/storm/response.html">Crisis Control Room</a> · <a href="/world/connected-lives/">Connected Lives</a> · <a href="/tools/simulation-health">Simulation Health</a> · <a href="/tools/operations-observatory/">Operations Observatory</a> · <a href="/routes">Route directory →</a></nav>
+    </details>
   </header>
   <section id="universe-shell" aria-label="Connected universe"></section>
-  <main>
-    <section id="evidence-and-futures" aria-labelledby="evidence-heading">
-      <header><div><h2 id="evidence-heading">Evidence &amp; Futures</h2><p>Revisit simulation runs, compare outcomes, and inspect the evidence behind them.</p></div></header>
-      <ul class="evidence-links">
-        <li><a href="/world/sprint2/futures.html">Saved Futures Library</a><p>Find saved city runs and open their recorded months in the Time Machine.</p></li>
-        <li><a href="/world/sprint2/delta.html">Two-Month Delta Explorer</a><p>Compare buildings, businesses, and households across two months of a saved City Lab run.</p></li>
-        <li><a href="/world/sprint2/histogram.html">100-Future Outcome Histogram</a><p>Compare a worker’s commute across seed-matched simulated futures.</p></li>
-        <li><a href="/world/sprint2/bakery-export.html">Bakery Evidence Export</a><p>Download the Riverside Bakery comparison and the records needed to replay it.</p></li>
-        <li><a href="/world/sprint2/coverage.html">Causal Evidence Coverage</a><p>See which recorded events and observations have causal links and supporting evidence.</p></li>
-        <li><a href="/world/sprint2/newswire.html">Neighborhood Newswire</a><p>Read simulated news by neighborhood and date, with links to source events.</p></li>
-      </ul>
-    </section>
+  <main aria-label="Route previews">
+<section class="simulation-faq" id="simulation-faq" aria-labelledby="simulation-faq-heading">
+  <h2 id="simulation-faq-heading">Future simulations: questions &amp; limits</h2>
+  <h3>Can this predict what will actually happen?</h3>
+  <p>Use these simulations to explore “what if?” questions under stated rules and assumptions. The Future Machine housing demo uses illustrative, uncalibrated city rules. Its results are modeled possibilities, not reliable forecasts of a real city or person.</p>
+  <h3>What does deterministic mean?</h3>
+  <p>In a deterministic simulation, the same starting state, model and rules versions, inputs, and random seed reproduce the same result. A seed fixes the random choices. Repeatability helps you check a result; it does not prove the assumptions are accurate. This does not apply to every live experience on this site.</p>
+  <h3>Where does uncertainty show up?</h3>
+  <p>Different seeds and assumptions can produce different outcomes. Decision Studio can compare multiple runs; any displayed spread describes those sampled model outcomes, not the odds of a real event. The Future Machine demo compares one matched seed, so it does not measure a range of uncertainty. Missing data and mechanisms remain limits even after many runs.</p>
+  <h3>Are the places and people real?</h3>
+  <p>The Future Machine Riverside preset uses synthetic households, inventory, and a schematic layout. These are not observations of actual residents or building locations. Other views may use sourced geography; a real map does not make the simulated behavior real. Check each view’s sources and assumptions.</p>
+  <h3>Does a better result prove a policy works?</h3>
+  <p>A matched comparison starts alternatives from the same state and seed to explore a supported change. The difference describes what happened inside that model. It does not by itself establish real-world causality, account for every trade-off, or predict an individual’s choices.</p>
+  <h3>How can I check a result?</h3>
+  <p>In <a href="/world/future-machine.html?demo=1">Future Machine</a>, inspect the selected month, entities, and available event evidence, then export the evidence or share the versioned recipe. Check the seed, model version, inputs, units, and limitations. Replay recomputes from the saved manifest; equivalence to independently retained checkpoints has not been verified. Missing records or incompatible versions cannot support an exact replay claim.</p>
+</section>
 <section class="carousel" id="explore" aria-roledescription="carousel" aria-label="Interactive worlds and experiments">
   <header><div><h2 id="experience-count"><span id="gallery-count">31</span> Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
   <div class="gallery-toolbar"><label for="carousel-category">Category</label><select id="carousel-category"><option value="all">All experiences</option><option value="worlds">3D Worlds</option><option value="living">Living Simulations</option><option value="science">GPU Science</option><option value="games">Games</option><option value="tools">Tools</option></select><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Choose Interact to take control of a live preview.</span></div>
@@ -94,6 +198,7 @@
 </section>
 
 <template id="preview-catalog">
+<section data-carousel="worlds" aria-labelledby="future-machine-preview"><header><div><h2 id="future-machine-preview">One City, Two Futures</h2><p>Compare matched monthly City futures and inspect recorded housing outcomes.</p></div><a href="/world/future-machine.html" target="_blank" rel="noopener">Open Future Machine ↗</a></header><iframe src="/world/future-machine.html" title="Future Machine preview" loading="lazy"></iframe><div class="path">/world/future-machine.html</div></section>
 <section data-carousel="worlds" aria-labelledby="route-0">
       <header><div><h2 id="route-0">World</h2><p>Explore the streamed city, its residents, policy tools and saved experiments.</p></div><a href="/world" target="_blank" rel="noopener">Open World ↗</a></header>
       <iframe data-preview-src="/world?embed=1&amp;demo=1&amp;quality=LOW" src="/world" title="World preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
@@ -220,19 +325,27 @@
       <iframe src="/world/decision.html?demo=1#advanced" title="Optimization preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
       <div class="path">/world/decision.html?demo=1#advanced</div>
     </section>
+
+
+
 <section data-carousel="games" aria-labelledby="houston-bars-heading">
   <header><div><h2 id="houston-bars-heading">Houston Bar Atlas</h2><p>Explore OSM-mapped bars and play a fictional, low-fidelity interior scene.</p></div><a href="/world/bars/" target="_blank" rel="noopener">Open Houston Bar Atlas ↗</a></header>
   <iframe src="/world/bars/" title="Houston Bar Atlas preview" loading="lazy"></iframe>
   <div class="path">/world/bars/</div>
 </section>
-
-
-
 </template>
 <noscript><p>Enable JavaScript for interactive previews, or <a href="/routes">browse all routes</a>.</p></noscript>
   </main>
 <script src="/tools/iframe-gallery.js" defer></script>
 <script type="module">import {EXPERIENCES} from "/world/universe/registry.js";document.getElementById("gallery-count").textContent=EXPERIENCES.length;</script>
 <script type="module" src="/world/universe/shell.js"></script>
+<script type="module">import {mountSurprise} from '/world/universe/surprise.js'; mountSurprise(document.querySelector('#surprise-wonder'));</script>
+<script type="module" src="/world/onboarding-experiment/main.js"></script>
+<script type="module">
+import {rememberDemoClick} from '/world/future-machine/demo-performance.js';
+document.querySelector('.flagship-demo')?.addEventListener('click',event=>{
+  if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey)rememberDemoClick();
+});
+</script>
 </body>
 </html>
