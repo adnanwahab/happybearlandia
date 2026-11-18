@@ -60,7 +60,7 @@ export async function recordAll({directory=mkdtempSync(join(tmpdir(),'SHE-1043-p
   console.log(`${id}: ${receipt.job.status} ${receipt.job.completed}/${receipt.job.total} pairs; ${receipt.resultsHash}`);
  }
  const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
- const receipt={schemaVersion:'hbl-demo-local-receipt.v1',testedHead:git('rev-parse','HEAD'),sourceDirty:!!git('status','--porcelain','--','world/policy-preview-demos','test/policy-preview-demos.test.js'),sourceFileHashes:Object.fromEntries(['record.js','catalog.js','index.html','catalog.json',...catalog.demos.map(d=>`${d.id}.json`)].map(file=>[file,createHash('sha256').update(readFileSync(new URL(file,import.meta.url))).digest('hex')])),directory,origin,demos};
+ const receipt={schemaVersion:'hbl-demo-local-receipt.v1',testedHead:git('rev-parse','HEAD'),sourceDirty:!!git('status','--porcelain','--','world/policy-preview-demos','test/policy-preview-demos.test.js'),sourceFileHashes:Object.fromEntries(['record.js','index.html','catalog.json',...catalog.demos.map(d=>`${d.id}.json`)].map(file=>[file,createHash('sha256').update(readFileSync(new URL(file,import.meta.url))).digest('hex')])),directory,origin,demos};
  mkdirSync(output,{recursive:true});const path=join(output,'receipt.json');writeFileSync(path,JSON.stringify(receipt,null,2)+'\n');console.log(`Receipt: ${path}`);return receipt;
 }
 if(import.meta.main){
