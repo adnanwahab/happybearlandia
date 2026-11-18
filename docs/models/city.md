@@ -28,6 +28,14 @@ OSM imports preserve geometry/source IDs, while inferred units, costs, capacitie
 
 ## 7. Submodels
 
+The optional [Neighborhood Evidence Hunt](../../world/evidence-hunt/README.md)
+is a read-only archive route over this unchanged engine. Its pinned synthetic
+fixture uses seed 714, 30 households and three monthly steps, private parcel
+capacity zero, d1 flood risk one, and a severity-one d1 flood in months 1–2.
+The archive retains complete initial state and step outputs; inspection does not
+advance or alter a run. No new behavioral rule, RNG stream or identity mapping
+is introduced. Records are modeled outputs, not measured observations.
+
 [systems.js](../../world/city/systems.js) implements thirteen packs, including the [resident submodel](../../world/city/residents.js). Housing filters affordability/bedrooms then ranks applications with seeded conflict resolution; rent changes are bounded to ±3%. Development uses illustrative rent capitalization minus construction/land/finance cost. Construction reserves permits/labor/materials/equipment and requires utility capacity before completion. Transport uses single-pass district routing rather than equilibrium. Business demand is aggregate spending, services use proportional coverage, utilities use household/firm demand proxies. Finance tracks revenue, operating cost, capital and bounded debt. Demographics use bounded job/housing-sensitive annual migration. Resident housing satisfaction is 100 when housed and 0 otherwise; livelihood satisfaction is bounded `100*(1-housingBurden)`. An active resident gains one bounded social-satisfaction/tie-strength point monthly with the first other resident whose household is in the same district. Monthly routines and housing/job goals reflect current assignment, not simulated daily behavior or permanent achievement; departed residents retain their history. These assumptions and exact equations are colocated in the [City equations](../../world/city/README.md#assumed-equations-city-systems100). Future Machine replays this engine; it is not a second ABM. Verify: `bun test --timeout 15000 test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js`.
 
 
