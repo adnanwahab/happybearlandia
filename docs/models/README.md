@@ -12,6 +12,7 @@ These descriptions follow the seven elements of the [ODD 2020 protocol and autho
 | Agent civic prototype | [Civic](civic.md) | simulateAgentCivicDynamics; aggregate outcome calculation over fixed synthetic agent traits |
 | Recorded-contact diffusion | [Ideas](ideas.md) | How Ideas Spread saved-Population overlay |
 | Network opinion dynamics | [Collective Mind](collective-mind.md) | runCollectiveMind and versioned URL recipe |
+| Council coalition assembly | [Council coalition](council-coalition.md) | `/world/coalition/`; fixed synthetic stakeholder game, reusing Living City votes |
 | Authored bar social game | [Bar](bar.md) | Honey Pot command model, including externally supplied judgement boundary |
 | Party NPCs | [Party](party.md) | Act Normal authoritative server room and commands |
 | Synthetic pair-transfer fixture | [Energy transfer](energy-transfer.md) | Agent-count benchmark; not an empirical social simulation |
