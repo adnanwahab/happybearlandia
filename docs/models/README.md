@@ -11,6 +11,7 @@ These descriptions follow the seven elements of the [ODD 2020 protocol and autho
 | Legacy World | [Legacy](legacy.md) | createWorld in world/sim.js; legacy relationship/culture/weather adapters; versioned sidewalk trips and spontaneous encounters |
 | Agent civic prototype | [Civic](civic.md) | simulateAgentCivicDynamics; aggregate outcome calculation over fixed synthetic agent traits |
 | Recorded-contact diffusion | [Ideas](ideas.md) | How Ideas Spread saved-Population overlay |
+| Local radius sharing | [Local ideas](local-ideas.md) | Existing `runLocalIdea`; paired CLI and Collective Mind prediction overlay |
 | Network opinion dynamics | [Collective Mind](collective-mind.md) | runCollectiveMind and versioned URL recipe |
 | Authored bar social game | [Bar](bar.md) | Honey Pot command model, including externally supplied judgement boundary |
 | Party NPCs | [Party](party.md) | Act Normal authoritative server room and commands |

@@ -1,0 +1,57 @@
+{
+  "recipe": {
+    "model": "local-idea.v1",
+    "rules": "radius-sharing.v1",
+    "idea": "drainage-policy-changed",
+    "source": "synthetic-fixed-positions.v1",
+    "maxResidents": 512,
+    "maxTicks": 1000,
+    "residents": [
+      {
+        "id": "Ada",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "id": "Bo",
+        "x": 8,
+        "y": 0
+      },
+      {
+        "id": "Cy",
+        "x": 0,
+        "y": 8
+      },
+      {
+        "id": "Dee",
+        "x": 16,
+        "y": 0
+      }
+    ],
+    "originId": "Ada",
+    "seed": 42,
+    "ticks": 0,
+    "radius": 8,
+    "probability": 0.65,
+    "sharing": true
+  },
+  "events": [
+    {
+      "id": 0,
+      "sourceId": null,
+      "receiverId": "Ada",
+      "tick": 0,
+      "hopCount": 0,
+      "parentId": null
+    }
+  ],
+  "curve": [
+    {
+      "tick": 0,
+      "informed": 1
+    }
+  ],
+  "informedIds": [
+    "Ada"
+  ]
+}

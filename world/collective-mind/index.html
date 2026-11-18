@@ -6,6 +6,7 @@
   <title>The Collective Mind · HappyBearLandia</title>
   <link rel="stylesheet" href="/world/collective-mind/view.css">
   <script type="module" src="/world/collective-mind/page.js"></script>
+  <script type="module" src="/world/collective-mind/diffusion-tag-page.js"></script>
 </head>
 <body>
   <main>
@@ -66,6 +67,17 @@
         </details>
       </aside>
     </div>
+    <section id="diffusion-tag" aria-labelledby="diffusion-heading">
+      <h2 id="diffusion-heading">Idea Diffusion Tag</h2>
+      <p>Synthetic toy model · authored demo v1. Predict who adopts Ada’s idea next. Lines are fixed contacts within 8 meters; a contact does not guarantee adoption. This is separate from the opinion experiment above and contains no measured observations or saved World residents.</p>
+      <p>The idea label “drainage-policy-changed” is scripted flavor. Adoption uses local-idea.v1 / radius-sharing.v1, seed 42, probability 0.65. New recipients cannot share until the next tick.</p>
+      <button type="button" data-load>Load authored diffusion demo</button>
+      <svg viewBox="0 0 280 180" role="img" aria-label="Frozen diffusion contact graph" style="display:block;width:100%;max-width:400px"></svg>
+      <fieldset aria-label="Predict next recipients"></fieldset>
+      <button type="button" data-reveal disabled>Reveal one tick</button>
+      <button type="button" data-cancel disabled>Cancel prediction</button>
+      <p role="status" aria-live="polite"></p>
+    </section>
     <noscript>Enable JavaScript to run the experiment.</noscript>
   </main>
 </body>
