@@ -1,3 +1,4 @@
+import { VERSION } from '../world/city/contracts.js';
 import { Database } from 'bun:sqlite';
 import { expect, test } from 'bun:test';
 import { createCausalStore } from '../shared/causality/storage.js';
@@ -66,7 +67,7 @@ test('four resident perspectives use the same stored flood and exact checkpoints
 }, 20000);
 
 test('incomplete runs and completed runs without flood events produce explicit empty states', async () => {
-  const context = { runId: demoRunId, modelVersion: 'city-systems.1.0.0' };
+  const context = { runId: demoRunId, modelVersion: VERSION };
   const fetcher = status => async path => {
     if (path.startsWith('/api/causality/run?')) return Response.json({ run: { context, status } });
     if (path.startsWith('/api/causality/events?')) return Response.json({ items: [], nextCursor: null });

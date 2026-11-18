@@ -42,3 +42,40 @@ test('keyboard mystery, optional hints, mobile reduced motion and unavailable re
  await start.click();await expect(page.getByRole('status').first()).not.toHaveText('Loading…');
  await expect(page.locator('#reveal')).toContainText('Correct');
 });
+
+test('Rashomon navigation, missing data, sequential accounts and cancel pending read', async ({page, request}) => {
+ await page.goto('/world/future-machine.html');
+ await page.getByRole('link',{name:'Play Detective of Futures'}).click();
+ const mystery=page.getByRole('region',{name:'Rashomon Mystery'});
+ await mystery.getByRole('button',{name:'Open Rashomon Mystery'}).click();
+ await expect(mystery.locator('[data-mystery-status]')).toContainText('No source data');
+ expect((await request.post('/api/causality/world-scenario')).ok()).toBe(true);
+ await mystery.getByRole('button',{name:'Open Rashomon Mystery'}).click();
+ await expect(mystery.locator('[data-mystery-output]')).toContainText('Factual ledger');
+ await expect(mystery.locator('[data-mystery-output]')).not.toContainText('Account 1/3');
+ for(let i=1;i<=3;i++) {
+  await mystery.getByRole('button',{name:'Reveal next account'}).click();
+  await expect(mystery.locator('[data-mystery-output]')).toContainText(`Account ${i}/3`);
+ }
+ await expect(mystery.locator('[data-mystery-output]')).toContainText('Mystery resolved');
+ await expect(mystery.locator('[data-mystery-output]')).toContainText('Cause: unknown');
+ await mystery.getByRole('button',{name:'Cancel mystery'}).click();
+ await expect(mystery.locator('[data-mystery-output]')).toBeEmpty();
+ let release; const gate=new Promise(resolve=>release=resolve);
+ await page.route('**/api/causality/run?*',async route=>{await gate;await route.continue();});
+ await mystery.getByRole('button',{name:'Open Rashomon Mystery'}).click();
+ await expect(mystery.locator('[data-mystery-status]')).toContainText('Reading');
+ const completed=page.waitForResponse(response=>response.url().includes('/api/causality/run?'));
+ await mystery.getByRole('button',{name:'Cancel mystery'}).click(); release();
+ await completed;
+ await expect(mystery.locator('[data-mystery-status]')).toHaveText('Cancelled. No results retained.');
+ await expect(mystery.locator('[data-mystery-output]')).toBeEmpty();
+ await page.unroute('**/api/causality/run?*');
+ await page.route('**/api/causality/state?*',async route=>{
+  const response=await route.fetch();const body=await response.json();body.state.seed++;
+  await route.fulfill({response,json:body});
+ });
+ await mystery.getByRole('button',{name:'Open Rashomon Mystery'}).click();
+ await expect(mystery.locator('[data-mystery-status]')).toContainText('could not be verified');
+ await expect(mystery.locator('[data-mystery-output]')).toBeEmpty();
+});
