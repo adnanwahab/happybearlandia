@@ -38,3 +38,10 @@ households, 120 monthly steps, housing amounts 1–100 and delay `(index * 7) % 
 for zero-based index 0–99. Other proposal fields retain DEFAULT_RECIPE. These
 inputs are synthetic assumptions, not sampled probabilities. The view reads unit
 inventory projections; it adds no social mechanism, RNG, clock or state authority.
+
+The [Change-One-Thing Speedrun](../../world/challenges/SPEEDRUN.md) reuses this
+engine with a pinned six-household synthetic shortage checkpoint, seed 42 and
+20-month horizon. Its initial unit unavailability, zero parcel capacity, ample
+utility capacity, two frozen interventions and guard choices are authored inputs,
+not changed behavioral rules. Scoring compares repeated matched runs and adds no
+agent mechanism, RNG, scheduling or identity authority.
