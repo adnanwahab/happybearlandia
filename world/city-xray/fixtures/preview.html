@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>City X-Ray contract diagnostic</title>
+<style>html{color:#cee5db;background:#081315;font:14px system-ui}body{margin:0}header,footer{padding:16px 22px;max-width:1050px}h1{font-size:22px;margin:0 0 8px}p{margin:5px 0;line-height:1.45}canvas{display:block;width:100%;height:64vh;background:radial-gradient(ellipse at 50% 70%,#173b35,#081315 75%)}code,#identity{overflow-wrap:anywhere}strong{color:#e7c577}</style>
+<header><h1>City X-Ray · contract diagnostic</h1><strong>Synthetic demonstration · Canvas2D · static fixture</strong><p>No observed geometry, residents, trips or recorded simulation results.</p><p id="status">Validating frame…</p></header><canvas aria-label="Angled aerial synthetic city geometry and clustered diagnostic symbols"></canvas><footer><p>Colour: authored demonstration intensity, synthetic-symbols, fixed 0–100 normalization. Vertical accents: intensity / 100 × 26 screen pixels; no physical height claim.</p><p>Minute 60 · tick 4 · one missing intensity omitted; measured zero retained. 4095 display symbols; represented population unavailable. GPU frame time / memory: NOT RUN.</p><p id="identity"></p><p>This is a reference-camera diagnostic, awaiting human acceptance; it is not the final dense GPU effect.</p></footer>
+<script type="module">
+import {cityFixture} from './city-v1.js';import {frameHash} from '../contract.js';
+const frame=cityFixture(0),canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
+const byId=new Map([...frame.entities,...frame.intersections].map(e=>[e.id,e]));
+function draw(){const w=canvas.clientWidth,h=canvas.clientHeight,dpr=devicePixelRatio;canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);const scale=Math.min(w/2100,h/1150);const project=([x,y,z])=>[w/2+(x-z)*.8*scale,h*.53+(x+z)*.34*scale-y*scale];
+ctx.lineWidth=.65;ctx.strokeStyle='#537f6f80';for(const r of frame.roads){ctx.beginPath();r.path.forEach((p,i)=>{const [x,y]=project(p);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();}
+for(const s of [...frame.samples].sort((a,b)=>byId.get(a.targetId).position[2]-byId.get(b.targetId).position[2])){if(s.value===null)continue;const [x,y]=project(byId.get(s.targetId).position),v=s.value/100;ctx.fillStyle=`hsl(${120-110*v} 90% 64% / ${.3+.7*v})`;ctx.fillRect(x,y,1.15,1.15);}
+ctx.lineWidth=.65;for(const s of frame.samples.filter((_,i)=>i%64===0)){if(s.value===null)continue;const [x,y]=project(byId.get(s.targetId).position);const height=26*s.value/100;ctx.strokeStyle='#b8f17e90';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-height);ctx.stroke();}
+}
+
+draw();addEventListener('resize',draw);
+const hash=await frameHash(frame);document.querySelector('#status').textContent=`Seed 0 · ${frame.roads.length} roads · ${frame.intersections.length} intersections · ${frame.display.symbolCount} symbols`;
+document.querySelector('#identity').textContent=`${frame.schemaVersion} · model authored-spatial-distribution v1 · source city-grid-fixture v1 · ${frame.clock.checkpoint} · SHA-256 ${hash}`;
+window.diagnostic={hash,frame,ready:true};
+</script></html>

@@ -1,0 +1,2 @@
+import { defineConfig } from '@playwright/test';
+export default defineConfig({testDir:'./e2e',testMatch:'city-xray-contract.e2e.js',workers:1,outputDir:process.env.XRAY_ARTIFACTS||'/private/tmp/SHE-1045-browser',use:{baseURL:'http://127.0.0.1:41045',browserName:'chromium'},webServer:{cwd:require('node:path').resolve(__dirname,'..'),command:'bun world/city-xray/fixtures/serve.js',url:'http://127.0.0.1:41045/world/city-xray/fixtures/preview.html',reuseExistingServer:false}});
