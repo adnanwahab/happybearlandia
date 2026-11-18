@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Citizen Quest Forge</title>
+<style>body{font:17px/1.6 system-ui;background:#f7f4e9;color:#203c35;margin:0}main{max-width:800px;margin:32px auto;padding:20px}button,select,a{font:inherit}button,select{min-height:44px;padding:8px;margin:8px 8px 8px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;padding:16px}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #8c4a19;outline-offset:3px}[hidden]{display:none}</style></head><body><main>
+<a href="/world">Back to World</a><h1>Citizen Quest Forge</h1>
+<p>Turn a supported logged concern into a bounded City experiment. Modeled success never implies real resident endorsement. This separate monthly City experiment does not map the current World's residents or clock.</p>
+<label for="source">Request source</label><select id="source"><option value="logged">Genuine logged requests</option><option value="demo">Pinned authored housing demo</option></select>
+<p id="status" role="status">No source data. No genuine resident/civic request log is connected.</p>
+<section id="quest" hidden aria-label="Request quest"><h2>Housing access</h2><p id="origin"></p><p id="request"></p><p id="terms"></p><p id="assumptions"></p>
+<label for="plan">Candidate plan</label><select id="plan"><option value="housing">Build two synthetic homes · 1,000 synthetic USD</option><option value="none">No action</option></select>
+<div><button id="run" type="button">Run matched futures</button><button id="cancel" type="button" disabled>Cancel run</button></div>
+<details><summary>Inspect origin, immutable checkpoint and template</summary><pre id="evidence"></pre></details></section>
+<section id="result" hidden aria-label="Quest outcome"><h2 id="verdict"></h2><p id="outcome"></p><details><summary>Inspect recomputed evidence and monthly capital ledgers</summary><pre id="receipt"></pre></details></section>
+</main><script type="module" src="./page.js"></script></body></html>

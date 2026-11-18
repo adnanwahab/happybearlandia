@@ -1,0 +1,78 @@
+bun test v1.4.2 (744846f84)
+
+test/project-unblock.test.js:
+(pass) inspection names sewer shortage using actual next-month evidence without mutating saved state [4.44ms]
+(pass) same-seed sewer fix completes project and charges its public cost once [9.82ms]
+(pass) a fix can leave a second constraint binding rather than promise completion [3.34ms]
+(pass) labor and permit additions change actual completion timing [11.38ms]
+(pass) unfunded and invalid comparisons fail explicitly [0.46ms]
+(pass) reports months earlier only when both continuations complete [4.30ms]
+
+test/emergent-quests.test.js:
+(pass) discovery follows measurements and identities, not scenario-specific IDs [2.33ms]
+(pass) state transitions record immutable completion and missing entities never count as success [1.98ms]
+(pass) engine replay preserves deterministic quest receipts in both arms [48.02ms]
+(pass) two players act on one authority and stale or unknown commands are rejected [6.50ms]
+
+test/challenge-contract.test.js:
+(pass) challenge freezes exact state/seed/location/action costs/metrics and survives local encoding [4.27ms]
+(pass) equal action selections cannot claim to beat the same actual replay [9.64ms]
+(pass) capital budget uses complete actual spending rather than final accumulator, treasury, debt or revenue [7.17ms]
+(pass) candidate initial, seed, budget, outcome and cost overrides reject [5.21ms]
+(pass) tampered frozen inputs or definitions fail transport-integrity checks [1.96ms]
+(pass) incomplete or final-only capital records never become a cumulative budget [0.05ms]
+(pass) missing trip observations remain unavailable and canceled replays never claim a score [7.12ms]
+(pass) unsupported engines, metrics and unspecified capital caps refuse without assigning fictional budgets [0.66ms]
+(pass) a genuine evaluated housing improvement can beat the frozen reference within actual capital budget [30.48ms]
+(pass) floating-point currency dust does not fail an exact decimal cap; recorded spending stays unrounded [7.76ms]
+
+test/challenge-ui.test.js:
+(pass) challenge links retain frozen seed, geometry, cap and objective definitions through compression [3.80ms]
+(pass) district policy menu has three bounded alternatives and an enforceable allocation cap [0.26ms]
+(pass) each district policy replays deterministically against an unchanged same-seed control [110.85ms]
+(pass) imported frozen challenge verifies actual spending despite a larger delayed authorization [26.04ms]
+
+test/quest-forge-ui.test.js:
+(pass) normal World navigation, no data, demo success/failure, cancellation and stale source clearing [445.75ms]
+
+test/civic-provider.test.js:
+(pass) public civic reads use the actual deployed service by default [0.03ms]
+(pass) explicit operator routing remains unchanged, including local fixtures [0.02ms]
+(pass) read-default migration never silently enables or redirects journal publishing [0.01ms]
+(pass) retired production hostname migrates reads but not explicitly routed publishing
+
+test/server-civic-api.test.js:
+(pass) server civic API wiring > returns structured JSON for an unknown run instead of the generic server 404 [0.76ms]
+(pass) server civic API wiring > persists and reloads an experiment through /api/experiments [1.41ms]
+(pass) server civic API wiring > creates a scalable run job from an inline experiment/world batch [7.67ms]
+(pass) normal server API exposes anonymous counters and Retry-After on saturation [1.73ms]
+
+test/city-systems.test.js:
+(pass) Coupled city clock > all thirteen packs replay exactly, independent of registration order [57.29ms]
+(pass) Coupled city clock > atomic reservations never consume partial resources [0.11ms]
+(pass) Coupled city clock > housing conflicts have one winner and record unsuccessful search alternatives [0.54ms]
+(pass) Coupled city clock > funding is constrained and policy changes do not create instant homes [2.83ms]
+(pass) Coupled city clock > utility headroom blocks completion; all required upgrades unlock construction [0.92ms]
+(pass) Coupled city clock > large projects progress gradually under limited labor instead of stalling forever [4.72ms]
+(pass) Coupled city clock > flood damage displaces households and utility capacity recovers [7.33ms]
+(pass) Coupled city clock > network loads produce congestion and denied boarding with unreachable route handling [0.62ms]
+(pass) Coupled city clock > OSM import preserves geometry and labels inferred inventory [0.35ms]
+(pass) Coupled city clock > invalid state and inputs are rejected [1.78ms]
+(pass) SQLite evidence and analytics > transactional persistence, retention and read-only SQL [32.83ms]
+(pass) SQLite evidence and analytics > API creates, polls, queries, exports, and exactly replays a future [3127.47ms]
+
+test/quest-forge.test.js:
+(pass) pinned authored request produces deterministic immutable origin, objective, resources and checkpoint [3.03ms]
+(pass) real City integration succeeds with housing and fails with no action, preserving the source and matched seeds [103.18ms]
+(pass) unsupported, absent, duplicate and incompatible source records produce explicit refusals [4.82ms]
+(pass) cancel and replay/source/terms mismatch never yield a forged result [14.16ms]
+
+test/living-city-quests.test.js:
+(pass) five quests describe actual entities and observed problems in the authored city [1.77ms]
+(pass) 100 paired futures keep seeds distinct across samples and exactly replay both arms [1548.96ms]
+(pass) policy presets are validated and an unfinished project cannot improve link capacity [2.94ms]
+
+ 52 pass
+ 0 fail
+ 463 expect() calls
+Ran 52 tests across 10 files. [5.71s]

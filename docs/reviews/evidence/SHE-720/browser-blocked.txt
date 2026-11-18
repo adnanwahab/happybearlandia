@@ -1,0 +1,16 @@
+Observed November 17, 2026 in the SHE-720 isolated checkout.
+Commands attempted:
+  bunx --no-install playwright test --config test/quest-forge.browser.config.js
+  HBL_FM_PORT=39926 bunx --no-install playwright test --config test/quest-forge.browser.config.js
+
+Both exited 1 before browser test execution. Default port 39884 and alternate
+39926 failed at server.js:463 (Bun serve):
+  error: Failed to start server. Is port <attempted port> in use?
+  syscall: "listen"
+  errno: 0
+  code: "EADDRINUSE"
+  Bun v1.4.2 (macOS arm64)
+  Error: Process from config.webServer was not able to start. Exit code: 1
+
+This records the tool-observed blocker, not a browser/navigation pass.
+Focused actual-page DOM integration is separately recorded in tests.txt.

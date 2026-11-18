@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "model-validation.v1",
+  "sourceSHA": "c229a74f3c0ad2c484e7e015c374d7a3c75011b5",
+  "runtime": "1.4.2",
+  "results": [
+    {
+      "rule": "housing.houston-stock-error",
+      "passed": true,
+      "absoluteError": 6572.376443952206,
+      "baseline": {
+        "dataset": "houston-acs-overlapping-vintages.v1",
+        "modelVersion": "1.2.0",
+        "seed": 42,
+        "runs": 100,
+        "metric": "housing_supply",
+        "observed": 1023112,
+        "absoluteError": 6572.376443952206,
+        "numericTolerance": 1e-06
+      }
+    },
+    {
+      "rule": "city.replay-invariants",
+      "passed": true,
+      "cases": 106
+    }
+  ],
+  "failures": []
+}

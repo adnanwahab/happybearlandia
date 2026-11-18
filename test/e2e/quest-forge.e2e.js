@@ -1,0 +1,20 @@
+import { test, expect } from '@playwright/test';
+test('World navigation reaches the forge and verifies the pinned demo without implying endorsement', async ({ page }) => {
+  await page.goto('/world?demo=1&synthetic=1&people=16');
+  await page.getByRole('link', { name: 'Citizen Quest Forge' }).click();
+  await expect(page.getByRole('heading', { name: 'Citizen Quest Forge' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('No source data');
+  await page.getByLabel('Request source').selectOption('demo');
+  await expect(page.locator('#origin')).toContainText('not a genuine logged request');
+  await expect(page.locator('#terms')).toContainText('month 20');
+  await page.getByRole('button', { name: 'Run matched futures' }).click();
+  await expect(page.locator('#verdict')).toHaveText('Modeled objective met');
+  await expect(page.locator('#outcome')).toContainText('No real resident endorsement');
+  await page.getByLabel('Candidate plan').selectOption('none');
+  await page.getByRole('button', { name: 'Run matched futures' }).click();
+  await expect(page.locator('#verdict')).toHaveText('Objective not met');
+  await page.getByLabel('Request source').selectOption('logged');
+  await expect(page.locator('#result')).toBeHidden();
+  await page.getByRole('link', { name: 'Back to World' }).click();
+  await expect(page).toHaveURL(/\/world\/?$/);
+});
