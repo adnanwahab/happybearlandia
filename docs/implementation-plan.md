@@ -83,6 +83,17 @@ The emerging civilization roadmap depends on inspectable events and stable entit
 
 ### Policy Impact Explorer (2026-11-18)
 
+SHE-1041 follow-up: PR #560 delivered the backward-compatible bounded summary
+API, compact recorded-metric index, paginated detail reads and restart/retry
+proofs on main (merged externally). Coordinator review adds persisted-seed
+preservation. Exact functional revision `8747a268` passed 87 API/runtime/replay
+tests and 3 existing Playwright regressions; summary 66,408 bytes versus
+25,247,820 bytes full for 100 pairs. See [SHE-1041 receipts](reviews/SHE-1041.md).
+The viewer still uses full results. SHE-1042 must adopt the reviewed summary
+contract before initial-render/mobile improvement is claimed; native GPU and
+deployed durable-storage confirmation remain unverified. SHE-1042/1043 remain
+held for their explicit sequential review gates; no deployment is authorized.
+
 Implemented on `codex/policy-impact-explorer`. Delivers a public-only, token-authenticated
 `policy-impact-preview.v1` submission through immutable storage, bounded existing
 RunJobManager execution and the existing Constitution City monthly model to
