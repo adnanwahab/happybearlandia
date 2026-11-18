@@ -51,3 +51,7 @@ test('restart resumes queued preview with exact frozen inputs',async()=>{
  const {writeFileSync}=await import('node:fs');const {handler,directory}=setup();const created=await(await post(handler)).json();await settle(handler,created.id);const file=join(directory,`${created.id}.json`),record=JSON.parse(readFileSync(file,'utf8'));record.runs=[];record.job={status:'queued',completed:0,failed:0,total:1};writeFileSync(file,JSON.stringify(record));
  const restarted=createPolicyPreviewHandler({directory,token:'secret',canonicalOrigin:'https://hbl.example'});expect((await settle(restarted,created.id)).job.status).toBe('completed');const selected=await(await restarted(new Request(`https://hbl.example/api/policy-previews/${created.id}/results?runIndex=0`))).json();expect(selected.runs).toHaveLength(1);expect((await restarted(new Request(`https://hbl.example/api/policy-previews/${created.id}/results?runIndex=9`))).status).toBe(400);
 });
+test('restart finalizes progress persisted just before process interruption',async()=>{
+ const {writeFileSync}=await import('node:fs');const {handler,directory}=setup();const created=await(await post(handler)).json();await settle(handler,created.id);const file=join(directory,`${created.id}.json`),record=JSON.parse(readFileSync(file,'utf8'));record.job.status='running';writeFileSync(file,JSON.stringify(record));
+ const restarted=createPolicyPreviewHandler({directory,token:'secret',canonicalOrigin:'https://hbl.example'});expect((await settle(restarted,created.id)).job.status).toBe('completed');
+});

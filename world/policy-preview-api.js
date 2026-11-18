@@ -25,7 +25,7 @@ export function createPolicyPreviewHandler({directory,token,canonicalOrigin,maxR
   if(active.has(record.id)||record.job.status==='completed')return;
   if(record.modelVersion!==modelVersion){record.job.status='unavailable';record.job.error='Pinned model version unavailable; retained results remain readable';save(record);return;}
   const pending=Array.from({length:record.input.simulation.runs},(_,runIndex)=>runIndex).filter(index=>record.runs[index]?.status!=='completed'&&(record.runs[index]?.attempts||0)<3);
-  if(!pending.length)return;
+  if(!pending.length){record.job.status=record.job.completed===record.job.total?'completed':record.job.completed?'partial':'failed';save(record);return;}
   if(manager.running>=manager.maxRunning&&manager.queue.length>=manager.maxQueued)return;
   active.add(record.id);record.job.status='queued';record.job.error=null;save(record);
   const attempt=policyHash(record.runs.map(row=>row?.attempts||0));
