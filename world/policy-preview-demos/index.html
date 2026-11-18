@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Recorded policy demonstrations</title>
+<style>body{font:17px system-ui;line-height:1.5;max-width:900px;margin:2rem auto;padding:0 1rem;color:#192c37;background:#f7f9fa}article{background:white;border:1px solid #bbcbd3;border-radius:12px;padding:1rem;margin:1rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#005a88}label{display:block}input{max-width:100%}output{display:block}code{overflow-wrap:anywhere}</style>
+<h1>Recorded policy demonstrations</h1>
+<p>Illustrative public drafts in a synthetic jurisdiction. No enacted-law, legal-review or guaranteed-benefit claim. These comparisons reuse the existing Monthly City engine: 100 matched pairs, seed 42, 24 months.</p>
+<p>Each baseline contains no added clause (empty text). The amended draft adds the exact clause below. Only that authorization differs; the baseline is not a reconstruction of a legal corpus.</p>
+<p>Create previews on the server or with the <a href="README.md">local harness instructions</a>. A fixture ID is not a created preview ID. Import a local receipt to verify existing records on this server and reveal their viewer links. No credentials are requested by this page.</p>
+<label>Import local creation receipt <input id="receipt" type="file" accept="application/json"></label><output id="status" aria-live="polite">No preview receipt imported.</output>
+<main id="catalog"></main><script type="module">
+const catalog=await(await fetch('./catalog.json')).json();
+const fixtures=new Map(),articles=new Map();
+for(const demo of catalog.demos){
+ const input=await(await fetch(`./${demo.id}.json`)).json();fixtures.set(demo.id,input);
+ const article=document.createElement('article');article.dataset.demo=demo.id;
+ const heading=document.createElement('h2');heading.textContent=input.source.title;article.append(heading);
+ for(const text of [catalog.jurisdiction,catalog.status,`Mapping: ${demo.mappingId}. ${demo.limitation}`,`Baseline ${input.baseline.versionId} → amended ${input.source.versionId}`,`Canonical legal SHA256: ${input.source.contentHash}`]){const p=document.createElement('p');p.textContent=text;article.append(p);}
+ const pre=document.createElement('pre');pre.textContent=input.legal.clauses.map(c=>`${c.clauseId} (${c.operation})\nBefore: ${JSON.stringify(c.beforeText)}\nAfter: ${JSON.stringify(c.afterText)}`).join('\n');article.append(pre);
+ const download=document.createElement('a');download.href=`./${demo.id}.json`;download.textContent='Exact frozen API input';article.append(download);
+ const result=document.createElement('p');result.dataset.result='';result.textContent='No created preview verified.';article.append(result);articles.set(demo.id,result);document.querySelector('#catalog').append(article);
+}
+let importGeneration=0;
+document.querySelector('#receipt').addEventListener('change',async event=>{
+ const generation=++importGeneration,status=document.querySelector('#status');
+ for(const result of articles.values())result.textContent='No created preview verified.';
+ try{
+  const receipt=JSON.parse(await event.target.files[0].text());
+  if(receipt.schemaVersion!=='hbl-demo-local-receipt.v1'||!Array.isArray(receipt.demos)||!receipt.demos.length||receipt.demos.length>catalog.demos.length)throw new Error('Unsupported receipt');
+  const seen=new Set();
+  for(const row of receipt.demos){
+   if(!fixtures.has(row.fixtureId)||seen.has(row.fixtureId)||!/^pp_[a-f0-9]{64}$/.test(row.previewId))throw new Error('Invalid fixture/preview identity');seen.add(row.fixtureId);
+   const response=await fetch(`/api/policy-previews/${row.previewId}`);if(!response.ok)throw new Error('Preview absent on this server; create it in this server’s configured store first');
+   const manifest=await response.json();if(generation!==importGeneration)return;const expected=fixtures.get(row.fixtureId);
+   if(JSON.stringify(manifest.input)!==JSON.stringify(expected)||manifest.id!==row.previewId||manifest.modelVersion!==row.modelVersion||manifest.mappingVersion!==row.mappingVersion)throw new Error('Frozen input/model mismatch');
+   const result=articles.get(row.fixtureId);result.textContent=`${manifest.job.status}: ${manifest.job.completed}/${manifest.job.total} recorded pairs. `;
+   const link=document.createElement('a');link.href=`/world/impact?preview=${row.previewId}`;link.textContent='Open verified recorded preview';result.append(link);
+  }
+  status.textContent='Created preview identities verified against this server. Links remain local to this origin.';
+ }catch(error){if(generation!==importGeneration)return;for(const result of articles.values())result.textContent='No created preview verified.';status.textContent=`Receipt unavailable: ${error.message}`;}
+});
+
+</script>
+</html>

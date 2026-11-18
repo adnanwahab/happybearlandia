@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "policy-impact-preview.v1",
+  "source": {
+    "system": "civic-synthesis-demo",
+    "proposalId": "synthetic-transit-policy",
+    "versionId": "transit-demo-v2",
+    "contentHash": "f04dc7ec9e5ea2be5f2f8391baf5026f16b552b089997021d97f8734379cec31",
+    "type": "bill",
+    "title": "Synthetic transit policy demonstration",
+    "url": "https://example.org/synthetic-transit-policy/v2",
+    "visibility": "public"
+  },
+  "legal": {
+    "baseVersionId": "transit-demo-v1",
+    "clauses": [
+      {
+        "clauseId": "transit-section-2",
+        "sourcePolicyId": "t_brt",
+        "operation": "add",
+        "beforeText": "",
+        "afterText": "Section 2. Authorize a transit capacity project in the synthetic demonstration jurisdiction through the reviewed transit mechanism."
+      }
+    ]
+  },
+  "baseline": {
+    "kind": "prior-proposal-version",
+    "versionId": "transit-demo-v1",
+    "label": "Synthetic prior proposal without transit authorization"
+  },
+  "simulation": {
+    "seed": 42,
+    "runs": 100,
+    "months": 24
+  }
+}
