@@ -1,0 +1,15 @@
+{
+  "baseline": "1715fc6291a933f00ab375f04bef88ef1d01f306",
+  "status": "Host coordinator verification candidate; exact tested SHA recorded in review and browser artifacts",
+  "files": {
+    "world/city-xray/particles.js": "a72f16b1442b403ff4228292efbabd9209ff33c15a1da95cb380fff4d0ba0fa7",
+    "world/city-xray/particle-material.js": "988679dfe39b4da2e1f0e19a59e147312410f7978444e42e69201c9d3ee79ed4",
+    "world/city-xray/particles-demo/README.md": "aff900e20b97838aa499c1cbd7d801a2dcd5ac61bd42aae2648d50c5b2c33f66",
+    "world/city-xray/particles-demo/app.js": "0e8a0f8119baa4fc2fca1f4551c13effb6116616831a0c788e60b968c7895ac0",
+    "world/city-xray/particles-demo/index.html": "c22ee48570aed59bc1b900e329134aa6838be8a46cfc2e2fcaa131294c85c201",
+    "world/city-xray/particles-demo/serve.js": "c10b717c37d3486b940abb8a9eb5deef0e7364db15dbd65583a6f0721fff4705",
+    "test/city-xray-particles.browser.config.js": "267eb99a15d89f2b0e9f383f32599135d8d0e977a1078f4ad3c51aff5ce4302a",
+    "test/city-xray-particles.test.js": "fe9f95f100c137e651f3264883efb355e32e3169f1bf510f831d2eb34da4e612",
+    "test/e2e/city-xray-particles.e2e.js": "8569ef2f80dcf9a97a114fa27e7cb51400155006355f5ad04b8c334f2e731ab3"
+  }
+}
