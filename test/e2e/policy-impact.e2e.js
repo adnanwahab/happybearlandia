@@ -1,7 +1,9 @@
 import {test,expect} from '@playwright/test';
+import {policyHash} from '../../world/policy-preview-contract.js';
 
 const token='policy-impact-browser-test-token';
 const input={schemaVersion:'policy-impact-preview.v1',source:{system:'civic-synthesis',proposalId:'browser-housing',versionId:'v1',contentHash:'a'.repeat(64),type:'bill',title:'Synthetic housing proposal',url:'https://civic-synthesis.example/proposals/browser-housing',visibility:'public'},legal:{baseVersionId:'v0',clauses:[{clauseId:'housing-1',sourcePolicyId:'h_lots',operation:'add',beforeText:'',afterText:'Allow additional homes on eligible modeled parcels.'},{clauseId:'health-1',sourcePolicyId:'unknown-health',operation:'add',beforeText:'',afterText:'Provide universal access to healthcare.'}]},baseline:{kind:'prior-proposal-version',versionId:'v0',label:'Prior proposal version'},simulation:{seed:42,runs:3,months:24}};
+input.source.contentHash=policyHash(input.legal);
 test('public frozen preview connects legal changes, recorded city pairs, timeline and explanations',async({page,request})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const created=await request.post('/api/policy-previews',{headers:{authorization:`Bearer ${token}`},data:input});expect(created.status()).toBe(202);const preview=await created.json();expect(preview.id).toBeTruthy();
