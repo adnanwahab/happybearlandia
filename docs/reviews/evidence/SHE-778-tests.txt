@@ -1,0 +1,21 @@
+bun test v1.4.2 (744846f84)
+
+test/reality-share.test.js:
+(pass) share roundtrip retains exact replay proof and display host without certification [4.75ms]
+(pass) share API rejects malformed,oversized and inconsistent submitted proofs [10.46ms]
+(pass) share IDs are immutable and existing records remain unchanged [1.30ms]
+(pass) share survives SQLite reopen and expires after thirty days [7.39ms]
+(pass) share attempts have bounded rate and storage never silently evicts active shares [6.12ms]
+(pass) share strips unrelated retained state and rejects OSM mapper identity metadata [0.66ms]
+(pass) stored selected row is sufficient for actual replay and fabricated metrics fail replay [3.88ms]
+(pass) population shares retain their actual config manifest and optional synthetic display host [48.69ms]
+
+test/guest-sandbox.test.js:
+(pass) guest snapshot capability scopes reads, denies enumeration/mutation, revokes and expires [1.87ms]
+(pass) publication requires consent, rights, bounded expiry and consistent run; storage bounded [4.48ms]
+(pass) snapshot and revocation survive reopening a disk store [5.77ms]
+
+ 11 pass
+ 0 fail
+ 69 expect() calls
+Ran 11 tests across 2 files. [172.00ms]

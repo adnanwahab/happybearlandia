@@ -1,6 +1,5 @@
 import{test,expect}from'@playwright/test';
-const partyURL = `http://127.0.0.1:${process.env.HBL_PLAYWRIGHT_PARTY_PORT ?? '3257'}/world/party/act-normal`;
-test('real shortened service round reveals actual results and host new-round preserves private seats',async({browser})=>{test.setTimeout(45000);const ca=await browser.newContext(),cb=await browser.newContext(),a=await ca.newPage(),b=await cb.newPage(),errors=[];for(const p of[a,b])p.on('pageerror',e=>errors.push(e.message));try{
+test('real shortened service round reveals actual results and host new-round preserves private seats',async({browser},info)=>{const partyOrigin=info.config.metadata.partyURL??(process.env.HBL_PLAYWRIGHT_PARTY_PORT?`http://127.0.0.1:${process.env.HBL_PLAYWRIGHT_PARTY_PORT}`:null);if(!partyOrigin)throw Error('Use playwright.config.js or configure HBL_PLAYWRIGHT_PARTY_PORT for the shortened party service.');const partyURL=partyOrigin+'/world/party/act-normal';test.setTimeout(45000);const ca=await browser.newContext(),cb=await browser.newContext(),a=await ca.newPage(),b=await cb.newPage(),errors=[];for(const p of[a,b])p.on('pageerror',e=>errors.push(e.message));try{
  // Scores and seat continuity come from the server. Let both clients use the
  // renderer-unavailable UI so GPU startup and teardown cannot consume the round's budget.
  await Promise.all([ca, cb].map(context =>

@@ -1,0 +1,25 @@
+{
+  "issue": "SHE-783",
+  "receiptVersion": 1,
+  "sourceHead": "7c7477997501ff40a9a47de45c9a79428203f3b6",
+  "tests": {
+    "passed": 25,
+    "failed": 0,
+    "assertions": 323,
+    "domTestsExecuted": true,
+    "recognition": "deterministic mock; no real microphone"
+  },
+  "checks": {
+    "universeTypeContracts": "pass",
+    "browserBundle": "pass",
+    "diffWhitespace": "pass",
+    "playwright": "blocked: server EADDRINUSE on port 39873; no tests executed"
+  },
+  "sha256": {
+    "world/universe/voice-input.js": "47f6165d6d7699cf139fe04100077379db78789addc09ef1186748d627889b0a",
+    "world/universe/school-command.js": "d27da44b4d4d1ea7a43b729bf945103b76ce1807f4cc06e0bac0d183aa4f45a8",
+    "world/universe/command-palette.js": "7a09c04b2904625d3f34fb14732bec118a0ecbbca5d79fc0c6b280129c77b35c",
+    "world/launch-shell.js": "3607b2de12fdc7176185405cdf0997c8a195595d1bf80a7a24804f565034f462",
+    "test/voice-navigation.test.js": "f8f91afcaf01df979a1999a95d1eb52c3f81b24647a4fc500b86bb6df93802e1"
+  }
+}

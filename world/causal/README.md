@@ -52,3 +52,16 @@ model-owned construction mapping are included. Shared month or district does
 not establish causation. When no matching event exists, the trail says so;
 checkpoint differences alone do not supply missing causes. Coverage remains
 limited to the transitions instrumented by the monthly City model.
+
+### Returning from evidence
+
+Following an inspector record retains an in-memory stack of run, event, entity,
+clock, tab and correlation-filter checkpoints. **Return to previous checkpoint**
+restores one step at a time. On the city page, recorded monthly events with a
+stored checkpoint also update the inventory, heatmap, event picker and URL.
+An unavailable city mapping retains the previous city checkpoint and explains the
+limit; the evidence inspector remains usable. Absent inventory entities are not
+invented. Reload starts a new investigation at the URL selection; the return
+stack is session-local. Manual inspector form submissions start a new trail.
+The existing evidence-backed pulses and reduced-motion static graph are reused;
+no geographic animation or cross-model identity mapping is implied.

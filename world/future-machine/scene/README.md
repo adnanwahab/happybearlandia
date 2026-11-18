@@ -162,11 +162,13 @@ identify next-month previews separately from current recorded changes.
 ## Replay ownership audit (SHE-106)
 
 A stage owns its meshes, edge buffers, project gauges, grid buffers/materials,
-renderer, controls and effects. Rebuild disposes the prior mesh trees; effects
-first restore the original materials and dispose their private clones. No
-textures are created by the current inventory scene. The disposal helper handles
-shared geometry/material/map references once within a tree, including material
-arrays. It is for stage-owned assets, not externally cached textures.
+renderer, controls and effects. Unchanged mesh/effect trees remain retained;
+removed entities and final teardown release their owned trees. Effects first
+restore the original materials and dispose their private clones. No textures
+are created by the current inventory scene. The disposal helper accepts a shared
+release set so geometry/material/map references are released once across detached
+mesh roots and remaining scene helpers, including material arrays. It is for
+stage-owned assets, not externally cached textures.
 
 Fallback now releases both scene grids as well as inventory, removes the context
 listener and relinquishes the WebGL context. Normal disposal does the same and
@@ -251,3 +253,21 @@ contains success, keyboard/touch/reduced-motion, unavailable geometry, screensho
 and frame-opportunity timing collection. Execution is blocked locally by server
 bind failure; no fresh hardware speed or screenshot claim. See
 `docs/reviews/SHE-475.md` for remaining acceptance.
+
+
+The post-merge compatibility follow-up preserves main's history-reference cleanup
+and thirty-replay test identity/readiness corrections. Shared disposal ownership
+now spans both scene roots, failed Canvas recovery cannot reenter teardown, and
+final disposal cancels and clears animation/readiness state. The existing
+role=status output changes only when its text changes, keeping unchanged playback
+frames quiet. Exact ghost keys, manual camera boundaries and late-renderer cleanup
+were already present on main and remain intact. Focused resource coverage checks
+shared geometry, material and texture ownership after effect-clone restoration;
+see the UI compatibility verification for the combined local check and limits.
+
+Facade windows use one stage-owned InstancedMesh per facade rather than one Mesh
+per window. Authored positions, rotations, dimensions and material remain the
+same; they stay cosmetic and outside model inventory/root pick targets. Resource
+teardown releases the instance buffers plus its geometry/material once across
+shared scene ownership. See `test/future-machine-neighborhood.test.js` for exact
+transform/material equivalence and instance disposal checks.

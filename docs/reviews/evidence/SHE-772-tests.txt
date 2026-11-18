@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+test/storm-rescue.test.js:
+(pass) private roles, revision isolation, atomic spend, matched replay and deletion [18.03ms]
+(pass) missed window is explicit, has no spend, and expiration denies access [5.73ms]
+
+test/storm-treaty.test.js:
+(pass) treaty is deterministic, charges posted price, and transfers conserved crews and funds [0.15ms]
+(pass) inactive and underfunded offers leave both treasuries and crew counts intact [0.07ms]
+
+test/storm-scenario.test.js:
+(pass) the demonstration closes Low Crossing and matched drainage keeps it open [4.96ms]
+(pass) edits are validated and only change the selected layer [0.26ms]
+(pass) the ensemble compares 100 same-rain pairs and is deterministic [343.82ms]
+
+test/storm-recovery.test.js:
+(pass) route reopening unlocks an isolated clinic and shelters reachable households [0.60ms]
+(pass) accepted aid adds a parallel crew and respects the combined response budget [0.12ms]
+
+test/storm-physics.test.js:
+(pass) flat closed grid retains uniform rain and accounts for all water [0.07ms]
+(pass) water transfers downhill across shared edges without wrapping the grid [0.11ms]
+(pass) drains cap local removal and stay stable through varied terrain and multiple steps [4.16ms]
+(pass) input and frame bounds are shared between CPU and GPU [0.40ms]
+
+test/storm-impacts.test.js:
+(pass) tracks peak exposure, alternate routes, unknown coverage and recovery separately [0.35ms]
+(pass) keeps transition output bounded without losing aggregate exposure history [1.96ms]
+(pass) known flood exposure persists with missing cells while missing geometry does not imply closure [0.12ms]
+
+ 16 pass
+ 0 fail
+ 663 expect() calls
+Ran 16 tests across 6 files. [402.00ms]

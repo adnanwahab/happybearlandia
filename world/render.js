@@ -1,3 +1,7 @@
+import {visualSun} from './render/shadow-atlas/model.js';
+import {mountDistrictTitle} from './district-title.js';
+import {mountInfrastructureScanner} from './infrastructure-scanner.js';
+import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
 import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
 import {mountGamepadControls} from './gamepad-controls.js';
@@ -14,6 +18,7 @@ import {simulationLighting,legacyHomeCounts,legacyBuildingOccupancy} from "./ren
 import {createGlobalIllumination} from './render/global-illumination.js';
 import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
+import {mountSessionSurvey} from './onboarding/session-survey.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
 import {createPanelManager} from './onboarding/panel-manager.js';
@@ -69,7 +74,13 @@ let loadedExperiment=null;
 const savedExperimentId=params.get('experiment');
 if(savedExperimentId){
  try{if(!/^[A-Za-z0-9_-]{8,16}$/.test(savedExperimentId))throw Error('Invalid saved experiment ID');const response=await fetch('/api/world-experiments/'+encodeURIComponent(savedExperimentId));const record=await response.json();if(!response.ok)throw Error(record.error||'Experiment load failed');if(record.schemaVersion!=='world-experiment-record.v1'||record.save?.schemaVersion!=='world-experiment-save.v1')throw Error('Unsupported saved experiment');loadedExperiment=record;}
- catch(error){const warning=document.createElement('p');warning.style.cssText='position:fixed;inset:20px;z-index:999;background:#18283b;color:white;padding:24px';warning.textContent='Saved experiment could not load: '+error.message+'. No replacement simulation was started.';document.body.append(warning);throw error;}
+ catch(error){const warning=document.createElement('section');warning.style.cssText='position:fixed;inset:20px;z-index:999;background:#18283b;color:white;padding:24px;overflow:auto';const message=document.createElement('p');message.textContent='Saved experiment could not load: '+error.message+'. No replacement simulation was started.';warning.append(message);document.body.append(warning);if(location.hash.startsWith('#city-tour=')){const {mountCityTour}=await import('./city-tour/panel.js');mountCityTour({container:warning});}throw error;}
+}
+// Check carried pins before model restoration, not only after the scene appears.
+if(location.hash.startsWith('#city-tour=')){
+ const {readTour,anchorRecord}=await import('./city-tour/core.js');
+ try{const tour=readTour(location.hash),step=tour.recipe.steps[tour.index];const actual=await anchorRecord(loadedExperiment,step.description);if(JSON.stringify(actual)!==JSON.stringify(step))throw Error('Pinned checkpoint, source or pose changed.');}
+ catch(error){const warning=document.createElement('section');warning.style.cssText='position:fixed;inset:20px;z-index:999;background:#18283b;color:white;padding:24px;overflow:auto';const message=document.createElement('p');message.textContent='Tour checkpoint invalid: '+error.message+'. No replacement simulation was started.';warning.append(message);document.body.append(warning);const {mountCityTour}=await import('./city-tour/panel.js');mountCityTour({container:warning});throw error;}
 }
 const renderBenchmark = benchmarkScene(location.pathname);
 const demoMode = params.get("demo") === "1" || !!renderBenchmark;
@@ -549,12 +560,26 @@ cityRenderer.setSimulationSource(()=>livingWorld?.active?livingWorld.getSnapshot
 window.hblLivingWorld=livingWorld;
 const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
 addEventListener('pagehide',()=>neighborhoodWhatIf?.destroy(),{once:true});
+const districtTitle = !embedMode ? mountDistrictTitle({container:document.body,getPoint:()=>controls.target,getFrame:()=>livingWorld?.active&&!window.hblWorldTileViewActive&&livingWorld.getContext()?.buildings?.length?{context:livingWorld.getContext(),minute:livingWorld.getClockMinute()}:null}) : null;
+addEventListener('pagehide',()=>districtTitle?.destroy(),{once:true});
 window.hblWorldActivity={
  getSnapshot(){const snapshot=livingWorld?.active?livingWorld.getSnapshot():null;return livingWorld?.active?(snapshot?{...snapshot,mode:'living',peopleCount:snapshot.metrics?.syntheticPopulation??snapshot.population,people:snapshot.visibleAgents,runId:`${snapshot.runtime?.id}:${snapshot.runtime?.revision}`}:{mode:'living',peopleCount:null,minute:null,historyAvailable:false,runId:'living:resetting'}):world.getActivitySnapshot();},
  async getHistory(query={}){const source=window.hblWorldActivity.getSnapshot(),identity=source.runId;if(livingWorld?.active){const runtime=livingWorld.getRuntime();if(!runtime?.getActivityHistory)throw Error('Living history is not ready.');const history=await runtime.getActivityHistory(query);if(!livingWorld?.active||window.hblWorldActivity.getSnapshot().runId!==identity)throw Error('Activity source changed while history was loading; refresh the current run.');return {...history,runId:identity};}if(query.actorId)world.trackActivityPerson(query.actorId);const history=world.getActivityHistory(query);if(livingWorld?.active)throw Error('Activity source changed while history was loading.');return {...history,runId:identity};},
  subscribe(listener){activityListeners.add(listener);return()=>activityListeners.delete(listener);},
  selectPerson(id){if(livingWorld?.active)return livingWorld.selectPerson(String(id));const index=town.people.findIndex(person=>String(person.id)===String(id));if(index>=0)select({type:'person',id:index});}
 };
+// Heartbeat reads the same recorded authority as Activity; seeking uses its normal replay API.
+let heartbeatDisposed=false,heartbeatView=null;
+if(!embedMode)void import('./heartbeat.js').then(({mountHeartbeat})=>{
+ if(heartbeatDisposed)return;
+ heartbeatView=mountHeartbeat(document.body,{source:window.hblWorldActivity,seek:async minute=>{
+  if(!livingWorld?.active)throw Error('Seeking unavailable in Legacy World. Activate Living World to seek recorded periods.');
+  const runtime=livingWorld.getRuntime();
+  playback.pause();
+  return runtime.stepToTime(minute);
+ }});
+}).catch(error=>console.error('City Heartbeat unavailable',error));
+addEventListener('pagehide',()=>{heartbeatDisposed=true;heartbeatView?.destroy();},{once:true});
 // Read-only references to the current authority, shared by tile and 3D views.
 window.hblWorldTileSource={
  getRouteCacheStats:()=>world.getRouteCacheStats?.(),
@@ -639,6 +664,10 @@ if(!embedMode)void import('./reality/diff-radar-panel.js').then(({mountCityDiffR
 addEventListener('pagehide',()=>{cityDiffRadarDisposed=true;cityDiffRadar?.destroy();},{once:true});
 
 
+
+let evidencePath=null,evidencePathDisposed=false;
+if(!embedMode)void import('./evidence-path/panel.js').then(({mountEvidencePath})=>{if(evidencePathDisposed)return;evidencePath=mountEvidencePath({container:document.body,THREE,scene,camera,controls});window.hblEvidencePath=evidencePath;}).catch(error=>console.error('Evidence paths unavailable',error));
+addEventListener('pagehide',()=>{evidencePathDisposed=true;evidencePath?.destroy();delete window.hblEvidencePath;},{once:true});
 
 let temporalCity=null,temporalCityDisposed=false;
 if(!embedMode)void import('./temporal/panel.js').then(({mountTemporalCity})=>{if(temporalCityDisposed)return;temporalCity=mountTemporalCity({container:document.body,origin:{lat:origin.lat,lng:origin.lng}});window.hblTemporalCity=temporalCity;}).catch(error=>console.error('City Time Machine unavailable',error));
@@ -2128,6 +2157,15 @@ async function publishSyntheticJournalsForDay(day) {
   }
 }
 
+const infrastructureScanner=!embedMode?mountInfrastructureScanner({container:$('top'),canvas:renderer.domElement,
+ getData:()=>({source:town.source,roads:town.roads}),toGround:event=>{
+ const rect=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();
+ picker.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);
+ const point=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
+ return point&&picker.ray.origin.distanceTo(point)<=camera.far?point:null;
+ }}):null;
+window.hblInfrastructureScanner={getState:()=>infrastructureScanner?.getState()};
+addEventListener('pagehide',()=>{infrastructureScanner?.destroy();delete window.hblInfrastructureScanner;},{once:true});
 const ray = new THREE.Raycaster();
 const ptr = new THREE.Vector2();
 let downAt = null,downVehicle = null;
@@ -2154,7 +2192,7 @@ const businessUI = businessMode ? mountBusinessMode(world, {
 // Only actual frontmost rendered hits enter the magnetic candidate set.
 function rankCityTargets(x,y){
  const rect=renderer.domElement.getBoundingClientRect();
- return rankScreenTargets({x,y,rect,hitAt(px,py){
+ return rankScreenTargets({x,y,rect,radius:inspectionFreeze.frozen?0:24,hitAt(px,py){
   ptr.set((px-rect.left)/rect.width*2-1,-(py-rect.top)/rect.height*2+1);ray.setFromCamera(ptr,camera);
   const hits=[];
   const person=livingWorld?.active?null:humanPeople.pick(ray);
@@ -2168,6 +2206,13 @@ function rankCityTargets(x,y){
   return hits.sort((a,b)=>a.distance-b.distance)[0]||null;
  }});
 }
+let frozenCamera=null;
+const inspectionFreeze=createInspectionFreeze({supported:()=>!livingWorld?.active&&!businessUI&&!window.hblWorldTileViewActive,
+ capture:()=>{frozenCamera={position:camera.position.clone(),quaternion:camera.quaternion.clone(),target:controls.target.clone(),enabled:controls.enabled};controls.enabled=false;return frozenCamera;},
+ release:pose=>{controls.enabled=pose.enabled;frozenCamera=null;}});
+const freezeUI=!embedMode?mountInspectionFreeze({container:$('top'),gate:inspectionFreeze,modelPaused:()=>playback.getState().paused}):null;
+window.hblInspectionFreeze={getState:()=>inspectionFreeze.getState()};
+addEventListener('pagehide',()=>freezeUI?.destroy(),{once:true});
 const magneticPicker=mountPickPreview(renderer.domElement,{rank:rankCityTargets,enabled:()=>!livingWorld?.active&&!businessUI,onPick:hit=>{
  if(hit.vehicle){select(null);selectedVehicle=hit.vehicle.id;vehicleInspector?.select(hit.vehicle);return;}
  selectedVehicle=null;vehicleInspector?.select(null);if(hit.selection.type==='person'&&emitLegacyPersonContext({clientX:hit.x,clientY:hit.y,type:'pointerup'},hit.selection.id)===false)return;select(hit.selection);
@@ -2290,14 +2335,14 @@ function renderInspector() {
       ${b.kind === "home" ? `<div class="muted">Fridge: ${s.fridge} meals</div>` : ""}
       ${b.kind === "park" ? `<div class="need"><span>litter</span><div class="bar"><i style="width:${s.litter}%;background:#b7871b"></i></div></div>` : ""}
       <div class="row">
-        <button id="cityFocus">Focus</button>${b.kind !== "park" ? `<button id="cityCutaway">Cutaway</button>` : ""}
+        <button id="cityFocus">Focus</button>${b.kind !== "park" ? `<button id="cityCutaway" aria-pressed="false">Peel back roof</button><span id="cityCutawayStatus" role="status"></span>` : ""}
         ${["food", "shop", "work", "school"].includes(b.kind) ? `<button id="toggleOpen">${s.open ? "Close it" : "Reopen"}</button>` : ""}
         ${s.maxStock ? `<button id="restock">Deliver stock</button>` : ""}
         ${b.kind === "park" ? `<button id="litterBtn">Dump litter</button>` : ""}
       </div>`;
     mountAPIGeometryDetails(el,{area:originalAreaGeometry,buildingId:b.id});el.style.maxHeight='calc(100vh - 112px)';el.style.overflowY='auto';
     $("cityFocus")?.addEventListener("click", () => cityRenderer.focusBuilding(b.id));
-    $("cityCutaway")?.addEventListener("click", () => { cityRenderer.focusBuilding(b.id); cityRenderer.setCutaway(!cityRenderer.cutawayEnabled); });
+    $("cityCutaway")?.addEventListener("click", () => { const enabled=cityRenderer.setCutaway(!cityRenderer.cutawayEnabled);$("cityCutaway").setAttribute('aria-pressed',String(enabled));$("cityCutawayStatus").textContent=enabled?'Authored building detail · visual geometry only':cityRenderer.getCutawayState().supported?'Roof restored':'Interior geometry unavailable; exterior retained'; });
     $("toggleOpen")?.addEventListener("click", () => { s.open = !s.open; world.log(`${b.name} ${s.open ? "reopened" : "closed"} (by you)`, "civic", b); renderInspector(); });
     $("restock")?.addEventListener("click", () => { s.stock = s.maxStock; world.log(`${b.name} got a delivery (by you)`, "restock", b); renderInspector(); });
     $("litterBtn")?.addEventListener("click", () => { s.litter = Math.min(100, s.litter + 40); renderInspector(); });
@@ -2330,10 +2375,11 @@ let lastStreamUpdate=-Infinity;
 
 function frame(now) {
   if(startupAbort.signal.aborted)return;
-  gamepadControls?.update(now);mapControls.update(now);fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
-  if((streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
+  if(!inspectionFreeze.frozen){gamepadControls?.update(now);mapControls.update(now);}fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
+  if(!inspectionFreeze.frozen&&(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
   const cpuStart = performance.now();
   const frameMs = now - last;
+  infrastructureScanner?.recordFrame(frameMs);
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
 
@@ -2342,6 +2388,15 @@ function frame(now) {
   if(!livingWorld?.active)acc += simulationFrame.deltaMs/1000;
   const steps = livingWorld?.active?0:Math.floor(acc);
   if (steps > 0) { const advanced=advanceFrameMinutes(steps,minutes=>world.step(minutes));if(legacyJournalRecorder)void legacyJournalRecorder.flush(); acc -= advanced; if(selected?.type === "person")renderInspector(); }
+
+  if(inspectionFreeze.frozen&&(livingWorld?.active||businessUI||window.hblWorldTileViewActive))inspectionFreeze.clear();
+  freezeUI?.update();
+  if(inspectionFreeze.frozen){
+    camera.position.copy(frozenCamera.position);camera.quaternion.copy(frozenCamera.quaternion);controls.target.copy(frozenCamera.target);camera.updateMatrixWorld(true);
+    globalIllumination.render();inspectionFreeze.record(frameMs);
+    cityRenderer.afterFrame(now,performance.now()-cpuStart,frameMs);
+    requestAnimationFrame(frame);return;
+  }
 
   // Once per simulated day per tile: publish a few synthetic resident journals.
   // Trigger after 8:00 local sim time so demos show the loop quickly.
@@ -2380,7 +2435,8 @@ function frame(now) {
   hemi.color.setHex(0xc5ddf2);hemi.groundColor.setHex(0x55523f);
   sun.intensity = 2.8 * daylight;
   sun.color.setHex(daylight < .35 ? 0xffce98 : 0xffefda);
-  sun.position.set(Math.cos(ang) * 400, Math.sin(ang) * 500, 200);
+  const direction=visualSun(ang);
+  sun.position.set(direction.x,direction.y,direction.z);
 
   // People
   // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.
@@ -2390,7 +2446,9 @@ function frame(now) {
   for (let i = 0; !livingWorld?.active && i < town.people.length; i++) {
     const p = town.people[i];
     const s = smooth[i];
-    const k = playback.getState().paused?0:1 - Math.exp(-dt * 10);
+    // Pausing stops model time, not synchronization with its last observed position.
+    // Freeze at the authoritative location rather than an unfinished smoothing step.
+    const k = playback.getState().paused?1:1 - Math.exp(-dt * 10);
     s.x += (p.x - s.x) * k;
     s.z += (p.z - s.z) * k;
     const selectedPerson = selected?.type === "person" && selected.id === i;
@@ -2438,7 +2496,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);cinematicCamera?.update(now);controls.update();
+  updateArrival(now);cinematicCamera?.update(now);streetJourney?.update(now);controls.update();districtTitle?.update(now);
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
@@ -2593,6 +2651,11 @@ if(loadedExperiment){
  experimentRestored=true;
  }catch(error){playback.pause();startup.restoreError=error.message;const notice=document.createElement('p');notice.style.cssText='position:fixed;top:80px;left:20px;z-index:999;background:#641f28;color:white;padding:16px';notice.textContent='Saved experiment restoration failed; playback paused: '+error.message;document.body.append(notice);}
 }
+// Tours reopen native immutable saves; keep the checkpoint paused for inspection.
+if(location.hash.startsWith('#city-tour='))playback.pause();
+let cityTourPanel=null,cityTourDisposed=false;
+if(!embedMode)void import('./city-tour/panel.js').then(({mountCityTour})=>{if(cityTourDisposed)return;cityTourPanel=mountCityTour({container:$('top'),loadedRecord:loadedExperiment,restored:experimentRestored,pause:()=>playback.pause()});}).catch(error=>console.error('City tour unavailable',error));
+window.addEventListener('pagehide',()=>{cityTourDisposed=true;cityTourPanel?.dispose();},{once:true});
 let questionsPanel=null,questionsDisposed=false;
 if(!embedMode)void import('./questions/panel.js').then(({mountOpenQuestions})=>{if(questionsDisposed)return;questionsPanel=mountOpenQuestions({container:$('top'),getContext:async()=>{camera.updateMatrixWorld();const frustum=new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));const visible=[...town.buildings,...contextBuildings.values()].filter(b=>b.mesh?.visible&&frustum.intersectsObject(b.mesh)).sort((a,b)=>Math.hypot(a.center[0]-controls.target.x,a.center[1]-controls.target.z)-Math.hypot(b.center[0]-controls.target.x,b.center[1]-controls.target.z));const frame=livingWorld?.active?livingWorld.getSnapshot():null;const person=livingWorld?.active?livingWorld.getSelection():selected;const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),groundCorners=[];for(const x of [-1,1])for(const y of [-1,1]){const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(x,y),camera);const point=ray.ray.intersectPlane(groundPlane,new THREE.Vector3());if(point&&ray.ray.origin.distanceTo(point)<=camera.far)groundCorners.push(point);}return{origin,bounds:groundCorners.length?{minX:Math.min(...groundCorners.map(p=>p.x)),maxX:Math.max(...groundCorners.map(p=>p.x)),minZ:Math.min(...groundCorners.map(p=>p.z)),maxZ:Math.max(...groundCorners.map(p=>p.z))}:{},visibleBuildingIds:visible.map(b=>String(b.id)),selectedEntity:person?{id:String(person.id??person.personId),kind:livingWorld?.active?'person':person.type}:null,config:frame?.config??world.params,metrics:frame?.metrics??{minute:world.t,population:world.people.length},recentLogs:[{id:'observation-scope',time:livingWorld?.active?livingWorld.getClockMinute():world.t,type:'source-scope',text:'Resident metrics and logs describe the original modeled region at '+origin.lat+','+origin.lng+'; streamed neighboring map geometry does not extend the resident simulation.'},...(livingWorld?.active?frame?.events??[]:world.events).slice(0,39)].map(e=>({id:String(e.id??e.t??e.minute),time:e.minute??e.t??e.time,type:e.type,text:e.text,entityId:e.personId?String(e.personId):undefined}))};}});window.hblOpenQuestions=questionsPanel;}).catch(error=>console.error('Open questions unavailable',error));
 addEventListener('pagehide',()=>{questionsDisposed=true;questionsPanel?.destroy();},{once:true});
@@ -2604,7 +2667,7 @@ async function captureWorldExperiment({keepPaused=false}={}){
 window.hblCaptureWorldExperiment=captureWorldExperiment;
 let personCommandUI=null,personCommandDisposed=false;
 function commandSelection(){if(livingWorld?.active){const person=livingWorld.getSelection();return person?{...person,id:String(person.id??person.personId),label:person.name??'Person '+(person.id??person.personId),mode:'living'}:null;}if(selected?.type!=='person')return null;const person=town.people[selected.id];return person?{...person,id:String(person.id),label:person.name,mode:'legacy'}:null;}
-if(!embedMode)void import('./people/person-command-menu.js').then(({mountPersonCommands})=>{if(personCommandDisposed)return;personCommandUI=mountPersonCommands({container:document.body,canvas:renderer.domElement,getSelection:commandSelection,isPaused:()=>playback.getState().paused,onSelect:(mode,id)=>{if(mode==='living')return livingWorld.selectPerson(id);const index=town.people.findIndex(p=>String(p.id)===String(id));if(index>=0)select({type:'person',id:index});},toGround:event=>{const rect=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();picker.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);const point=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());return point&&picker.ray.origin.distanceTo(point)<=camera.far?{x:point.x,z:point.z}:null;},onWalk:async(actor,point)=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');if(actor.mode==='living'){const runtime=livingWorld.getRuntime();if(!runtime?.walkPerson)throw Error('Resident walk commands are not ready.');const result=await runtime.walkPerson(actor.id,point);await livingWorld.selectPerson(actor.id);return{...result,message:`Walking trip accepted · ${result.plannedMinutes.toFixed(1)} modeled minutes.`};}if(!world.commandPerson)throw Error('Legacy walk commands are not ready.');const result=world.commandPerson(actor.id,{type:'walk',destination:point});renderInspector();return result;},onSocial:async(actor,targetId,action)=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');if(actor.mode==='living'){const result=await livingWorld.getRuntime().socialAction(actor.id,String(targetId),action);await livingWorld.selectPerson(actor.id);return result;}const result=legacySocial(world).interact(actor.id,String(targetId),action);renderInspector();return result;}});window.hblPersonCommands=personCommandUI;}).catch(error=>console.error('Person commands unavailable',error));
+if(!embedMode)void import('./people/person-command-menu.js').then(({mountPersonCommands})=>{if(personCommandDisposed)return;personCommandUI=mountPersonCommands({container:document.body,canvas:renderer.domElement,getSelection:commandSelection,onPreview:(actor,point)=>{if(actor.mode!=='legacy'||livingWorld?.active)throw Error('Footstep preview unavailable: this simulation does not expose read-only walking routes.');return world.previewPersonWalk(actor.id,point);},project:point=>{const v=new THREE.Vector3(point[0],.25,point[1]).project(camera);if(v.z < -1||v.z > 1)return null;const r=renderer.domElement.getBoundingClientRect();return{x:r.left+(v.x+1)*r.width/2,y:r.top+(1-v.y)*r.height/2};},isPaused:()=>playback.getState().paused,onSelect:(mode,id)=>{if(mode==='living')return livingWorld.selectPerson(id);const index=town.people.findIndex(p=>String(p.id)===String(id));if(index>=0)select({type:'person',id:index});},toGround:event=>{const rect=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();picker.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);const point=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());return point&&picker.ray.origin.distanceTo(point)<=camera.far?{x:point.x,z:point.z}:null;},onWalk:async(actor,point)=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');if(actor.mode==='living'){const runtime=livingWorld.getRuntime();if(!runtime?.walkPerson)throw Error('Resident walk commands are not ready.');const result=await runtime.walkPerson(actor.id,point);await livingWorld.selectPerson(actor.id);return{...result,message:`Walking trip accepted · ${result.plannedMinutes.toFixed(1)} modeled minutes.`};}if(!world.commandPerson)throw Error('Legacy walk commands are not ready.');const result=world.commandPerson(actor.id,{type:'walk',destination:point});renderInspector();return result;},getSocial:async actor=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');return actor.mode==='living'?(await livingWorld.getRuntime().inspectPerson(actor.id)).social:legacySocial(world).inspect(actor.id);},onSocial:async(actor,targetId,action)=>{if((livingWorld?.active?'living':'legacy')!==actor.mode)throw Error('The active simulation changed. Select a person again.');if(actor.mode==='living'){const result=await livingWorld.getRuntime().socialAction(actor.id,String(targetId),action);await livingWorld.selectPerson(actor.id);return result;}const result=legacySocial(world).interact(actor.id,String(targetId),action);renderInspector();return result;}});window.hblPersonCommands=personCommandUI;}).catch(error=>console.error('Person commands unavailable',error));
 addEventListener('pagehide',()=>{personCommandDisposed=true;personCommandUI?.destroy();},{once:true});
 
 let houseEntryControls=null,houseEntryDisposed=false;
@@ -2691,13 +2754,14 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
     recipe=structuredClone({origin,area,maxPeople,proposalIds:pkg?.proposalIds||[],label:pkg?.label||'No plan',source:pkg?.source||'local',year:3,days:7});
     return recipe;
   };
-  const provenance=()=>({authority:'legacy-world',modelVersion:world.modelVersion||null,modelSource:'world/sim.js',rulesSource:'world/policy.js',rulesVersion:null,seed:town.seedKey,origin:{...origin},days:7,year:3,proposalIds:[...(recipe?.proposalIds||[])],limitations:['Detached matched week, not a continuation of the live resident clock. Legacy resident indexes share deterministic buildTown inputs only; Population and monthly City are not mapped.']});
+  const provenance=()=>({authority:'legacy-world',modelVersion:world.modelVersion||null,modelSource:'world/sim.js',rulesSource:'world/policy.js',rulesVersion:null,seed:town.seedKey,origin:{...origin},days:7,year:recipe?.year??3,proposalIds:[...(recipe?.proposalIds||[])],limitations:['Detached matched week, not a continuation of the live resident clock. Legacy resident indexes share deterministic buildTown inputs only; Population and monthly City are not mapped.']});
   const state=()=>({...controller?.getState(),ready:true,observation,feedback:measured,configuration,workerTimings,provenance:provenance()});
   const refresh=()=>{const value=state();guide?.update(value);$('firstRunGuide')?.toggleAttribute('data-demo-engaged',Boolean(observation||measured));$('firstRunGuide')?.toggleAttribute('data-demo-complete',value.status==='completed');if(configurationSummary)configurationSummary.textContent='Detached comparison: '+(configuration?.text||'Quick demo tests the local Balanced plan in a detached matched week.')+(measured?.unsupported?.length?' Unsupported proposals: '+measured.unsupported.map(item=>typeof item==='string'?item:item.id||item.label||'Unidentified proposal').join(', ')+'.':'')+' The ring marks an actual resident position, including indoors; it does not indicate a new building or measured policy effect.';return value;};
   const inspectResident=()=>{
     const p=residentById(focusId);if(!p)return false;
     followResident(town.people.indexOf(p));visualPanels.open('inspect',{trigger:document.activeElement});return true;
   };
+  const sessionSurvey=mountSessionSurvey(document.body);
   controller=createQuickDemoController({
     waitForReady:()=>{if(cycleBusy||demo.running||experimentWorker)throw Error('Finish the active civic comparison or ten-year experiment before starting the quick demo.');},
     observeResident:async({signal})=>{
@@ -2751,14 +2815,18 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
       const index=result.best?.index;if(Number.isInteger(index)&&town.people[index]){focusId=String(town.people[index].id);visualCamera.focusResident(focusId);visualSpotlight.showResident(focusId);}
       guide.show();refresh();
     },
-    onState:value=>{if(value.status==='waiting'){observation=null;measured=null;workerTimings=null;visualComparisonResult=null;}if(['stopped','error'].includes(value.status)){visualComparisonResult=null;visualCamera.cancel();visualSpotlight.clear();if(overlayMode==='cycle'){overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';}}refresh();},
+    onState:value=>{sessionSurvey.update(value);if(value.status==='waiting'){observation=null;measured=null;workerTimings=null;visualComparisonResult=null;}if(['stopped','error'].includes(value.status)){visualComparisonResult=null;visualCamera.cancel();visualSpotlight.clear();if(overlayMode==='cycle'){overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';}}refresh();},
     now:()=>performance.now()
   });
   guide=mountFirstRunGuide({container:document.body,panelManager:visualPanels,
-    onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),onReplay:()=>controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay(),onInspect:inspectResident,
+    onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),
+    onReplay:()=>{if(controller.getState().status==='completed')sessionSurvey.replayStarted();return controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay();},
+    onChangeYear:year=>{if(controller.getState().status!=='completed'||![0,1,3,5,10].includes(year)||year===readRecipe().year)return;recipe={...readRecipe(),year};return controller.start({recipeVersion:1,year});},
+    onInspect:inspectResident,
     onCompare:()=>controller.start({recipeVersion:1}),onStorm:async()=>{controller.stop();await livingWorld?.setActive(false);const record=triggerStorm();visualComparisonResult=null;measured=stormFeedback(record,{minute:world.t,seed:town.seedKey});overlayMode='flood';if(overlayEl)overlayEl.value='flood';guide.show();refresh();},
     onTour:()=>{controller.stop();guide.hide();playDemo();},onExperiment:()=>{controller.stop();guide.hide();runExperiment10Years();}
   });
+  $('firstRunGuide').append(document.querySelector('[data-testid=session-survey]'));
   const guideActions=$('firstRunGuide').querySelector('.first-run-actions');
   const moreActions=document.createElement('details'),moreSummary=document.createElement('summary');moreSummary.textContent='More city actions';moreActions.append(moreSummary);
   for(const button of [...guideActions.children].slice(4))moreActions.append(button);$('firstRunGuide').append(moreActions);
@@ -2775,7 +2843,7 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
   const syncComparisonControls=()=>{for(const button of switcher.children){button.disabled=measured?.kind!=='matched';button.setAttribute('aria-pressed',String(button.dataset.testid==='quick-demo-'+visualComparisonView&&measured?.kind==='matched'));}};
   syncComparisonControls();const comparisonControlsTimer=setInterval(syncComparisonControls,200);
   guide.update(state());guide.show();
-  addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
+  addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();sessionSurvey.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
 }
 
 // Reuse current inspector commands; no independent simulation action catalogue.

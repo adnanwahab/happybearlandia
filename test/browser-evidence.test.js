@@ -36,6 +36,7 @@ test('normal traffic stays empty, overflow is counted and listeners are removed'
   expect(collector.events).toEqual([]);
   collector.record('test', 'one');
   collector.record('test', 'two');
+  expect(collector.dropped).toBe(1);
   await collector.attach({ attach: async (_, data) => expect(JSON.parse(data.body).dropped).toBe(1) });
   collector.dispose();
   expect(source.eventNames()).toEqual([]);

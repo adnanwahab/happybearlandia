@@ -6,7 +6,20 @@
   <title>Worldline · Saved Future Journey</title>
   <link rel="stylesheet" href="/world/civilization/civilization.css">
   <script type="module" src="/world/future-journey/page.js"></script>
-<style>main {max-width: 60rem; margin: auto; padding: 1rem;} input, textarea, select {max-width: 100%; box-sizing: border-box;} form label {display: block; margin: .8rem 0;} #lineage {overflow-wrap: anywhere;}</style>
+<style>
+  /* Keep the centered reading column inside narrow viewports: width: 100%
+     otherwise excludes this horizontal padding and creates page overflow. */
+  main { box-sizing: border-box; max-width: 60rem; width: 100%; margin: auto; padding: 1rem; }
+  main, main * { min-width: 0; }
+  main p, main h1, main h2, main h3, main a, main li { overflow-wrap: anywhere; }
+  main form { width: 100%; }
+  main form label { display: block; flex: 1 1 min(100%, 16rem); margin: .8rem 0; }
+  main input, main textarea, main select { box-sizing: border-box; max-width: 100%; }
+  main form input, main form textarea, main form select { width: 100%; }
+  #timeline { display: block; width: 100%; }
+  #lineage-map, .future-lines { max-width: 100%; }
+  .future-lines li { max-width: 100%; }
+</style>
   <style>
     .future-lines { list-style: none; padding-left: 1rem; border-left: 4px solid #668da5; }
     .future-lines li { position: relative; margin: 1rem 0; padding: .5rem 1rem; border: 1px solid #668da5; border-radius: .5rem; overflow-wrap: anywhere; }

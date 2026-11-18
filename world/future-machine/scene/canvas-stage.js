@@ -41,6 +41,35 @@ export function hitTestCanvas(rows, x, y, camera, viewport) {
   const wx=camera.x+(x-viewport.x-viewport.width/2)/camera.zoom, wz=camera.z+(y-viewport.height/2)/camera.zoom;
   return [...rows].reverse().find(row => !row.ghost && contains(polygon(row),wx,wz)) || null;
 }
+// Diagnostics use the same clipped painted polygons and picker as pointer input.
+// A center can be offscreen while part of the building remains selectable.
+export function canvasPickTargets(rows,camera,viewport){
+  const left=(viewport.clip?.x??viewport.x)+1,right=(viewport.clip?viewport.clip.x+viewport.clip.width:viewport.x+viewport.width)-1;
+  const top=1,bottom=viewport.height-45;
+  if(right<=left||bottom<=top)return [];
+  const clip=points=>{
+    for(const [axis,bound,sign]of [['x',left,1],['x',right,-1],['y',top,1],['y',bottom,-1]]){
+      const input=points;points=[];if(!input.length)break;
+      for(let i=0;i<input.length;i++){const a=input[i],b=input[(i+1)%input.length],insideA=sign*(a[axis]-bound)>=0,insideB=sign*(b[axis]-bound)>=0;
+        if(insideA)points.push(a);
+        if(insideA!==insideB){const t=(bound-a[axis])/(b[axis]-a[axis]);points.push({x:a.x+t*(b.x-a.x),y:a.y+t*(b.y-a.y)});}
+      }
+    }return points;
+  };
+  const targets=[];
+  for(const row of rows){
+    if(row.ghost)continue;
+    const points=clip(polygon(row).map(([x,z])=>canvasPoint(x,z,camera,viewport)));
+    if(points.length<3)continue;
+    let area=0,x=0,y=0;
+    for(let i=0;i<points.length;i++){const a=points[i],b=points[(i+1)%points.length],cross=a.x*b.y-b.x*a.y;area+=cross;x+=(a.x+b.x)*cross;y+=(a.y+b.y)*cross;}
+    if(Math.abs(area)<1e-8)continue;
+    const candidates=[canvasPoint(row.x,row.z,camera,viewport),{x:x/(3*area),y:y/(3*area)}];
+    for(let i=1;i<points.length-1;i++)candidates.push({x:(points[0].x+points[i].x+points[i+1].x)/3,y:(points[0].y+points[i].y+points[i+1].y)/3});
+    const point=candidates.find(p=>p.x>=left&&p.x<=right&&p.y>=top&&p.y<=bottom&&identity(hitTestCanvas(rows,p.x,p.y,camera,viewport)||{})===identity(row));
+    if(point)targets.push({collection:row.collection,id:row.id,arm:row.arm,ghost:false,x:point.x,y:point.y,source:'canvas-painted-polygon'});
+  }return targets;
+}
 export function fitCanvasCamera(projection, width, height, mode='split') {
   width=dimension(width,640);height=dimension(height,400);projection=validProjection(projection);
   const points=[...(projection?.a || []),...(projection?.b || [])].flatMap(polygon);
@@ -141,7 +170,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
     setPixelRatio(value){if(!Number.isFinite(value)||value<=0||value>2)throw new RangeError('Pixel ratio must be positive and at most 2');pixelRatio=value;resize();},
     getCamera(){return {...camera};},
     setCamera(next){if(!next||!Number.isFinite(next.x)||!Number.isFinite(next.z)||!Number.isFinite(next.zoom)||next.zoom<=0)throw new TypeError('Camera requires finite x, z and positive zoom');if(disposed)return;camera={x:next.x,z:next.z,zoom:clamp(next.zoom,.02,32)};fitted=true;draw();},
-    getStats(){return {backend:'canvas2d',objects:disposed?0:drawn,canvases:disposed?0:1,month:projection?.month??null,mode,ghosts,disposed,animationFrames:0,layoutVersion:LAYOUT_VERSION};},
+    getStats(){return {backend:'canvas2d',objects:disposed?0:drawn,canvases:disposed?0:1,month:projection?.month??null,mode,ghosts,disposed,animationFrames:0,layoutVersion:LAYOUT_VERSION,targets:disposed?[]:viewports().flatMap(view=>canvasPickTargets(canvasRows(projection,diff,view.arm,mode,ghosts),camera,view))};},
     dispose(){if(disposed)return;disposed=true;observer?.disconnect();for(const remove of listeners)remove();listeners.length=0;pointers.clear();projection=null;diff=null;canvas.width=0;canvas.height=0;canvas.remove();},
   };
 }

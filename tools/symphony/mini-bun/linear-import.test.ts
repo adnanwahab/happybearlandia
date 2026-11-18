@@ -53,3 +53,11 @@ test('fresh reviewed follow-up receives live holds and prompt while prior attemp
  const blocked=importProjectTasks(project,[{...issue,blockedBy:['SHE-2']}],[],first.tasks,state);expect(blocked.tasks[1].enabled).toBe(false);expect(blocked.tasks[1].disabledReason).toBe('dependency');
  const done=importProjectTasks(project,[{...issue,statusType:'completed'}],[],blocked.tasks,state);expect(done.tasks.every(t=>!t.enabled)).toBe(true);
 });
+
+test('project approval labels gate dispatch and release only when both approvals are present',()=>{
+ const config={...project,githubRepository:'fixture/happybearlandia',requiredLabels:['hbl-agent-ready','hbl-coordinator-approved']};
+ const item={id:'SHE-11',title:'Benchmark',status:'Todo',statusType:'unstarted',labels:['hbl-agent-ready']};
+ const held=importProjectTasks(config,[item],[],[],{});expect(held.tasks[0].enabled).toBe(false);expect(held.tasks[0].holdReason).toContain('hbl-coordinator-approved');
+ const ready=importProjectTasks(config,[{...item,labels:config.requiredLabels}],[],held.tasks,{});expect(ready.tasks[0].enabled).toBe(true);expect(ready.tasks[0].prompt).toContain('fixture/happybearlandia');expect(ready.tasks[0].prompt).not.toContain('this Dear Congress');
+ const revoked=importProjectTasks(config,[item],[],ready.tasks,{});expect(revoked.tasks[0].enabled).toBe(false);
+});

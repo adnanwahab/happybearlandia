@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
+<!-- Native cross-document opt-in must exist before delayed external CSS arrives. -->
+<style>@view-transition { navigation: auto; }</style>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Fork a synthetic city. Change one housing decision. Compare ten modeled years and inspect the evidence.">
 <link rel="stylesheet" href="/world/future-machine/ui/styles.css">
@@ -9,10 +11,11 @@
 <style>html{color-scheme:dark;background:#081425;color:#e9f2ff;font:16px system-ui}body{margin:0}#boot{max-width:60rem;margin:5rem auto;padding:2rem}a{color:#8fd9ff}button{font:inherit;padding:.7rem;cursor:pointer}body.future-machine-page>nav[aria-label="Connected universe"]{position:static!important;margin:16px auto!important;max-width:calc(100% - 32px)!important;width:fit-content;z-index:auto!important}
 </style>
 <link rel="stylesheet" href="/world/universe/portal.css">
+<script src="/world/universe/navigation-accessibility.js" defer></script>
 <script src="/world/universe/portal.js" defer></script>
 <script type="module" src="/shared/media/motion-entry.js"></script>
 </head>
-<body class="future-machine-page"><nav><a href="/world/detective.html">Play Detective of Futures</a></nav><div id="app"><section id="boot"><h1>Future Machine</h1><p>Loading the city comparison…</p><p><a href="/">HappyBearLandia home</a></p></section></div>
+<body class="future-machine-page"><nav><a href="/privacy">Privacy &amp; cookies</a> · <a href="/world/detective.html">Play Detective of Futures</a></nav><div id="app"><section id="boot"><h1>Future Machine</h1><p>Loading the city comparison…</p><p><a href="/">HappyBearLandia home</a></p></section></div>
 <script type="module">
 import {mountDiagnosticReport} from '/world/future-machine/diagnostics.js';
 import('/world/future-machine/main.js').catch(()=>{

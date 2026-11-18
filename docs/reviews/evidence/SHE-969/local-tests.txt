@@ -1,0 +1,44 @@
+bun test v1.4.2 (744846f84)
+
+test/future-machine-storage.test.js:
+(pass) City manifest, runs and share records survive close/reopen and an integrity-checked backup [222.94ms]
+
+test/release-health.test.js:
+(pass) liveness remains separate from readiness and exposes only a safe build identifier [36.77ms]
+(pass) startup preflight rejects newer causal revisions before modifying the database [13.23ms]
+(pass) recognized legacy storage can migrate while a foreign SQLite schema is rejected [10.16ms]
+(pass) readiness requires the initialized world_saved_homes table [11.89ms]
+(pass) readiness requires the initialized world_house_sessions table [10.35ms]
+(pass) malformed saved-home tables fail both startup preflight and readiness [10.88ms]
+(pass) Decision preflight accepts an initializable path without creating it and rejects a file [24.78ms]
+(pass) production build identity stays unknown for invalid input  [0.05ms]
+(pass) production build identity stays unknown for invalid input ""
+(pass) production build identity stays unknown for invalid input "unknown"
+(pass) production build identity stays unknown for invalid input "development"
+(pass) production build identity stays unknown for invalid input "abc123"
+(pass) production build identity stays unknown for invalid input "gggggggggggggggggggggggggggggggggggggggg"
+(pass) production build identity stays unknown for invalid input "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+(pass) production build identity stays unknown for invalid input "/secret/config"
+(pass) production accepts commit identity ABCDEF1
+(pass) production accepts commit identity aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+(pass) production accepts commit identity ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+(pass) demo readiness combines actual assets, synthetic fixtures and read-only backend probes [11.86ms]
+(pass) demo inventory resolves the checked-in homepage demo assets and generator [9.57ms]
+
+test/release-operations-dry-run.test.js:
+(pass) current repository topology retains mount and readiness while refusing canary assumptions [1.24ms]
+(pass) complete synthetic record produces review-only argv and cannot execute a rollback [0.11ms]
+(pass) missing evidence, local evidence and production-as-staging all fail closed [0.26ms]
+(pass) storage failures, wrong build, mutable image and incompatible schema block image-only recovery [0.03ms]
+(pass) CLI rejects an execution request and leaves repository config unchanged [5.78ms]
+(pass) malformed incident records are rejected without treating them as complete [0.03ms]
+
+test/decision-storage.test.js:
+(pass) Decision Studio defaults to private repository state and honors explicit paths [0.10ms]
+(pass) a store override cannot use a symlink into a served directory [1.11ms]
+(pass) backup and restore preserve full snapshots and summaries without overwriting a store [5.11ms]
+
+ 30 pass
+ 0 fail
+ 131 expect() calls
+Ran 30 tests across 4 files. [420.00ms]

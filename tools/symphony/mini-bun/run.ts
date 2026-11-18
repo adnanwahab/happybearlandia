@@ -6,13 +6,14 @@ import path from 'node:path';
 import { spawn, type ChildProcess } from 'node:child_process';
 
 import { portFailureEvidence, shouldAutoDebug, autoDebugPrompt, parseAutoDebugResult } from './auto-debug';
+import {cleanupMergedWorkspaces} from './cleanup';
 import { publishDraft } from './publication';
 import { createSessionTelemetry } from './telemetry';
 import { createHash } from 'node:crypto';
 import { fetchProjectIssues } from './linear-import';
 import { refreshRunningProject } from './refresh';
-import { runnable, queueSummary } from './queue';
-import { createTaskWorkspace } from './workspace';
+import { runnable, queueSummary, waitingExplanation } from './queue';
+import { createTaskWorkspace, resolveTaskWorkspace } from './workspace';
 import { readProject, githubIdentity, validateProjectTasks, projectBinding, validateBinding, workerEnvironment } from './project';
 
 type Task = { id: string; prompt: string; enabled?: boolean; retry?: boolean; linearStatus?: string; linearStatusType?: string; url?: string; holdReason?: string | null };
@@ -28,7 +29,12 @@ if (project) {
   if (origin.exitCode !== 0 || githubIdentity(origin.stdout.toString()) !== project.githubRepository.toLowerCase()) throw Error('Repository origin does not match project profile');
 }
 const tasksPath = path.join(root, 'tasks.json'), statePath = path.join(root, 'state.json');
-const workspaces = path.join(root, 'workspaces'), logs = path.join(root, 'logs'), lock = path.join(root, '.runner.lock');
+const legacyWorkspaces = path.join(root, 'workspaces');
+const workspaces = project?.workspaceDirectory ?? path.join(path.dirname(repo), `.${path.basename(repo)}-mini-symphony-workspaces`);
+const logs = path.join(root, 'logs'), lock = path.join(root, '.runner.lock');
+// Keep existing in-repository task worktrees resumable while placing all new
+// worktrees beside the checkout, outside the source tree Codex snapshots.
+const taskWorkspace = (id: string) => resolveTaskWorkspace(command,repo,legacyWorkspaces,workspaces,id);
 const timeoutMs = Number(process.env.MINI_SYMPHONY_TIMEOUT_MS ?? 3600000);
 const concurrency = Number(process.env.MINI_SYMPHONY_WORKERS ?? 1);
 if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 10 || !Number.isFinite(timeoutMs) || timeoutMs <= 0) throw Error('Workers must be an integer from 1 to 10; timeout must be positive');
@@ -78,20 +84,23 @@ function command(bin: string, args: string[], cwd: string) {
 }
 async function publishTask(task: Task, workspace: string, log: string) {
   telemetry?.activity(task.id, 'publishing');
-  await telemetry?.event('publication_started', 'Checking and publishing a draft PR.', {}, task.id);
+  await telemetry?.event('publication_started', 'Checking and publishing a ready-for-review PR.', {}, task.id);
   const entry = state[task.id]; entry.status = 'publishing'; entry.sessionId=telemetry?.sessionId; await save(state);
-  await logLine(log, `Preparing draft PR: base=${prBase}, branch=mini/${task.id}`);
+  await logLine(log, `Preparing PR: base=${prBase}, branch=mini/${task.id}`);
   const title = `[${task.id}] ${task.prompt.split('\n')[0].replace(/^Linear issue [^:]+:\s*/, '').slice(0, 180)}`;
   const body = [
-    `Automated draft PR for task ${task.id}.`,
+    `Automated PR for task ${task.id}.`,
     task.url ? `Linear issue: ${task.url}` : '',
     '',
     'Codex CLI exited with code 0. This confirms process completion only; tests and acceptance criteria still require review.',
   ].filter(Boolean).join('\n');
   let reused = false;
-  const url = publishDraft(command, workspace, task.id, prBase, title, body, result => { reused = result.reused; });
+  const evidenceNote = project?.screenshots
+    ? '\n\n## Browser evidence\n\nBefore/after desktop and mobile Playwright screenshots are uploaded as CI run artifacts by [PR screenshot evidence](https://github.com/' + project.githubRepository + '/actions/workflows/pr-screenshot-evidence.yml); they are not committed to the PR.'
+    : '';
+  const url = publishDraft(command, workspace, task.id, prBase, title, body + evidenceNote, result => { reused = result.reused; });
   entry.status = 'pr_created'; entry.pullRequestUrl = url; entry.publishError = undefined;
-  await save(state); await telemetry?.event('pr_created', reused ? 'Existing PR reconciled; no new PR created.' : 'New draft PR published; review and acceptance are pending.', {url, reused}, task.id); await logLine(log, `Draft PR created: ${url}`); console.log(`[${task.id}] draft PR: ${url}`);
+  await save(state); await telemetry?.event('pr_created', reused ? 'Existing PR reconciled; no new PR created.' : 'New ready-for-review PR published; review and acceptance are pending.', {url, reused}, task.id); await logLine(log, `PR created: ${url}`); console.log(`[${task.id}] PR: ${url}`);
 }
 // Check routing before creating a lock, rewriting state, or launching a worker.
 if (project) {
@@ -103,7 +112,7 @@ if (argv.includes('--check')) {
   const tasks = JSON.parse(await readFile(tasksPath, 'utf8'));
   validateProjectTasks(tasks, project);
   const snapshot = existsSync(statePath) ? JSON.parse(await readFile(statePath, 'utf8')) : {};
-  console.log(JSON.stringify({ project: project?.name ?? null, repository: repo, githubRepository: project?.githubRepository ?? null, linearProjectId: project?.linearProjectId ?? null, base: prBase, dataDirectory: root, concurrency, autoDebug, queue: queueSummary(tasks, snapshot) }, null, 2));
+  console.log(JSON.stringify({ project: project?.name ?? null, repository: repo, githubRepository: project?.githubRepository ?? null, linearProjectId: project?.linearProjectId ?? null, base: prBase, dataDirectory: root, workspaceDirectory: workspaces, concurrency, autoDebug, queue: queueSummary(tasks, snapshot) }, null, 2));
   process.exit(0);
 }
 await mkdir(workspaces, { recursive: true }); await mkdir(logs, { recursive: true });
@@ -153,11 +162,6 @@ console.log(`Concurrency: ${concurrency}; Codex timeout: ${Math.round(timeoutMs 
 let lastBoardSync = 0;
 let lastTaskDigest = createHash('sha256').update(await readFile(tasksPath,'utf8')).digest('hex');
 let lastQueueDigest = '';
-function waitingExplanation(tasks: Task[]) {
-  const reasons=[...new Set(tasks.filter(t=>t.enabled!==true&&t.holdReason).map(t=>t.holdReason!))];
-  if(reasons.length)return `Held: ${reasons.slice(0,3).join(' ')}${reasons.length>3?' Additional holds are recorded in tasks.json.':''}`;
-  return 'No new eligible work. Prior PRs/results require review; explicit operator-disabled tasks remain disabled.';
-}
 async function observeQueue(tasks: Task[]) {
   const digest = createHash('sha256').update(await readFile(tasksPath,'utf8')).digest('hex');
   if (digest !== lastTaskDigest) {
@@ -186,6 +190,10 @@ async function syncBoardIfDue(force = false) {
     lastTaskDigest = createHash('sha256').update(await readFile(tasksPath,'utf8')).digest('hex');
     await telemetry?.event('sync_finished', `Linear refresh: ${result.issues} issues, ${result.enabled} enabled.`);
     console.log(`Linear refresh: ${result.issues} issues, ${result.enabled} enabled.`);
+    if(project.cleanupMergedWorkspaces && !Object.values(state).some(e=>['running','publishing'].includes(e.status))) {
+      const scan=command('gh',['pr','list','--repo',project.githubRepository,'--state','all','--limit','1000','--json','headRefName,state'],repo);
+      if(scan.code===0){const prs=JSON.parse(scan.stdout),active=new Set(Object.entries(state).filter(([,e])=>['running','publishing'].includes(e.status)).map(([id])=>id));const removed=[...await cleanupMergedWorkspaces(command,repo,workspaces,prs,active),...await cleanupMergedWorkspaces(command,repo,legacyWorkspaces,prs,active)];if(removed.length)await telemetry?.event('workspaces_cleaned',`Removed ${removed.filter(r=>r.removed).length} merged PR workspaces; branches/history retained.`,{removed:removed.filter(r=>r.removed).length});}
+    }
   } catch (error) { await telemetry?.event('sync_failed', `Linear refresh failed; local queue retained: ${error}`); console.error(`Linear refresh failed; local queue retained: ${error}`); }
   finally { telemetry?.background('waiting'); }
 }
@@ -195,10 +203,10 @@ await syncBoardIfDue(true);
 try {
   const pending: Task[] = JSON.parse(await readFile(tasksPath, 'utf8'));
   validateProjectTasks(pending, project);
-  for (const task of pending.filter(t => t.enabled === true && !['completed', 'canceled', 'duplicate'].includes(t.linearStatusType ?? '') && ['needs_review', 'publish_failed', 'publishing'].includes(state[t.id]?.status ?? '') && existsSync(path.join(workspaces, t.id)))) {
+  for (const task of pending.filter(t => t.enabled === true && !['completed', 'canceled', 'duplicate'].includes(t.linearStatusType ?? '') && ['needs_review', 'publish_failed', 'publishing'].includes(state[t.id]?.status ?? '') && (existsSync(path.join(workspaces,t.id))||existsSync(path.join(legacyWorkspaces,t.id))))) {
     if(stopping)break;
-    const workspace = path.join(workspaces, task.id), log = path.join(logs, `${task.id}.log`);
-    try { console.log(`[${task.id}] retrying draft PR publication`); await publishTask(task, workspace, log); }
+    const log = path.join(logs, `${task.id}.log`);
+    try { const workspace=taskWorkspace(task.id);console.log(`[${task.id}] retrying PR publication`); await publishTask(task, workspace, log); }
     catch (error) {
       const noChanges = String(error).includes('produced no changes to publish');
       state[task.id] = { ...state[task.id], status: noChanges ? 'no_changes' : 'publish_failed', publishError: String(error), finishedAt: new Date().toISOString() };
@@ -211,7 +219,10 @@ try {
 let idleNotice = 0;
 const claimedThisRun = new Set<string>();
 async function runTask(task: Task) {
-  const workspace = path.join(workspaces, task.id), log = path.join(logs, `${task.id}.log`);
+  const log = path.join(logs, `${task.id}.log`);
+  let workspace:string;
+  try { workspace=taskWorkspace(task.id); }
+  catch(error) { state[task.id]={...state[task.id],status:'failed',finishedAt:new Date().toISOString(),log:path.relative(root,log)};await save(state);await telemetry?.event('task_failed',`Existing task worktree could not be moved safely: ${error}`,{},task.id);await logLine(log,`Existing task worktree could not be moved safely: ${error}`);console.error(`[${task.id}] workspace migration failed: ${error}`);return; }
   if (existsSync(workspace)) {
     const currentBranch = command('git', ['branch', '--show-current'], workspace);
     if (currentBranch.code !== 0 || currentBranch.stdout.trim() !== `mini/${task.id}`) {

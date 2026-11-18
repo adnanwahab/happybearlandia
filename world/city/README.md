@@ -241,3 +241,16 @@ in the restricted workspace: Bun server bind fails (EADDRINUSE on three distinct
 ports), and direct Chromium launch fails macOS bootstrap_check_in with permission
 denied. Run the browser journey in a host with server/browser permissions before
 accepting visual behavior or recordings.
+
+## Private Deliberation Circle (local review candidate)
+
+City Lab offers a bounded, opt-in room tied to one completed scenario/run. It
+copies saved final metrics and the full manifest (inputs, provenance, versions,
+seed), and requires a pinned metric citation for factual assertions. Pro/con/
+question contributions remain separate from an explicitly unofficial preference
+poll. Private keys authorize enrollment, participation or host moderation; there
+is no public room listing. Copy keys privately to reopen with manual Refresh.
+Rooms expire after 24 hours and are lost on server restart. Withdrawal deletes
+own content and preference; the host can close or delete all room content.
+These session keys do not verify human identity. See
+[issue contract and verification limits](../../docs/reviews/SHE-773.md).

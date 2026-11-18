@@ -4,7 +4,9 @@
     "@playwright/test": "^1.63.0"
   },
   "scripts": {
-    "symphony:mini": "bun run tools/symphony/mini-bun/run.ts .",
+    "symphony:mini": "bun --no-env-file run tools/symphony/mini-bun/run.ts --config tools/symphony/mini-bun/hbl.project.json",
+    "symphony:mini:check": "bun --no-env-file run tools/symphony/mini-bun/run.ts --config tools/symphony/mini-bun/hbl.project.json --check",
+    "symphony:mini:sync": "bun --no-env-file run tools/symphony/mini-bun/import-linear.ts --config tools/symphony/mini-bun/hbl.project.json",
     "start": "bun run server.js",
     "compare:local-ideas": "bun scripts/compare-local-ideas.js",
     "test:e2e": "playwright test",
@@ -23,12 +25,17 @@
     "record:demo": "HBL_RECORD_DEMO=1 playwright test test/e2e/advanced-loop.e2e.js",
     "test:city": "bun test --timeout 15000 test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js",
     "test:city:e2e": "playwright test test/e2e/city-systems.e2e.js test/e2e/project-unblock.e2e.js",
-    "test:mini-symphony": "bun test ./tools/symphony/mini-bun/auto-debug.test.ts ./tools/symphony/mini-bun/follow-up.test.ts ./tools/symphony/mini-bun/linear-import.test.ts ./tools/symphony/mini-bun/project.test.ts ./tools/symphony/mini-bun/recovery.test.ts ./tools/symphony/mini-bun/telemetry.test.ts ./tools/symphony/mini-bun/session-metrics.test.js ./test/mini-symphony-api.test.js ./test/server.test.js",
+    "test:mini-symphony": "bun test ./tools/symphony/mini-bun/browser-runtime.test.ts ./test/symphony-browser-result.test.js ./test/symphony-browser-config.test.js ./tools/symphony/mini-bun/screenshots.test.ts ./tools/symphony/mini-bun/cleanup.test.ts ./tools/symphony/mini-bun/auto-debug.test.ts ./tools/symphony/mini-bun/follow-up.test.ts ./tools/symphony/mini-bun/linear-import.test.ts ./tools/symphony/mini-bun/project.test.ts ./tools/symphony/mini-bun/recovery.test.ts ./tools/symphony/mini-bun/telemetry.test.ts ./tools/symphony/mini-bun/session-metrics.test.js ./test/mini-symphony-api.test.js ./test/server.test.js",
     "test:performance": "bun test test/performance-budgets.test.js",
     "profile:performance": "bun scripts/performance/run.js",
     "test:models": "bun scripts/validate-models.mjs",
     "test:demo-kpis": "HBL_FM_BROWSER=1 bun test test/demo-kpi-contract.test.js",
-    "test:startup": "playwright test --config test/startup-smoke.config.js"
+    "test:startup": "playwright test --config test/startup-smoke.config.js",
+    "test:agents:browser": "bun scripts/run-symphony-browser-tests.mjs",
+    "symphony:mini:export": "bun --no-env-file tools/symphony/mini-bun/export-runtime.ts",
+    "symphony:mini:audit": "bun --no-env-file tools/symphony/mini-bun/audit-integration.ts",
+    "preview:generate": "bun scripts/generate-social-preview.ts",
+    "preview:check": "bun scripts/generate-social-preview.ts --check"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",

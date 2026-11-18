@@ -15,6 +15,19 @@ test('project routing rejects mixed task/state and wrong origin while allowing H
   expect(()=>validateProjectTasks([{...task,githubRepository:'fixture/happybearlandia'}],project)).toThrow('different');
   expect(()=>validateBinding({...projectBinding(project),repository:'/other'},project)).toThrow('different project');
 });
+test('project worktrees default outside the source checkout and reject in-repository overrides',()=>{
+  const dir=mkdtempSync(path.join(tmpdir(),'mini-project-path-'));
+  try {
+    const repo=path.join(dir,'dear_congress'),profileDir=path.join(repo,'tools','runner');
+    mkdirSync(profileDir,{recursive:true});
+    const config={...project,repository:'../..',dataDirectory:'../..'};
+    const file=path.join(profileDir,'profile.json');writeFileSync(file,JSON.stringify(config));
+    const loaded=readProject(file);
+    expect(loaded.workspaceDirectory).toBe(path.join(dir,'.dear_congress-mini-symphony-workspaces'));
+    writeFileSync(file,JSON.stringify({...config,workspaceDirectory:'../..'}));
+    expect(()=>readProject(file)).toThrow('outside the source repository');
+  }finally{rmSync(dir,{recursive:true,force:true});}
+});
 test('board import preserves existing Dear Congress PR and enables only unfinished unblocked work', () => {
   const oldState={'SHE-99':{status:'pr_created'}},oldTasks=[{id:'SHE-99',enabled:true}];
   const imported=importProjectTasks(project,[issue(),issue('SHE-251'),issue('SHE-252','completed'),{...issue('SHE-253'),blockedBy:['SHE-249']}],[{headRefName:'codex/she-251-repository-voting',state:'OPEN',url:'https://github.com/fixture/dear_congress/pull/1'}],oldTasks,oldState);
@@ -37,7 +50,7 @@ test('project-scoped full-description import paginates and rejects cross-project
   await expect(fetchProjectIssues(project,'fixture',(async()=>Response.json({data:{project:{id:'wrong'}}})) as any)).rejects.toThrow();
   await expect(fetchProjectIssues(project,'fixture',(async()=>new Response('',{status:429})) as any)).rejects.toThrow('HTTP 429');
 });
-for (const mode of ['normal','stubborn','debug-off','debug-pass','debug-blocked','debug-timeout']) test(`configured normal entry ${mode}`, async () => {
+for (const mode of ['normal','stubborn','debug-off','debug-pass','debug-blocked','debug-timeout','screenshots']) test(`configured normal entry ${mode}`, async () => {
   const stubborn=mode==='stubborn',debug=mode.startsWith('debug'),enabled=debug&&mode!=='debug-off';
   const expected=stubborn||mode==='debug-blocked'||mode==='debug-timeout'?'failed':'pr_created';
   const dir=mkdtempSync(path.join(tmpdir(),'mini-project-')),repo=path.join(dir,'dear'),remote=path.join(dir,'remote.git'),queue=path.join(dir,'queue'),bin=path.join(dir,'bin');
@@ -47,10 +60,10 @@ for (const mode of ['normal','stubborn','debug-off','debug-pass','debug-blocked'
   let child: ReturnType<typeof Bun.spawn> | undefined;
   try {
     git(['init','--bare',remote]);git(['init','-b','main',repo]);git(['config','user.email','test@example.test'],repo);git(['config','user.name','Fixture'],repo);
-    writeFileSync(path.join(repo,'base.txt'),'base');git(['add','.'],repo);git(['commit','-m','base'],repo);git(['remote','add','origin',remote],repo);git(['push','-u','origin','main'],repo);
+    writeFileSync(path.join(repo,'base.txt'),'base');if(mode==='screenshots')writeFileSync(path.join(repo,'app.ts'),`const s=Bun.serve({port:0,hostname:'127.0.0.1',fetch:()=>new Response('<main>Fixture app</main>',{headers:{'content-type':'text/html'}})});console.log('running at '+s.url);`);git(['add','.'],repo);git(['commit','-m','base'],repo);git(['remote','add','origin',remote],repo);git(['push','-u','origin','main'],repo);
     const sourceHead=git(['rev-parse','HEAD'],repo);
     writeFileSync(path.join(repo,'local-uncommitted.txt'),'preserve');
-    const profile={...project,repository:repo,dataDirectory:queue};writeFileSync(path.join(queue,'config.json'),JSON.stringify(profile));
+    const profile={...project,repository:repo,dataDirectory:queue,workspaceDirectory:path.join(queue,'workspaces'),...(mode==='screenshots'?{screenshots:{command:[process.execPath,'app.ts'],paths:['/'],timeoutMs:15000}}:{})};writeFileSync(path.join(queue,'config.json'),JSON.stringify(profile));
     const imported=importProjectTasks(profile,[issue()],[],[],{});writeFileSync(path.join(queue,'tasks.json'),JSON.stringify(imported.tasks));writeFileSync(path.join(queue,'state.json'),'{}');
     const executable=(name:string,text:string)=>{writeFileSync(path.join(bin,name),text);chmodSync(path.join(bin,name),0o755);};
     executable('git',`#!/bin/sh\ncase "$*" in *"remote get-url origin") echo https://github.com/fixture/dear_congress.git;; *) exec '${realGit}' "$@";; esac\n`);
@@ -71,7 +84,7 @@ await Bun.write(result,n===1?'original failure evidence':JSON.stringify({status:
     const check=Bun.spawnSync([...argv,'--check'],{cwd:dir,env,stdout:'pipe',stderr:'pipe'});expect(check.exitCode).toBe(0);expect(JSON.parse(check.stdout.toString()).autoDebug).toBe(enabled);expect(existsSync(path.join(queue,'.runner.lock'))).toBe(false);expect(existsSync(path.join(queue,'workspaces'))).toBe(false);
     child=Bun.spawn(argv,{cwd:dir,env,stdout:'pipe',stderr:'pipe'});
     let state:any;
-    for(let n=0;n<100;n++){await Bun.sleep(50);state=JSON.parse(readFileSync(path.join(queue,'state.json'),'utf8'));if(state['SHE-249']?.status===expected)break;}
+    for(let n=0;n<200;n++){await Bun.sleep(50);state=JSON.parse(readFileSync(path.join(queue,'state.json'),'utf8'));if(state['SHE-249']?.status===expected)break;}
     expect(state['SHE-249']?.status).toBe(expected);
     if(!stubborn)expect(readFileSync(path.join(queue,'workspaces/SHE-249/implemented.txt'),'utf8')).toBe('implemented\n');
     expect(git(['rev-parse','HEAD'],repo)).toBe(sourceHead);expect(readFileSync(path.join(repo,'local-uncommitted.txt'),'utf8')).toBe('preserve');
@@ -84,6 +97,7 @@ await Bun.write(result,n===1?'original failure evidence':JSON.stringify({status:
     expect(records[0].type).toBe('session_started');expect(records.at(-1).type).toBe('session_stopped');
     expect(records.filter(e=>e.type==='task_finished')).toHaveLength(1);
     expect(records.some(e=>e.type==='pr_created')).toBe(expected==='pr_created');
+    if(mode==='screenshots'){expect(records.some(e=>e.type==='screenshots_before_captured')).toBe(true);expect(records.some(e=>e.type==='screenshots_captured')).toBe(true);expect(git(['ls-tree','--name-only','HEAD','.mini-symphony-evidence/'],path.join(queue,'workspaces/SHE-249'))).toBe('');expect(existsSync(path.join(queue,'artifacts/mini-symphony/SHE-249/SHE-249-before.json'))).toBe(true);expect(existsSync(path.join(queue,'artifacts/mini-symphony/SHE-249/SHE-249-after.json'))).toBe(true);}
     expect(records.some(e=>e.type==='worker_force_stopped')).toBe(stubborn||mode==='debug-timeout');
     if(debug){
       expect(readFileSync(path.join(dir,'calls'),'utf8')).toBe(enabled?'2':'1');

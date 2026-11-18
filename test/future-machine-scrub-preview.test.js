@@ -39,3 +39,12 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('browser native keyboard, touch release
  const ms=await page.evaluate(()=>{const s=document.querySelector('input');s.dispatchEvent(new Event('pointerdown'));const start=performance.now();for(let i=0;i<1000;i++){s.value=i%121;s.dispatchEvent(new Event('input'));}const elapsed=performance.now()-start;s.dispatchEvent(new Event('pointercancel'));return elapsed;});console.log(`SHE-481 1000 preview inputs: ${ms.toFixed(2)}ms (Chromium fixture, not device certification)`);
  }finally{await browser?.close();server.stop(true);}
 });
+
+test('default terminal selection commits without a fixed delay while drag and Escape remain isolated',()=>{
+ const slider=new EventTarget();slider.value=0;slider.setAttribute=()=>{};const card={hidden:true},commits=[],state={ready:true,history,month:0};
+ const binding=bindScrubPreview(slider,card,{getState:()=>state,onCommit:month=>commits.push(month)});
+ slider.dispatchEvent(new Event('pointerdown'));slider.value=16;slider.dispatchEvent(new Event('input'));slider.dispatchEvent(new Event('change'));expect(commits).toEqual([]);
+ slider.dispatchEvent(new Event('pointerup'));expect(commits).toEqual([16]);slider.dispatchEvent(new Event('change'));expect(commits).toEqual([16]);
+ slider.value=17;slider.dispatchEvent(new Event('input'));slider.dispatchEvent(new Event('change'));expect(commits).toEqual([16,17]);
+ slider.value=18;slider.dispatchEvent(new Event('input'));const escape=new Event('keydown');escape.key='Escape';slider.dispatchEvent(escape);slider.dispatchEvent(new Event('change'));expect(commits).toEqual([16,17]);expect(slider.value).toBe(0);binding.dispose();
+});

@@ -1,0 +1,128 @@
+[
+  {
+    "label": "Get started →",
+    "id": "",
+    "action": "start",
+    "disabled": false
+  },
+  {
+    "label": "◎ World",
+    "id": "",
+    "action": "world",
+    "disabled": false
+  },
+  {
+    "label": "♙ People",
+    "id": "",
+    "action": "people",
+    "disabled": false
+  },
+  {
+    "label": "⌂ Build",
+    "id": "",
+    "action": "build",
+    "disabled": false
+  },
+  {
+    "label": "⚖ Laws",
+    "id": "",
+    "action": "laws",
+    "disabled": false
+  },
+  {
+    "label": "◷ Time",
+    "id": "",
+    "action": "time",
+    "disabled": false
+  },
+  {
+    "label": "≋ Activity",
+    "id": "",
+    "action": "activity",
+    "disabled": false
+  },
+  {
+    "label": "! Quests",
+    "id": "",
+    "action": "quests",
+    "disabled": false
+  },
+  {
+    "label": "▤ Legends",
+    "id": "",
+    "action": "legends",
+    "disabled": false
+  },
+  {
+    "label": "Search ⌘K",
+    "id": "",
+    "action": "search",
+    "disabled": false
+  },
+  {
+    "label": "Tile view",
+    "id": "",
+    "action": "tiles",
+    "disabled": false
+  },
+  {
+    "label": "Sound off",
+    "id": "",
+    "action": "sound",
+    "disabled": false
+  },
+  {
+    "label": "More tools",
+    "id": "",
+    "action": "tools",
+    "disabled": false
+  },
+  {
+    "label": "Pause simulation",
+    "id": "",
+    "action": "pause",
+    "disabled": false
+  },
+  {
+    "label": "1×",
+    "id": "",
+    "action": "1",
+    "disabled": false
+  },
+  {
+    "label": "2×",
+    "id": "",
+    "action": "2",
+    "disabled": false
+  },
+  {
+    "label": "4×",
+    "id": "",
+    "action": "4",
+    "disabled": false
+  },
+  {
+    "label": "Overlay: none",
+    "id": "",
+    "action": "overlay",
+    "disabled": false
+  },
+  {
+    "label": "Start here",
+    "id": "world-guide-button",
+    "action": "start",
+    "disabled": false
+  },
+  {
+    "label": "Activity dashboard",
+    "id": "activity-dashboard-button",
+    "action": "activity",
+    "disabled": false
+  },
+  {
+    "label": "Toggle FPS meter",
+    "id": "",
+    "action": null,
+    "disabled": false
+  }
+]

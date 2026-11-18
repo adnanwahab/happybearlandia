@@ -1,6 +1,6 @@
 import {test,expect} from 'bun:test';
 import * as THREE from 'three';
-import {createNeighborhood,architectureGeometry} from '../world/future-machine/scene/neighborhood.js';
+import {createNeighborhood,architectureGeometry,facadeDetails} from '../world/future-machine/scene/neighborhood.js';
 import {createDivergenceGate,createDivergenceBurst} from '../world/future-machine/scene/divergence.js';
 import {createSpatialMapping} from '../world/future-machine/scene/mapping.js';
 import {createEngine,addIntervention} from '../world/city/engine.js';
@@ -28,4 +28,21 @@ test('linked-panel burst shares phase, settles and releases scenery',()=>{
  const scenes=[new THREE.Scene(),new THREE.Scene()],burst=createDivergenceBurst(THREE,scenes,{x:24,z:0});
  expect(burst.tick(100)).toBe(true);burst.tick(1600);expect(scenes[0].children[0].children[0].scale.toArray()).toEqual(scenes[1].children[0].children[0].scale.toArray());
  expect(burst.tick(3100)).toBe(false);burst.dispose();expect(scenes.map(s=>s.children.length)).toEqual([0,0]);
+});
+
+test('instanced facade preserves every authored window transform and releases instance resources once',()=>{
+ for(const height of [1.7,3,6,9,12,36])for(const muted of [false,true]){
+  const facade=facadeDetails(THREE,height,muted),expected=[];
+  for(let y=1.7;y<height;y+=3)for(const x of [-4,0,4])for(const side of [-1,1]){
+   const pose=new THREE.Object3D();pose.position.set(x,y-height/2,side*7.06);pose.updateMatrix();expected.push(pose.matrix.clone());
+   pose.rotation.y=Math.PI/2;pose.position.set(side*7.06,y-height/2,x);pose.updateMatrix();expected.push(pose.matrix.clone());
+  }
+  if(!expected.length){expect(facade.children).toHaveLength(0);continue;}
+  expect(facade.children).toHaveLength(1);const windows=facade.children[0];expect(windows.isInstancedMesh).toBe(true);expect(windows.count).toBe(expected.length);
+  expect(windows.geometry.parameters).toMatchObject({width:1.8,height:1.35,depth:.12});expect(windows.material.color.getHex()).toBe(muted?0x53666c:0xc5e0d6);expect(windows.material.roughness).toBe(.4);
+  for(let i=0;i<expected.length;i++){const actual=new THREE.Matrix4();windows.getMatrixAt(i,actual);for(let n=0;n<16;n++)expect(actual.elements[n]).toBeCloseTo(expected[i].elements[n],5);}
+  facade.traverse(object=>{expect(object.userData.id).toBeUndefined();expect(object.userData.collection).toBeUndefined();});
+  const counts={instance:0,geometry:0,material:0};windows.addEventListener('dispose',()=>counts.instance++);windows.geometry.addEventListener('dispose',()=>counts.geometry++);windows.material.addEventListener('dispose',()=>counts.material++);
+  const released=new Set();disposeObjectResources(facade,released);disposeObjectResources(facade,released);expect(counts).toEqual({instance:1,geometry:1,material:1});
+ }
 });

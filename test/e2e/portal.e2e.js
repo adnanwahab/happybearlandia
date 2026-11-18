@@ -16,9 +16,9 @@ for (const reduced of [false, true]) {
       if(id==='world') await link.click();
       else await link.press('Enter');
       await page.waitForURL(u=>u.pathname===path);
-      await expect.poll(()=>page.evaluate(()=>document.activeElement===document.body)).toBe(true);
+      await expect.poll(()=>page.evaluate(()=>document.activeElement?.dataset.navigationFocus === 'heading')).toBe(true);
       expect(new URL(page.url()).search).toBe(new URL(destination,'http://localhost').search);
-      await expect(page.locator('.portal-announcement')).toHaveText(await page.title());
+      await expect(page.locator('.hbl-navigation-status')).toHaveText('Destination ready. Focus at page heading.');
       if(reduced) await expect(page.locator('html')).toHaveClass(/portal-reduced/);
       if(!reduced) await page.screenshot({path:`.mini-symphony-evidence/SHE-390-portal-${id}-after.png`});
       await page.goBack();
@@ -35,6 +35,34 @@ test('unsupported shared-element CSS retains native navigation', async ({page}) 
   await link.click();
   await page.waitForURL(/world\/future-machine.html/);
   expect(new URL(page.url()).searchParams.get('tick')).toBe('7');
-  await expect.poll(()=>page.evaluate(()=>document.activeElement===document.body)).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>document.activeElement?.dataset.navigationFocus === 'heading')).toBe(true);
   await expect(page.locator('[data-portal-active]')).toHaveCount(0);
 });
+
+
+for (const reduced of [false, true]) {
+  test(`primary launch and Back tolerate delayed transition styles, reduced=${reduced}`, async ({page}) => {
+    await page.emulateMedia({reducedMotion: reduced ? 'reduce' : 'no-preference'});
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Network.enable');
+    await cdp.send('Network.setCacheDisabled', {cacheDisabled: true});
+    await cdp.send('Network.emulateNetworkConditions', {
+      offline: false, latency: 100, downloadThroughput: 1000000, uploadThroughput: 1000000,
+    });
+    await cdp.send('Emulation.setCPUThrottlingRate', {rate: 4});
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto('/');
+    await page.getByRole('link', {name: 'Try the 60-second simulation', exact: true}).click();
+    await page.waitForURL(url => url.pathname === '/world/future-machine.html');
+    await page.waitForLoadState('load');
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    expect(errors).toEqual([]);
+    await page.goBack();
+    await expect(page.getByRole('link', {name: 'Try the 60-second simulation', exact: true})).toBeVisible();
+    await page.waitForLoadState('load');
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    if (reduced) await expect(page.locator('html')).toHaveClass(/portal-reduced/);
+    expect(errors).toEqual([]);
+  });
+}

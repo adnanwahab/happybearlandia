@@ -1,3 +1,21 @@
+## Provisional owner-requested targets — November 14, 2026
+
+The numeric limits in the configuration are **engineering estimates, not measured
+baselines**. Status: `provisional-estimate-not-calibrated`; calibration is still
+required. They provide initial targets without claiming hardware verification.
+
+| Profile | Decoded JS | Ready for first action | Slider response (two frames) | Sampled main-page JS heap |
+| --- | --- | --- | --- | --- |
+| Laptop emulated | 8 MiB | 15 seconds | 100 ms | 512 MiB |
+| Mobile emulated | 8 MiB | 30 seconds | 250 ms | 256 MiB |
+
+These are starting ceilings for a complex simulator, not observed performance or
+claims about physical phones. Heap excludes workers, GPU/native allocations and
+process memory. Decoded JS is not compressed transfer size. Passing these targets
+does not establish baseline-derived acceptance of SHE-40. Obtain three valid cold
+samples per profile, review the generated proposal, then replace these estimates.
+Do not label estimate-based check results as calibrated or measured budgets.
+
 # First-interaction budgets — SHE-40
 
 Status: measurement infrastructure implemented; numeric budgets await a successful

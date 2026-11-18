@@ -111,3 +111,24 @@ test('curtain uses a common full-width projection and routes picks only to the r
  expect(selected.at(-1)).toEqual({collection:'buildings',id:'a',arm:'plan'});
  expect(stage.getCamera()).toEqual(camera);expect(JSON.stringify(p)).toBe(before);stage.setCurtain(null);stage.dispose();
 });
+
+test('painted Canvas targets remain selectable after pan, mode changes and partial viewport clipping',()=>{
+ const f=fixture(),selections=[],stage=createCanvasStage(f.container,{onSelect:row=>selections.push(row)}),p=projection(),before=JSON.stringify(p);
+ stage.update(p,diff);stage.setCamera({x:-18,z:0,zoom:5}); // b center is outside the plan half; its left edge is painted.
+ stage.setMode('difference');stage.setMode('split');
+ const target=stage.getStats().targets.find(row=>row.id==='b'&&row.arm==='plan');
+ expect(target).toBeTruthy();expect(target.x).toBeGreaterThan(400);expect(target.x).toBeLessThan(800);expect(target.y).toBeLessThan(356);
+ f.emit('pointerdown',{pointerId:9,clientX:target.x,clientY:target.y});f.emit('pointerup',{pointerId:9,clientX:target.x,clientY:target.y});
+ expect(selections).toEqual([{collection:'buildings',id:'b',arm:'plan'}]);
+ expect(stage.getStats().targets.some(row=>row.id==='b'&&row.arm==='baseline')).toBe(false);
+ expect(stage.getCamera()).toEqual({x:-18,z:0,zoom:5});expect(JSON.stringify(p)).toBe(before);
+ stage.setCamera({x:-10000,z:0,zoom:5});expect(stage.getStats().targets).toEqual([]);
+ stage.update(null,null);expect(stage.getStats().targets).toEqual([]);stage.dispose();expect(stage.getStats().targets).toEqual([]);
+});
+test('Canvas targets use painted polygon interiors and honor curtain clipping',()=>{
+ const f=fixture(),selections=[],stage=createCanvasStage(f.container,{onSelect:row=>selections.push(row)});
+ const row={id:'triangle',collection:'buildings',x:5,z:5,polygon:[[0,0],[10,0],[0,10]]};stage.update({month:1,a:[],b:[row]},null);stage.setCamera({x:-65,z:0,zoom:3});
+ stage.setCurtain(.75);const target=stage.getStats().targets.find(row=>row.arm==='plan');expect(target).toBeTruthy();expect(target.x).toBeGreaterThanOrEqual(600);
+ f.emit('pointerdown',{pointerId:2,clientX:target.x,clientY:target.y});f.emit('pointerup',{pointerId:2,clientX:target.x,clientY:target.y});
+ expect(selections).toEqual([{collection:'buildings',id:'triangle',arm:'plan'}]);stage.dispose();
+});

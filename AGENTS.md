@@ -10,7 +10,7 @@ Build reliable, maintainable features that work through the application’s norm
 
 ## Plan and implement
 
-- For substantial features, record the next slice, prerequisites, acceptance and risks in `docs/reviews/<ISSUE-ID>.md`. The coordinator alone updates `docs/implementation-plan.md` after integration.
+- For substantial features, record the next end-to-end slice, prerequisites, acceptance criteria, and material risks. The coordinating agent owns `docs/implementation-plan.md` and other shared roadmap files. Issue workers record their plan, owned files, acceptance evidence and unresolved work in `docs/reviews/<ISSUE-ID>.md`; edit shared planning files only when explicitly assigned their ownership. Break the work into independently verifiable tasks.
 - Carry implementation requests through code, integration, verification, and review. Follow existing conventions, preserve working behavior and compatible data contracts, and keep changes small. Update affected interface documentation and add tests for meaningful behavior and regressions.
 - Preserve unrelated changes. Keep credentials and sensitive data out of code, fixtures, and output. Obtain explicit authorization for deployment and production data changes. Make routine reversible decisions locally and ask when a consequential choice cannot be resolved from the available evidence.
 
@@ -38,4 +38,5 @@ When independent implementation tasks justify delegation and the environment per
 - Review the diff against the request. Run the repository’s relevant tests, existing lint and type checks where available, and integration tests after combining independent changes. Verify important failure paths and fix introduced regressions.
 - Skip Playwright when the change does not affect browser behavior, when the user asks to skip it, or when browser or local server setup blocks the run. For browser-facing changes, use an available browser smoke check or focused integration tests and report what was verified and what remains unverified. If the user explicitly requires Playwright and setup blocks it, report the blocker.
 - Report status, acceptance evidence, unresolved work and PR references in the per-issue review document. The integration coordinator updates shared plans after review.
+- The coordinator updates the implementation plan with actual status, acceptance evidence, unresolved work, and commit or PR references. Issue workers update their per-issue record instead. If a large scope remains, leave a working increment and document its dependencies and limits.
 - Report delivered behavior, changed files, actual check results, material architectural decisions, limitations, and the next action when work remains.

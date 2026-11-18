@@ -11,3 +11,18 @@ export async function readTemporalResponse(response){
  if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('Historical map service returned an invalid response.');
  return data;
 }
+
+/** Bound browser requests as well as upstream server requests; cancel on panel close. */
+export async function fetchTemporalResponse(fetchImpl,url,{signal,timeoutMs=40000}={}) {
+ const controller=new AbortController();let timedOut=false;
+ const abort=()=>controller.abort();
+ if(signal?.aborted)controller.abort();else signal?.addEventListener('abort',abort,{once:true});
+ const timer=setTimeout(()=>{timedOut=true;controller.abort();},timeoutMs);
+ try{return await readTemporalResponse(await fetchImpl(url,{signal:controller.signal,cache:'no-store',headers:{Accept:'application/json'}}));}
+ catch(error){
+  if(timedOut)throw new Error('Historical map request timed out. Select Load date to retry, or try a smaller radius.');
+  if(signal?.aborted)throw error;
+  if(error instanceof TypeError)throw new Error('Could not reach the historical map service. Check your connection and select Load date to retry.');
+  throw error;
+ }finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
+}

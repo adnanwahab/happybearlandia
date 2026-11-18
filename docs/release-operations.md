@@ -2,6 +2,8 @@
 
 This release exposes `/api/health`, `/api/ready`, and the [Simulation Health dashboard](/tools/simulation-health/). Liveness answers whether the HTTP process can respond. Readiness checks the required World and causal SQLite tables and read/write access to the Decision Studio directory. A readiness failure returns 503. Probes use local storage and cache their result for two seconds. They leave saved records unchanged.
 
+`/api/server-logs` publishes redacted server logs for the last 14 days: failed and slow requests, page and API traffic, handler exceptions, console errors and warnings, and each process start with its build ID. Read it after a deploy or during an incident; see [the server logs module](../ops/server-logs/README.md) for what is and isn't recorded.
+
 ## Before a release
 
 - Record the current image/build, Git revision, database schema compatibility, mount layout, and the operator responsible for rollback.

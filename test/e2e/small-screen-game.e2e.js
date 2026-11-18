@@ -36,7 +36,7 @@ for (const viewport of [{width:320,height:640}, {width:390,height:844}, {width:7
       }
     });
     await page.goto('/');
-    await page.getByRole('link', {name:'Play Demo', exact:true}).tap();
+    await page.getByRole('link', {name:'Try the 60-second simulation', exact:true}).tap();
     await expect.poll(() => page.evaluate(() => window.futureMachine?.state.status), {timeout:90000}).toBe('ready');
     await expect.poll(() => page.evaluate(() => window.futureMachine?.stats.scene?.backend)).toBe('canvas2d');
     await page.getByRole('button', {name:'Pause demo', exact:true}).tap();

@@ -1,0 +1,34 @@
+name: Mini Symphony browser evidence
+on:
+  pull_request:
+    branches: [sprint/one-city-two-futures-20261111]
+permissions:
+  contents: read
+concurrency:
+  group: mini-evidence-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  evidence:
+    if: startsWith(github.head_ref, 'mini/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bunx playwright install --with-deps chromium
+      - name: Capture source-bound browser evidence
+        env:
+          TASK_BRANCH: ${{ github.head_ref }}
+        run: bun --no-env-file tools/symphony/mini-bun/capture-evidence.ts --config tools/symphony/mini-bun/hbl.project.json --task "${TASK_BRANCH#mini/}" --out "$RUNNER_TEMP/mini-evidence"
+      - name: Retain immutable run artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mini-evidence-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/mini-evidence
+          if-no-files-found: error
+          retention-days: 14

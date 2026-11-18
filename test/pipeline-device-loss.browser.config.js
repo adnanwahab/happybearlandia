@@ -1,9 +1,8 @@
 import {defineConfig} from '@playwright/test';
 import {mkdtempSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {dirname,join,resolve} from 'node:path';
-import {fileURLToPath} from 'node:url';
-const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+import {join,resolve} from 'node:path';
+const root=resolve(__dirname,'..');
 const stores=mkdtempSync(join(tmpdir(),'pipeline-device-loss-stores-'));
 const port=process.env.HBL_DEVICE_LOSS_PORT||'39974',baseURL=`http://127.0.0.1:${port}`;
 export default defineConfig({

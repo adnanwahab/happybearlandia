@@ -1,4 +1,87 @@
+## SHE-674 — shop-window event placards (2026-11-17)
+
+Prerequisite audit only; acceptance remains open. City has synthetic district-level
+opening/closure events, while Business Lab and neighborhood placement have separate
+identities/clocks and no verified source-history-to-storefront mapping. No placards
+were fabricated. [Audit, next slice and evidence](reviews/SHE-674.md) identify the
+producer contract, mapping, successful/failure browser checks and cleanup/pacing
+requirements. Existing business regressions: 31 pass, 1 baseline event-buffer test
+fails (232 assertions). No executable/model/governance changes or browser acceptance;
+no root lint/typecheck script. Next: establish the versioned history and location
+contract before implementing a bounded overlay. No commit/PR, merge or deployment.
+
 # HappyBearLandia implementation plan
+
+
+## Mini Symphony reliability / PR recovery — November 17 (bounded increment implemented)
+
+Owner requests throughput improvements across HBL and Dear Congress. The active
+path is Bun Mini Symphony (one worker/project, mini/*, ready-for-review PRs),
+not the separate Elixir pilot or run_25h.py supervisor. Preserve those runtimes'
+separate labels, limits, clocks and state; no concurrency increase or automatic
+merge/deployment enablement. Existing active workers stay running.
+
+Next integrated slices: (1) fail-closed positive current-head human approval in
+Dear Congress's guarded merger, with audit/merge outcomes distinguished; (2)
+unique loopback ports and disposable stores for a bounded set of canonical browser
+configs; (3) exact-head read-only durable integration-repair queue with leases,
+fenced retries and retained receipts; (4) portable versioned Bun runner source
+and config, coordinator-owned shared planning, external screenshot artifacts and
+source-bound receipts. Agents use isolated worktrees with separate owned modules;
+coordinator owns runner/publication/portability integration and final checks.
+
+Acceptance: meaningful approval/head/permission regressions, concurrent port/store
+isolation, deterministic queue reconciliation/crash/head-change tests, reproducible
+runtime export and normal --check entry, screenshot artifacts excluded from feature
+commits. Collect live backlog/host evidence read-only. Admin settings and human
+approval remain explicit operator work. Risks: unavailable branch-protection API,
+stale CI data and remote service/browser failures must fail closed; no 25-hour
+availability claim or live integration activation without actual evidence.
+
+Implementation/check evidence and explicit remaining operations: [reliability review](reviews/mini-symphony-reliability-20261117.md). Canonical export, external artifacts, approval guard, five-config isolation and advisory repair queue are implemented; live rollout, GitHub protections, automated repair dispatch and persistent-deadline Bun supervision remain unclaimed.
+
+## SHE-990 sidewalk synchronization follow-up — November 17
+
+Isolated from actual remote main c3ec93c5. Priority is closing the retained
+19.32m legacy walker/render divergence before feature expansion. Own the
+presentation fix, canonical desktop/mobile Playwright acceptance and integration
+review of PR470/474. No deployment or merge. Acceptance includes actual sidewalk
+lane membership, exterior geometry, body pixels, unobstructed scene picking,
+mouse/touch selection, pause/resume and camera movement, with exact coordinate
+and JS/GPU receipts. See [slice and evidence](reviews/SHE-990-sidewalk-sync.md)
+and [related PR review](reviews/SHE-990-pr-review.md).
+Completed: presentation-only pause settlement; actual desktop/mobile sidewalk
+acceptance2/2, combined units87pass/1opt-in skip, startup6/6 and temporal6/6.
+PR470 fix981f7d8d; conflict-free disposable PR474 composition1adcb31d.
+PR474 strict performance acceptance remains failed; no merge or deployment.
+
+## SHE-990 — World controls and street residents (November 17)
+
+Slice: audit normal canonical `/world` controls, repair temporal map recovery,
+make existing social commands discoverable and find actual exterior residents.
+Prerequisites: native World activity/playback/relationship APIs and retained map
+contracts. Independent temporal and social changes use isolated worktrees;
+coordinator owns render/shell integration. Preserve unrelated local changes.
+Acceptance: populated initial/loading/failed/empty timeline states, retry and
+cancellation; social target identity/availability/outcomes; actionable street
+resident discovery and explicit indoor/missing observations; desktop/mobile
+button and keyboard checks through normal entry. No model rule or seed changes.
+Risks: public historical sources may remain unavailable; WebGPU host/device
+errors must remain explicit. Verification and final status recorded below.
+
+## Mini Symphony pipeline unblock — November 17 (in progress)
+
+Owner requests both HBL and Civic Synthesis queues unblocked. Live project
+snapshot: HBL555 issues/253nonterminal; Civic397/150nonterminal. SHE-63 already
+has both approval labels; its latest prior PR is a browser matrix report with
+host restrictions, not proof of acceptance. Preserve genuine dependencies and
+prior receipts. HBL200new tickets lack approval labels; authorize bounded local
+implementation/testing/preparation only, preserving existing labels, dependencies
+and production/review gates. Exclude SHE-990 actively owned here and launch parent
+SHE-789. Dear Congress is already dispatching and publishing work; inspect its
+four newer failed attempts before safe retry. Do not interrupt an active worker,
+merge, deploy, fabricate acceptance or erase state. Verify actual dispatch after
+refresh, and retain open PRs for review.
 
 ## SHE-477 — curated Surprise Me (2026-11-14)
 
@@ -350,6 +433,46 @@ no hosted claim is made. Full issue acceptance still requires trusted-host hard
 resource containment and external runtime approval/retry/recovery validation.
 Those runtime changes are outside this explicitly scoped publication follow-up.
 No commit/PR reference exists for this revision yet.
+
+## Recorded behavior edit/replay loop (2026-11-14, draft PR #316)
+
+Status: implemented on review branch only. This is a bounded continuation of completed
+SHE-35 rather than a replacement of the existing same-initial-condition comparison.
+
+- The HBL law-panel entry point now exposes editable sensitivity for reviewed numeric
+  factors only (laws 22, 23 and 83) and stores the applied factor in a versioned
+  paired-run manifest. Reviewed discrete mechanisms and unsupported laws do not receive
+  arbitrary sliders. A run always starts from the same frozen model state and seed.
+- The existing comparison worker records up to 100 real timepoints with a bounded,
+  stable sample of 12 synthetic residents/households per branch. Playback shows
+  current/edit time-aligned frames, matched actor state and the real aggregate
+  metric timeline; missing or unchanged data are never substituted with effects.
+- Rerunning cancels old worker results and clears stale panels. A first completed
+  full-strength result is retained for comparisons at matching time and seed.
+- Documented model scope, provenance, test matrix, UX acceptance and gaps:
+  [world/laws/BEHAVIOR_PLAYBACK.md](../world/laws/BEHAVIOR_PLAYBACK.md).
+
+Verification evidence: targeted GitHub Actions workflow "Law behavior playback"
+run 43597696277 completed successfully (Bun contract tests), exercising
+test/law-behavior-playback.test.js and the existing laws/impact/mechanism/visuals
+tests. Local Bun and full browser/manual smoke were unavailable here;
+the broader workflows were still running when this entry was recorded.
+There is no claim of deployment, mobile verification, calibration, or live
+Civic Synthesis native-UI integration.
+
+Next end-to-end slice: define a versioned, authorized read-only paired-run receipt
+API from HBL; import actual sampled actor/time records into the Civic Synthesis
+simulate/edit workspace so screenshots/iframes are not the behavior source; preserve
+the frozen proposal ID, seed, rules version, units and exact horizon; connect a
+reviewed policy-text amendment to an explicit supported numeric parameter and
+offer rerun/undo. Add end-to-end Playwright coverage including stale results,
+unsupported law, inaccessible cross-origin receipt, and mismatched clocks.
+Do not infer unmodeled resident behavior from law prose.
+
+Material risks: nonrepresentative 12-actor visual sample vs population totals,
+cross-model clocks/entity IDs, overinterpreting synthetic differences as causal,
+cross-origin CORS/security/workload caps, and release readiness. Human review and
+production deploy approval remain required.
 
 ## SHE-256 concurrency decision gate — 2026-11-12
 
@@ -8610,6 +8733,84 @@ persistence, safe household return and no horizontal overflow at390px/320px.
 WebGL was deliberately disabled for fallback verification; native GPU visuals
 were not reverified. No deployment or Symphony mutation. Hosted CI gates merge.
 
+
+
+### PR #278 integration verification — 2026-11-12
+
+Merged source `c2bf0099341cd57f265e4bcfa10e31e8c2310038` onto current
+main `ab4358f07e461d10940e42e96da1e210a2ab5180`, preserving source ancestry.
+Resolved the older homepage against the current launch hero: its existing main
+heading stays, with a compact Start here explanation, synthetic-scenario limit,
+and accessible description on the one Play Demo link. The CTA retains its
+unchanged destination, timing marker, and click-timing listener. All 52 baseline
+link destinations, the FAQ, preview template/gallery behavior, onboarding, and
+scripts are retained. The complete baseline plan and the original SHE-14 record
+above remain intact. The responsive test also retains the newer browser history
+write-limit emulation while adding homepage checks from this PR.
+
+Actual integration checks:
+- `bun test test/two-futures-demo-controller.test.js test/demo-performance.test.js test/onboarding-experiment.test.js`:
+  16 passed, 0 failed, 77 assertions.
+- Playwright discovery for `approved-demo-responsive.browser.config.js`:
+  all 3 viewport cases discovered; `launch-landing.browser.config.js`: 2 cases.
+- HTML structure comparison: all 52 baseline links unchanged, one primary CTA,
+  unique accessible-description IDs, timing marker present, and the FAQ/gallery/
+  scripts tail unchanged. Full baseline plan preservation checked.
+- Changed test syntax and `git diff --check`: passed.
+
+Browser execution and visual layout remain unverified in this environment:
+Chromium launch was already blocked by a process-singleton `socket()` EPERM.
+No repeated launch or screenshot claim is made for this integration.
+
+
+## Post-merge compatibility follow-up — November 12, 2026
+
+PR #276 integrated the 35 original heads #240–#274 and PR #277 reconciled the
+sprint into main while a separate local integration review was completing. This
+follow-up starts from that actual main commit, ab4358f, and carries forward only
+verified missing compatibility corrections. It does not replace the main tree
+with the parallel integration tree.
+
+The frozen city-challenge.v1 cap is actual cumulative capital expense within the
+recorded horizon. Candidate UI verification must therefore allow a planned
+12,000 housing project delayed ten months in a two-month, zero-cap challenge;
+the actual worker records zero capital spending. The UI now validates the selected
+actions and lets replay enforce the frozen cap, with explicit planned-versus-actual
+copy. The new reference-plan authoring guard remains. A regression imports the
+exact frozen file through the actual panel handler, selects housing, clicks Verify
+and awaits verification.worker.js, asserting unchanged terms and the recorded
+not-beaten result. The old UI rejection was reproduced before the correction.
+
+The current WHY report now records the final evidence.js source digest. All
+thirteen audited source files match the verified generation, and all six
+deterministic run measurements, manifests, state and ledger digests are unchanged.
+The first two-file command hit Bun's default five-second allowance in the existing
+long replay audit; rerunning with the protocol's documented 60-second allowance
+passed all seven tests / 81 assertions. No test deadline or model rule was changed.
+
+
+### Combined compatibility verification on current main
+
+The current-main follow-up combines the saved-challenge correction with focused
+Future Machine fixes for pending preview configuration, manual takeover, exact
+preview arm selection, initial-preview year guards, shared renderer disposal,
+repeated fallback handling, deduplicated live announcements and synchronized
+household selection. Main's additional City Lab lifecycle fix, stronger replay
+and screenshot assertions, explicit preview provenance, stale-receipt guard,
+separate visual household values and final history-reference cleanup remain.
+The device-loss Playwright configuration's import.meta/CommonJS loading error
+was reproduced and the minimal loader-compatible directory resolution collects
+both device-loss journeys.
+
+Final combined selection: 123 passed, two optional browser cases skipped, zero
+failed, 1,031 assertions across 22 files. This includes actual saved replay and
+receipt/challenge preservation, the new imported-file UI/worker regression,
+main's City Lab lifecycle check and all six deterministic WHY audit runs. Both
+changed browser entrypoints compile; the UI group collected 24 browser journeys
+across five configurations and parsed all eleven changed JavaScript files.
+Browser discovery is not browser execution: the previously observed Chromium
+socket EPERM remains the execution limit. No graphics-loss, visual or device
+performance result is claimed.
 ### PR278 homepage entry integration — November 12, 2026
 
 Integrated original head c2bf0099341cd57f265e4bcfa10e31e8c2310038 against
@@ -9150,6 +9351,84 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+## HBL remaining-ticket completion sprint — November 13
+
+Audited all252project issues with complete pagination; 17unfinished at setup
+(7 In Review, 9 Todo, 1 In Progress). Read full descriptions/relations and checked
+open GitHub PRs (none). Created six dated project milestones November13–18,
+assigned all17with due dates and issue-level acceptance checkpoints. Published
+Linear sprint brief: https://linear.app/shel-bernstein/document/hbl-week-1-all-remaining-tickets-completion-sprint-nov-13-18-d640d35f7ffa
+Native cycle creation rejected by Linear (“Cycle creation is not supported.”);
+used project milestones rather than altering team settings. Preserved status and
+assignee; did not reopen235terminal items or start/activate a runner. Added native
+QA dependencies for core feature fixes and demo-after-matrix. Critical sequence
+SHE-11→40→44→63→64. Retained model/oracle/backend/replay prerequisites.
+Acceptance requires working source/test/browser/measurement evidence; SHE-212
+prototype audit and SHE-239 tournament spec retain their explicit report scopes.
+Target is planning intent, not guaranteed capacity/hardware evidence. Local
+manifest: .hbl-private/hbl-completion-sprint-20261113.json. No code changes or
+merge/deploy/production load. Read-back verifies17milestones/dates and statuses.
+
+## Activate HBL completion sprint in Mini Symphony — November 13
+
+All nine failed r2attempt logs show ENOSPC during checkout before Codex launch.
+Disk now41GiB free. Preserve failed entries/worktrees and create fresh revisions
+to avoid partial checkout/existing-branch collision. Audit reviewed PR file scopes
+and acceptance docs: implementation exists, several measurements/hosted checks
+remain unverified. New acceptance follow-ups must inspect and complete gaps
+rather than duplicate code or assume all reports were analysis-only.
+Add HBL project profile on existing sprint base and root data directory, 60s
+project-scoped refresh, required readiness+coordinator approval labels, neutral
+repository prompt. Preserve state and metadata binding; back up queue/history.
+Normal package entry uses profile; standalone dry-run sync/check available.
+Native dependency/terminal changes release/hold latest attempts between tasks.
+Acceptance: fresh17 sprint revisions, valid routing, dependency holds intact,
+real project refresh, normal entry starts first eligible task; source regressions.
+
+Activation verified: live project contains253issues (new issue appeared after
+sprint snapshot), dependency scan failures0, 17fresh revisions created, 13eligible
+and four held by SHE-11→40→44→63→64 and core acceptance. Added missing approval
+labels to already authorized SHE-40; dependency hold remains. All nine prior
+failed entries preserved and replaced for execution with fresh r3workspaces;
+state file not replaced. Reviewed prior merged PRs include actual implementation,
+so remaining In Review work is acceptance/gap verification, not blanket rewrite.
+55Mini Symphony-specific tests/411assertions pass. Full package test command has
+one unrelated server smoke failure: /api/demo/ready404 in test/server.test.js.
+No application server changes made to mask it. Normal check shows13runnable;
+a concurrently started profile-aware runner PID34854 is running SHE-11-r3 in
+session5ee29e5b-3741-420c-bdf5-641289c96796. Duplicate-start attempt refused
+by lock; existing worker left undisturbed. No merge/deploy/production changes.
+
+## Dear Congress optional build identity and palette restoration — November 13
+
+User explicitly requested plain fly deploy without required build SHA and warm
+light screenshot palette with switch back to existing dark colors. Dear Congress
+write-build-identity now accepts missing SHA (null/unknown commit, real build
+date); optional supplied SHAs stay validated, release CI can retain parity checks.
+Light is default even for dark OS, existing header button toggles light/dark and
+persists choice; purple bottom navigation stays unchanged. Updated prepaint CSP
+hash and regression coverage. Preserved preexisting index merge-conflict cleanup.
+506Dear Congress tests/105,713assertions pass; typecheck and production route
+smoke pass. Real Chromium smoke proves desktop/mobile palette, persistence,
+OS-dark light default, documentation toggle and unchanged nav; screenshots
+inspected. No Fly deployment performed. Changes live in Dear Congress checkout;
+HBL application untouched. Dockerignore excludes local runtime as previous fix.
+
+## Both-runner stall recovery — November 14
+
+Observed HBL suppresses existing open PRs, SHE-40 blocks44 then63/64; new
+SHE-388 lacked both approval labels. Dear Congress SHE-271-r2 interrupted with
+retryfalse,249/251prior PR receipts,280deployment and269parent explicitly held.
+Reviewed388title animation scope and added approvals plus reduced-motion/contrast
+instruction. Reviewed interrupted state and atomically enabled271retry preserving
+worktree/state. Both live runners now working: HBL388, Dear271-r2; no duplicate
+coordinator started. Hosted PR317verify failure is missing /api/demo/ready routing,
+and first-run test selected hidden legacy policy dropdown. Patched existing
+PR317branch at fb380d4a,21readiness/server tests pass. Actual host Chromium runs
+3/4first-run tests; missing ready-state firstRunGuide remains unverified (before
+policy selection), recorded inPR's acceptance report. No false completion, merge,
+production deployment or dependency bypass. Existing open PRs still need review.
 
 ## SHE-182 revision 3 — consolidate publication acceptance
 
@@ -10698,3 +10977,415 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+
+## Preserved local Mini Symphony implementation notes
+
+# Mini Symphony (Bun)
+
+A local runner with bounded worker concurrency. Bun selects and records tasks; Codex edits each task's isolated Git worktree. It is independent of the Linear dispatcher in `../elixir`.
+
+Requirements: Bun, Git, Codex CLI authenticated in this account, and a clean source commit to branch from. From this directory run:
+
+```sh
+bun run run.ts /absolute/path/to/happybearlandia
+```
+
+From the HappyBearLandia repository root, the same runner is available as `bun run symphony:mini`. Edit `tasks.json` while it runs to add tasks. Set `"enabled": true` to opt a task into execution; `false` keeps it in the imported backlog without dispatching it. Each enabled ID is attempted once. Results go to `state.json`; output goes to `logs/<ID>.log`; project worktrees default to a hidden sibling directory such as `../.happybearlandia-mini-symphony-workspaces/<ID>`, outside the source checkout. This prevents Codex's own worktree snapshot from copying a task worktree into itself. Existing worktrees under `workspaces/<ID>` remain resumable and eligible for safe merged-worktree cleanup. A project profile may set `workspaceDirectory` to another path outside the source repository. A zero Codex exit becomes `needs_review`, not an assertion that the change is correct. Review the worktree and tests yourself. New tasks fetch and begin from the current remote PR base; resumed worktrees preserve prior edits. Dependent tasks need earlier work integrated first.
+
+After Codex exits successfully, the runner commits the task worktree, pushes its `mini/<ID>` branch, and opens a GitHub ready-for-review PR against the source repository's current branch. Set `MINI_SYMPHONY_PR_BASE` to override the target. State becomes `pr_created` on success or `publish_failed` on an auth, push, or PR error; publication errors are saved in the task state and log. On startup, pending `needs_review` and `publish_failed` items are retried. GitHub CLI authentication must be valid (`gh auth login -h github.com`).
+
+Task states: `running`, `needs_review` (Codex exit 0, before publication), `publishing`, `pr_created`, `publish_failed`, `no_changes` (successful Codex run with no diff), `failed`, and `interrupted`. A task marked `retry: true` gets at most one attempt per runner session; it will not loop rapidly after a repeated failure.
+
+When a same-repository `mini/SHE-<number>` PR is merged, GitHub Actions closes the matching Linear issue in that issue's team completed state. Add a Linear personal API key as the repository Actions secret `LINEAR_API_KEY`. The workflow ignores unmerged PRs and branches outside the Mini Symphony naming pattern.
+
+Ctrl-C stops the current worker and records an interrupted attempt. Timeout defaults to one hour and can be changed with `MINI_SYMPHONY_TIMEOUT_MS`. The runner commits, pushes, and publishes ready-for-review PRs; it never merges or deploys. Remove an entry from state only after reviewing it if you intentionally want a new attempt; do not delete a worktree with unreviewed work.
+
+### Remaining-queue recovery
+
+Run `bun test tools/symphony/mini-bun/recovery.test.ts` from the repository root.
+Publication now resumes after commit, push, PR creation, or an interrupted
+`publishing` state. It checks for an existing matching PR before creation and
+holds closed PRs or divergent local work for review. Disabled and terminal
+Linear tasks are excluded from publication recovery and dispatch. `retry: true`
+can explicitly retry `no_changes` once per session. Final Codex responses are
+retained in `logs/<ID>.result.md`, including report-only outcomes and blockers.
+Default concurrency is one; `MINI_SYMPHONY_WORKERS` accepts integers 1–10.
+
+To refresh the queue, supply a complete snapshot containing `observedAt` (ISO
+UTC within the last hour), `complete: true`, `issues` (full `id`, `title`,
+`description`, `status`, `statusType`, `url`) and `pullRequests` (GitHub CLI
+`headRefName`, `state`, `url`). Use fully paginated Linear project results and
+GitHub `--state all`; retrieve full issue details rather than truncated lists.
+
+```sh
+bun tools/symphony/mini-bun/reconcile.ts snapshot.json
+# Stop the runner, then persist the imported queue:
+bun tools/symphony/mini-bun/reconcile.ts snapshot.json --write
+```
+
+The default prints a report without writing. Applying preserves unrelated tasks
+and all worker state, imports full prompts, and disables the snapshot's tasks
+pending triage. Enable only reviewed work with its dependencies integrated.
+Merged PRs require acceptance review: a merged readiness report does not prove
+that a feature was implemented. Human playtests and explicitly Claude-assigned
+work retain external prerequisites. This command never closes Linear issues.
+Do not replace the task queue while `.runner.lock/pid` exists.
+
+If startup reports `No commits between ...`, the task branch may already be
+contained in the remote sprint. The publisher fetches the latest base before
+checking for changes, avoiding stale tracking-ref false positives. A clean task
+with no ahead diff becomes `no_changes`; this does not mark Linear complete.
+
+The waiting line reports **runnable** tasks separately from disabled tasks,
+terminal Linear tasks and prior attempts. `enabled: true` does not rerun a task
+with an existing result. New imports remain disabled until selected for work;
+set their `enabled` to true to dispatch. For a reviewed prior `failed`,
+`interrupted` or `no_changes` outcome, also set `retry: true`. Keep publication
+failures for publication recovery rather than repeating model work.
+
+### Explicitly approved follow-ups
+
+An old `pr_created` or `no_changes` result is preserved as history. After reviewing
+remaining work, `approveRemaining` creates an independent `SHE-N-r2` task and
+worktree on the latest remote base, rather than deleting state or reopening a
+merged branch. New follow-ups retain `issueId` and the original issue URL.
+Open PRs and running/publishing tasks are preserved; absent/deleted issues are
+disabled locally. Repeating activation before execution does not add duplicates.
+Report-only tasks save a reviewable document under `docs/reviews/`.
+
+With full approved issue details (including execution-approval note and both
+ready/approved labels) and a fresh complete GitHub PR inventory:
+
+```sh
+bun tools/symphony/mini-bun/activate-approved.ts issues.json --prs prs.json
+bun tools/symphony/mini-bun/activate-approved.ts issues.json --prs prs.json --write
+```
+
+Default is a dry-run. Explicit writing atomically replaces only `tasks.json`,
+checks concurrent queue edits and relevant worker-state changes, and never
+rewrites `state.json`. Use the complete remaining issue set: missing issues are
+disabled. This is an explicit approval operation, not an unattended poll loop.
+Follow-up merge synchronization maps `mini/SHE-N-r2` back to `SHE-N`; the updated
+helper must be published before hosted Actions can use it. SHE182 owns that
+publication integration. Required Actions secret setup remains a separate
+operational prerequisite if it is absent; no hosted sync is claimed here.
+
+### Dear Congress / separate project profiles
+
+Dear Congress has an installed local profile for the Civic Synthesis board. From
+`/Users/wahabma/Desktop/dear_congress`, run:
+
+```sh
+bun run symphony:mini:check
+bun run symphony:mini
+```
+
+Its queue, state, logs, lock and worktrees are under Dear Congress's ignored
+`.mini-symphony/` directory. Its base is `main` and its GitHub origin must match
+`adnanwahab/dear_congress`. SHE249/SHE251 are linked to existing PR1 and held for
+review; SHE252 is Done. No duplicate worker is launched just to fill the queue.
+The HBL positional command and its existing task/state files remain supported.
+
+The shared engine also accepts `--config profile.json [--check]`. A schemaVersion1
+profile declares name, repository, githubRepository, linearProjectId,
+linearProjectUrl, baseBranch and dataDirectory. Relative paths resolve from the
+profile directory. `workspaceDirectory` is optional, defaults to a sibling of
+the source repository, and must remain outside that repository. Each task must carry the matching githubRepository and
+linearProjectId. Repository origins, task scope and persisted project binding
+are checked before dispatch; `--check` performs no state writes or model launch.
+Locks identify any live owner PID, including bundled runners.
+
+`import-linear.ts --config profile.json` performs a project-scoped, paginated,
+full-description Linear scan and checks existing open PRs; default is dry-run.
+It requires `LINEAR_API_KEY` via the environment and authenticated `gh`.
+Add `--write` after stopping that project runner to atomically refresh task/state
+files. The refresh holds incomplete dependency pages, preserves prior flags and
+existing PR links, disables deleted/terminal work, and rejects concurrent state
+changes. It does not create Linear issues, post comments, merge or deploy. This
+is an explicit refresh, not continuous background polling.
+
+The local Dear Congress package commands use `bun --no-env-file` to avoid
+implicitly loading the app's environment file. The generated bundles can be
+updated from this shared source without replacing profile/task/state files:
+
+```sh
+bun build tools/symphony/mini-bun/run.ts --target=bun --outfile /Users/wahabma/Desktop/dear_congress/.mini-symphony/runner.js
+bun build tools/symphony/mini-bun/import-linear.ts --target=bun --outfile /Users/wahabma/Desktop/dear_congress/.mini-symphony/import-linear.js
+```
+
+Project workers also receive a filtered CLI/runtime environment, excluding app
+DB, bot and Linear credentials even when a parent shell/package runner loaded
+an environment file. The host retains its credentials for approved publication.
+
+Project profiles can set `syncIntervalMs` (at least10000) and `heldIssues`
+(issue-to-reason map). The runner then refreshes the project at startup and between
+tasks using `LINEAR_API_KEY`; absent credentials are reported and local tasks still
+run. The Dear Congress profile uses60000ms. Failed/overlapping refreshes preserve
+local edits; the live runner retains ownership of state/claims. Duplicate workflow
+states are terminal. Explicit holds persist across refreshes. The GraphQL scan
+uses bounded20-issue pages, expands dependency pages separately, and guards cursor
+cycles and source identity. An incomplete dependency scan holds only that issue.
+Sync-owned dependency holds release when blockers clear; operator disables persist.
+Profiles may set `prerequisiteIssueIds` to hold feature work until those issues are
+completed. Dear Congress currently requires SHE-281 (deployed source recovery);
+a merged analysis-only PR does not satisfy that prerequisite.
+Existing processes must restart to load an updated bundle, but task-file imports
+are picked up by the existing watcher without restarting a worker.
+
+### Measuring25-hour sessions
+
+The local HBL dashboard is `/mini-symphony`. Every instrumented coordinator start
+gets a new session ID and writes `telemetry/sessions/<id>/session.log` (curated
+text) plus matching `events.jsonl` (measurement records) under its own data root.
+Heartbeats are15seconds; missing intervals over60seconds are uncredited. The
+first chart separates uninterrupted runtime from actual worker-active time,
+publication, waiting and unobserved intervals. Imported/reused PRs never count as
+new session output. Existing raw task logs remain local and are not served.
+
+See [the measurement contract](../../../docs/mini-symphony-observability.md) for
+definitions, limitations, operator source configuration and log locations.
+Restart an old runner after its current worker finishes to load instrumentation;
+legacy state cannot establish a historical25-hour session. HBL's normal command
+uses no hot reload so source edits do not accidentally restart a long experiment.
+
+### Regression checks for reviewed follow-ups
+
+`bun run test:mini-symphony` tests the shared source in this repository.
+`follow-up.test.ts` exercises numeric revision selection independent of priority
+ordering, preserves merged attempt receipts, suppresses duplicate open PRs,
+checks explicit retry limits, and verifies real task-file refresh under changing
+dependencies and failed scans. The importer refreshes the highest rN revision
+and disables older family members. Per-task `executionInstruction` survives
+Linear prompt refreshes. Fresh attempts use new IDs/worktrees; existing published
+attempts cannot be restarted with `retry:true`.
+
+### Optional port-conflict auto-debug
+
+```sh
+bun run symphony:mini --auto-debug
+```
+
+Off by default. Explicit `EADDRINUSE` or server-port-in-use output triggers at
+most one additional Codex repair pass in the same worktree, even if the original
+worker exits zero. Both passes share the original task timeout. Stop, timeout or
+spawn failure cannot trigger another attempt. Other test failures are unchanged.
+
+The pass diagnoses the failing command, repairs test port allocation/readiness/
+cleanup where appropriate, reruns the failing test and required checks, and
+reports passed or blocked. It is instructed never to kill processes, weaken tests,
+change production or replay commands copied from logs. This first version has
+no automatic process-killing facility. The normal worker sandbox still applies;
+this is bounded agent assistance, not a deterministic test-verification service.
+
+The append-only task transcript and original `<ID>.result.md` remain available.
+The repair result is separate: `<ID>.autodebug.<session>.result.md`. Missing,
+malformed or blocked repair reports hold publication as failed; a reported pass
+still produces a ready-for-review PR requiring human review. Curated session logs expose
+`auto_debug_started` / `auto_debug_finished` without copying private output.
+`--check --auto-debug` displays the option without launching workers.
+
+### HappyBearLandia Linear completion sprint
+
+The root `bun run symphony:mini` command now uses `hbl.project.json`: HBL's
+Linear project, `sprint/one-city-two-futures-20261111` base, existing root
+queue/state/workspaces and 60-second refresh between tasks. Both
+`hbl-agent-ready` and `hbl-coordinator-approved` labels are required for dispatch.
+Terminal/deleted issues and unresolved dependencies cannot dispatch; polling
+updates the latest numeric follow-up revision without deleting earlier receipts.
+Worker prompts use the configured repository identity, including HBL.
+
+`bun run symphony:mini:check` checks routing/eligibility without launching.
+`bun run symphony:mini:sync` previews a live Linear import; stop the runner
+before adding `--write`. `LINEAR_API_KEY` and authenticated `gh` are required
+for live refresh; no credential is stored in the profile.
+Use `bun run symphony:mini --auto-debug` to opt into port recovery.
+New task IDs after failed checkout avoid partially created worktrees/branches;
+prior attempt history and logs remain intact. Native Linear dependencies must
+be completed through acceptance/review before downstream tasks become eligible.
+
+### Before/after screenshots and merged-workspace cleanup
+
+Both project profiles enable desktop (1440×1000) and mobile (390×844) screenshot
+evidence. Before images come from the configured remote base in an isolated
+checkout; after images come from the task's actual edited worktree. Disposable
+local servers receive no app/CLI secrets and browser requests to other origins
+are blocked. Profiles select up to two local routes. These are entrypoint visual
+smoke checks, not proof of every requested feature or acceptance criterion.
+
+PNG files and phase manifests live in `.mini-symphony-evidence/` in the task
+branch. PR Markdown embeds before/after images pinned to the final commit.
+Missing browser, server startup failure or unsuccessful route holds publication
+with a screenshot failure message. Existing PRs are not silently rewritten.
+
+`cleanupMergedWorkspaces: true` removes clean worktrees for verified merged
+PRs between tasks. Active work, dirty/untracked files, nonmatching branches and
+other repositories are skipped. Local branch refs, state, logs and receipts stay.
+Ignored generated dependencies are removed with the worktree. It does not delete
+closed-but-unmerged PR workspaces. Existing processes must restart to load these
+changes; installing an updated bundle never interrupts their active work.
+
+Acceptance:13publication/recovery tests pass (63assertions), bundle built and
+installed in Dear Congress. Current matching mini/* drafts marked ready via gh;
+active coordinators not interrupted and must restart to load publication change.
+
+## HBL task pipeline activation — November 14 afternoon
+
+Queue:353Linear issues,5enabled already-published attempts, no open GitHub PRs.
+Reviewed SHE-40: merged317is not accepted evidence; numeric limits remain empty.
+Do not remove dependency chain40→44→63→64. Created explicit fresh SHE-40-r3
+acceptance follow-up, state/history untouched. Reviewed full scopes390(portals),
+443(motion tokens),444(command palette), no open duplicate PRs; owner unblock
+request authorizes bounded implementation. Added both required approval labels,
+Todo and dispatch constraints to those3only, not blanket approval of100ideas.
+Current live session73cb6387-9fb5-4438-8eac-10a6c7300fb6 picked SHE-40-r3,
+captured baseline screenshots at19:49:44UTC and launched Codex; no restart or
+duplicate runner. Approved foundation tickets picked up between tasks by normal
+Linear refresh. No false completion, merge, deployment or production changes.
+
+## Provisional estimated performance budgets — November 14
+
+Owner requested guesstimated numeric targets. Filled root first-interaction
+configuration with explicit provisional-estimate-not-calibrated status, measured
+baselinefalse/calibrationrequired and per-profile labels carried by reports.
+Targets:8MiBdecodedJS both, ready15s laptop/30s mobile, two-frame slider100/250ms,
+sampledJSheap512/256MiB. These are engineering choices, not observations or
+physical-device claims. SHE-40 remains unverified; dependencies not bypassed.
+Active worker isSHE-443, not40; its worktree untouched. Added metadata regression
+and documented how to replace estimates with three actual cold samples/profile.
+
+## Verification-dependency deadlock correction — November 14
+
+Repeated idle queue: four published attempts awaiting review,40→44→63→64
+blocked. Owner explicitly requested provisional estimates then execution unblock.
+Keep40open for measured calibration; remove only40→44execution hold so fallback
+measurements can proceed against labeled estimates. Remove review-only holds
+260/265/259/44→63because browser matrix is the verification of already-merged
+implementations; retain these as related issues and preserve other prerequisites.
+64stillwaits63. Created44-r4fresh verification attempt; state/history untouched.
+No claim of measured estimates, acceptance, release, merge or deployment.
+Live scan353issues,6enabled,0dependency failures; operator-edit race safely
+retained oldqueue pending clean refresh.
+
+## Bulk HBL backlog execution approval — November 14
+
+Owner explicitly requests both approval labels for remaining HBL backlog.
+Reviewed97HBL-FUN scopes as bounded local implementation/testing; applied
+hbl-agent-ready+hbl-coordinator-approved and explicit local-only guardrails to
+all97, preserving other labels/status/dependencies. Sharing/collaboration remains
+fixture/local implementation only; no invitations, live-service enablement,
+production credentials/data, automatic merge or deploy. No update failures.
+Live scan353issues,88enabled,0dependency errors (84new unblocked candidates
+plus4prior receipts;13new tickets retain prerequisites). Existing runner is
+actively coding SHE-448; later approvals refresh between tasks, not mid-worker.
+Fixed waiting explanation to exclude superseded/terminal/removed historical
+holds; regression and build pass, display change loads on next normal restart.
+Audit .hbl-private/hbl-backlog-approval-20261114.json. No history deletion or
+false acceptance of40/63/other review tickets.
+
+## Dear Congress screenshot prerequisite repair — November 15
+
+The 51 enabled tasks comprised 43 baseline screenshot failures, five interrupted
+or timed-out coding attempts recorded as failed, and three existing PR results.
+Fresh external worktrees could not resolve React: screenshot capture ran before
+any dependency installation. Added a frozen Bun lockfile install with lifecycle
+scripts disabled, restricted environment, shared timeout, and owned-process
+cleanup before capture. Safe before-capture failure categories now reach task
+logs and session telemetry. Publication still requires before/after evidence.
+
+Verified four real desktop/mobile images on SHE-768's failed checkout. Regression
+covers a fresh dependency-free checkout and confirms postinstall scripts never
+run; screenshot and recovery suite: 15 passed. Explicitly set retry:true on 48
+unfinished failed tasks after checking 146 open PR branches (zero conflicts).
+Backed up tasks and wrote .hbl-private/dear-screenshot-retry-audit.json; state and
+existing worktree edits preserved. Installed shared runner bundle in Dear
+Congress and restarted its verified idle coordinator; SHE-605 is actively coding.
+Three existing PR results remain review work; production/coordination holds stay.
+Removed eight verified merged clean worktrees; free storage approximately 5.8GiB,
+so further disk growth remains a practical limit for a long autonomous session.
+Normal-entry/project integration: 12 passed in sandbox, screenshot fixture could
+not bind there; focused host rerun passed (one test, 22 assertions), including
+before/after images committed through the normal PR publication entry point.
+
+
+## Final queue integration: restore main entry-point wiring — November 12, 2026
+
+This follow-up preserves published main `e5105f4` and sprint `5309003`, including
+all original PR heads #240–#274, the concurrent compatibility corrections, and
+homepage PR #278. The published homepage layout supersedes the earlier local
+PR #278 layout described above. Its only additional HTML change restores the
+existing `data-demo-start` timing hook; all 52 links and the FAQ, gallery,
+onboarding, styles, scripts, and hero figure remain intact.
+
+Restored existing server handlers for session surveys, player feedback, GitHub
+previews, Detective, Operations Observatory, readiness, simulation admission,
+and optional release experiments, plus the two browser-safe media modules.
+Restored quick-demo survey lifecycle and the completed-run year selector with
+matching provenance and deterministic same-year replay. The Activity dashboard
+again bounds requests at eight seconds, ignores late results, and offers explicit
+retry/reopen/new-run recovery while preserving main's panel API. Five supplementary
+directory links are accessible outside the registry filter. These changes restore
+existing behavior without changing simulation rules.
+
+The apparent homepage catalog mismatch was a stale template-count assertion:
+the actual gallery initializer renders all 33 registered experiences from 32 inert
+templates. The replacement test runs that initializer and checks the complete,
+ordered route list. GitHub preview fixture directories now use the platform's
+canonical temporary directory; the production runner is unchanged.
+
+Final combined verification on the candidate containing both published parents:
+- Bun 1.4.4: 134 passed, zero failed, 1,221 assertions across 24 files (44.13s),
+  with `HBL_RELEASE_HTTP_TEST=1`, `HBL_ADMISSION_HTTP=1`, and `--timeout 60000`.
+  Coverage includes real HTTP route/validation/admission checks, survey and
+  feedback contracts, preview providers, release experiments, Activity timeout
+  and retry behavior, actual repeat/year worker replay, navigation, onboarding,
+  and demo timing/controller behavior.
+- Browser builds for `world/render.js`, `world/activity-dashboard.js`, and
+  `world/first-run-guide.js` passed (368 modules).
+- Read-only preservation reviews confirmed the runtime and Activity repairs
+  unchanged after both remote merges; both published plan histories are retained.
+- All three responsive browser cases are discoverable at 1440, 390, and 320px;
+  the test now asserts the homepage timing marker. Discovery is not execution.
+- Whitespace validation passed. Chromium execution remains blocked by the
+  environment's process-singleton socket EPERM; no new browser-layout, screenshot,
+  native-GPU, or device-performance acceptance is claimed.
+
+## Civic launch integration — November 14, 2026
+
+Baseline: main `3faa2699655baed0e5550cd0aec450a132ef29f1`; primary sprint dirty work preserved. Next slice: existing native law receipt → revision-bound public navigation → same-seed law-83 strength edit and recorded playback, flagship entry and bounded /world lifecycle. Own shared routing/contracts here; independent entry and QA branches own distinct files, Civic implementation owns React. No receipt payload expansion or model rules changes. Acceptance: real paired API execution, safe context import/export, 320px/reduced-motion/keyboard browser journey, timeout/cancel/error paths, privacy exclusion, seed/golden replay checks. Risks: production SHA/deployment mismatch and existing scheduling regression; neither merge records nor static/mocked browser rendering qualify live integration. Release and outreach sending require separate human authorization. Actual evidence and remaining scope are recorded under docs/launch-2026-11-14.
+
+Civic launch evidence: entry slice integrated asdd9bee4a and lifecycle slice asd4532372. Final combined real-browser suite9/9passed, startup6/6, focused integration22tests171assertions, replay44tests340assertions, city22tests134assertions, model replay106cases and housing validation passed. Source/context API suite42tests678assertions passed. See [candidate reports](launch-2026-11-14/FINAL_REPORT.md); production lawAPI preflight404 and unknown/null serving commit identity remain release blockers. No production or governance changes. Private20draft outreach packet is not committed or sent.
+
+### Reviewed beta release qualification — November 14, 2026
+
+The operator reviewed runtime `2f9741bd8843ba0f5dcd85cf9c343e559e52e79b` and authorized release with an exception only for the pre-existing software-renderer frame-p95 budget failure. No performance thresholds, simulation workload, sandbox or governance protections changed. Later test-only corrections align all homepage selectors, respect normal admission windows and explicitly enable the responsive cases' reduced-motion preference in the shared cross-browser configuration. The application image remains pinned to reviewed source.
+
+Cloud-only encrypted snapshot restores and actual previous-image compatibility checks passed for both applications. The final HBL image reports the exact reviewed build identity and preserves original database records. Raw production records and backup archives were not downloaded; only redacted verification metadata is retained locally. Temporary restore helpers were removed and encrypted backups remain in Fly.
+
+Civic reviewed source `795c6944` passed 536 tests, type checks, route checks and 75 accessibility cases; PR123 merged as `54f1c732`. Its production release remains gated on provider rollout and tagged-release validation. HBL's hosted model matrix and six-sample calibration passed; numeric first-interaction proposals remain unapplied. The final locally executed canonical selections passed: shared flagship 4/4, Time Machine 4/4, causal inspector 9/9 and normal replay/malformed manifest 2/2. Final hosted verification and actual production/browser parity are still required. Subsequent release status and evidence are recorded in [PR320](https://github.com/adnanwahab/happybearlandia/pull/320) and the reviewed Civic release.
+## SHE-63 r4 merged-source matrix retry — 2026-11-17
+
+Pinned local and remote sprint SHA `926d4edde66a2b2aa42e2af6f406978d45c9cda4`
+includes PR #418. Matching Actions run 44063326098 executed all 15 cases:
+4 pass / 11 fail. All three 320px Canvas cases and WebKit sharing pass;
+remaining cases fail at month selection or share-before-commit. Scoped canonical
+test helpers now dispatch change and await committed month, preserving all cases
+and assertions. Local wrapper exits 2 on EPERM; candidate browser rerun remains
+required. Artifact download returned a file reference, but sandbox networking
+blocked byte retrieval; decoded job logs were inspected and excerpt retained.
+Focused checks: 33 pass/1 opt-in browser skip (884 assertions), preview checks
+2 pass/1 opt-in browser skip (12 assertions); 15 cases discover, syntax/diff pass.
+Native Safari/physical mobile unavailable, SHE-44 measurements incomplete,
+SHE-63 acceptance and SHE-64 recording gate open. See
+[review and exact evidence](reviews/SHE-63-r4.md). Owned files: two test helpers,
+issue report/excerpt and this status entry. No model/UI/policy change or new
+commit/PR, merge, deployment, external message or production action.
+
+## SHE-63 Firefox guided-controls repair — November17
+
+Existing PR422 rebased onto sprintdd9f6b68. Exact cab89 CI14/15 screenshot/trace
+shows a painted Canvas2D plan building, not missing model inventory. Repair active
+Canvas pick diagnostics and clipped visible interior targets; keep all15 cases
+and original normal-click/PROJECT_COMPLETE assertions. Exact-head source manifest
+will accompany the permissioned Actions run. SHE64 remains blocked pending actual
+exact-revision matrix and broader review. [Evidence](reviews/SHE-63-r4.md).
