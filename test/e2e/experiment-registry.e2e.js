@@ -16,7 +16,7 @@ test('completed batch is recorded, filtered, reopened and independently replayed
   const savedURL = page.url();
   await page.reload();
   await expect(page.locator('#record-status')).toContainText('Loaded record_');
-  await expect(page.locator('#result-provenance')).toHaveText('Synthetic model results');
+  await expect(page.locator('#result-provenance')).toHaveText('Synthetic model results · exploratory, not measured observations.');
   await page.locator('#filter-hypothesis').fill('absent');
   await page.locator('#search-registry').click();
   await expect(page.locator('#registry-results')).toHaveText('No matching records.');

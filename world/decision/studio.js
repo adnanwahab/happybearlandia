@@ -1,9 +1,10 @@
-import { mountRotationTheater } from './rotation-theater.js';
-import { createEditHistory } from './edit-history.js';
-import { mountPrediction } from './prediction.js';
-import { renderParameterDiff } from './parameter-diff.js';
-
-import { mountExplorationBadges } from './exploration-badges.js';
+import { mount as mountHousingCheckpoints } from './backlog-replay/ui.js';
+import { createRecordedParentResolver } from './backlog-presentation-effects/parent.js';
+import { mountProductWorkflows } from './backlog-product-workflows/ui.js';
+import { mountPresentationShare } from './backlog-sharing/qr.js';
+import { constructionFrame } from './backlog-presentation-effects/index.js';
+import { createRecordedPlayback, mountStressCue, createSubtleSound } from './backlog-presentation-effects/playback.js';
+import { attachFutureTransitions } from './backlog-transitions/index.js';
 import { mountContinuity } from './continuity-view.js';
 import { decisionSnapshot, localContextId } from './continuity.js';
 import { housingModel, compileHousingPlan, createHousingScenarios, stressPresets, validateHousingParameters, resolveHousingModel } from '../models/housing/index.js';
@@ -14,6 +15,7 @@ import { mountWorldTools } from './world-tools.js';
 import { mountDecisionVisualizations } from './visualizations.js';
 import { mountDecisionTrust } from './trust-view.js';
 import { DECISION_LIMITS, normalizeDecisionInput } from './contracts.js';
+import { hydrateComparisonBaseline } from './backlog-comparison/hydration.js';
 import { createDecisionClient, createRunTraceCache, mergeRunTrace, parseParameterUpload, experimentInputFromManifest } from './client.js';
 import { mountDiagnostics } from './diagnostics.js';
 import { mountPilotRequest } from './onboarding.js';
@@ -36,24 +38,37 @@ const state = {
   needsCompile: false, dirty: false, hasRun: false, preview: false, errors: [], generation: 0, watch: null,
 };
 state.selected = state.scenarios.find(s => s.kind === 'plan-a')?.id || state.scenarios[0]?.id;
-let editHistory = null;
-let restoringEdit = false;
 let previewTimer;
 let traceSelectionToken = 0, automaticTraceKey = null;
 let worldPreview = null, worldVisualPreview = null, constructionRun = null, constructionTimer = null, constructionMonth = 0;
+let checkpointUI=null;
+let recordedPlayer = null, pairedPresentation = null, playbackGeneration=0;
 let constructionView = null, worldTools = null, advancedStudio = null;
 const scenario = () => state.scenarios.find(s => s.id === state.selected);
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
 const status = (message, error = false) => { $('#app-status').textContent = message; $('#app-status').classList.toggle('error', error); if (error) { state.errors.push(message); diagnostics.update({ ...(state.results || {}), apiErrors: state.errors }); } };
-const prediction = mountPrediction($('#policy-prediction'), { getInput: () => { const input = currentInput(); try { return normalizeDecisionInput(input, activeModel); } catch { return input; } }, unavailable: () => state.busy || state.readonly });
-const rotationTheater = mountRotationTheater($('#rotation-theater'));
 const visuals = mountDecisionVisualizations($('#decision-visualizations'), { onSelectRun: selectRun, onEnterFuture: enterFuture });
-const badges = mountExplorationBadges($('#decision-visualizations'));
+const futureTransitions = attachFutureTransitions({multiverse:$('#futures'),city:$('#physical-world'),getSelection:()=>{const run=state.selectedRun||constructionRun;return {experimentId:state.results?.experiment?.id,runId:run?.id,scenarioId:run?.scenarioId,modelVersion:run?.modelVersion,seed:run?.seed,month:constructionMonth,comparison:visuals.comparisonSelection()};}});
+addEventListener('pagehide',()=>futureTransitions.detach(),{once:true});
 const trust = mountDecisionTrust($('#decision-trust'));
 const diagnosticsContainer = el('div'); $('#trust').append(diagnosticsContainer);
 const diagnostics = mountDiagnostics(diagnosticsContainer);
 const pilotContainer = el('div'); $('#trust').append(pilotContainer);
+const workflowHost=el('div');$('#trust').append(workflowHost);
+const workflowUI=mountProductWorkflows(workflowHost,{fetch:async(url,options)=>{const capability=await fetch('/api/local-capability',{method:'POST'});if(!capability.ok)throw Error('Local capability unavailable');return fetch(url,options);},onExport:body=>download(body,'local-workflows.json')});
+addEventListener('pagehide',()=>workflowUI.dispose(),{once:true});
 mountPilotRequest(pilotContainer, { getContext: () => ({ decision: $('#decision-text').value, modelId: housingModel.id, modelVersion: housingModel.version }) });
+const parentResolver=createRecordedParentResolver({fetchTrace:async(experimentId,runId,{signal})=>{const base=`/api/decision-experiments/${encodeURIComponent(experimentId)}`;const [a,b]=await Promise.all([fetch(base,{signal}),fetch(`${base}/runs/${encodeURIComponent(runId)}`,{signal})]);if(!a.ok||!b.ok)throw Error('Parent unavailable');const {experiment}=await a.json(),{run}=await b.json();if(experiment.id!==experimentId||experiment.modelVersion!==run.modelVersion)throw Error('Parent provenance mismatch');return {...run,modelId:experiment.modelId};}});
+const checkpointHost=el('div');$('#physical-world').append(checkpointHost);checkpointUI=mountHousingCheckpoints(checkpointHost,{getContext:()=>({experimentId:state.results?.experiment?.id,runId:constructionRun?.id,month:Math.floor(constructionMonth),years:state.results?.experiment?.years})});
+addEventListener('pagehide',()=>checkpointUI.destroy(),{once:true});
+const forkPanel=el('section');forkPanel.setAttribute('aria-label','Recorded fork timeline');$('#building-world').after(forkPanel);
+function renderForkPresentation(frame){if(!pairedPresentation)return;const parent=pairedPresentation.parent,projectId=pairedPresentation.projectId,month=constructionMonth;const original=constructionFrame(parent,projectId,month),branch=constructionFrame(constructionRun,projectId,month);const project=constructionRun.projects?.find(p=>p.projectId===projectId)?.proposal;const max=Math.max(1,project?.geometry?.floors||1);forkPanel.replaceChildren(el('h3','Recorded original and fork timeline'),el('p',`Month ${month.toFixed(1)} · branch month ${pairedPresentation.forkMonth} · ${month<=pairedPresentation.forkMonth?'fixed original prefix':'recorded branch suffix'}. Visual interpolation only; recorded units remain authoritative.`));const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 420 140');svg.setAttribute('role','img');svg.setAttribute('aria-label','Original and fork recorded construction');for(const [index,value]of [original,branch].entries()){const rect=document.createElementNS(svg.namespaceURI,'rect');const floors=value.visual?.floorsBuilt;const h=Number.isFinite(floors)?Math.max(0,Math.min(1,floors/max))*100:0;for(const [key,v]of Object.entries({x:40+index*200,y:110-h,width:80,height:h,fill:index?'#147d79':'#536878'}))rect.setAttribute(key,String(v));svg.append(rect);const label=document.createElementNS(svg.namespaceURI,'text');label.setAttribute('x',String(40+index*200));label.setAttribute('y','132');label.setAttribute('fill','currentColor');label.setAttribute('font-size','11');label.textContent=index?'Fork':'Original';svg.append(label);}forkPanel.append(svg,el('pre',JSON.stringify({original:{runId:parent.id,recorded:original.recorded},fork:{runId:constructionRun.id,recorded:branch.recorded}},null,2)));}
+const sound = createSubtleSound(), cueHost = el('div'); $('#building-world').before(cueHost);
+const stressCues = mountStressCue(cueHost,{sound});
+const soundButton=el('button','Enable subtle sound');soundButton.type='button';soundButton.setAttribute('aria-pressed','false');cueHost.append(soundButton);
+soundButton.addEventListener('click',async()=>{if(soundButton.getAttribute('aria-pressed')==='true'){sound.mute();soundButton.setAttribute('aria-pressed','false');soundButton.textContent='Enable subtle sound';}else{const enabled=await sound.enable();soundButton.setAttribute('aria-pressed',String(enabled));soundButton.textContent=enabled?'Mute subtle sound':'Audio unavailable';}});
+const presentationLabel=el('p','Visual interpolation between recorded months; outcomes retain the preceding recorded state.');cueHost.append(presentationLabel);
+addEventListener('pagehide',()=>{playbackGeneration++;parentResolver.dispose();recordedPlayer?.dispose();stressCues.dispose();void sound.dispose();},{once:true});
 constructionView = mountBuildingWorld($('#building-world'), {
   projects: [], month: 0, controls: false,
   onPlace(proposal) { worldTools?.setPlacement(proposal || null); },
@@ -86,36 +101,6 @@ function currentInput({ runs = Number($('#run-count').value), preview = false } 
     seed: Number($('#run-seed').value), runs, years: Number($('#run-years').value),
     scenarios: clone(state.scenarios), metadata: { ...clone(state.metadata), continuity: continuity.getContext(), evidence: clone(collectedEvidence()), preview },
   };
-}
-
-// Snapshot editable inputs only; continuity and stored results retain their own authority.
-function editableSnapshot() {
-  return { scenarios: clone(state.scenarios), metadata: clone(state.metadata), evidence: clone(state.evidence),
-    modelVersion: activeModel.version, needsCompile: state.needsCompile,
-    fields: Object.fromEntries(['project-name','decision-text','run-count','run-years','run-seed'].map(id => [id, $(`#${id}`).value])) };
-}
-function updateEditHistory() {
-  if (!editHistory) return;
-  $('#undo-edit').disabled = state.readonly || state.busy || !editHistory.canUndo;
-  $('#redo-edit').disabled = state.readonly || state.busy || !editHistory.canRedo;
-  $('#edit-revision').textContent = `Draft revision ${editHistory.revision} · ${state.readonly ? 'read-only' : state.busy ? 'history unavailable while running' : 'last 100 edits'}`;
-}
-function restoreEdit(direction) {
-  if (!editHistory || state.readonly || state.busy) return;
-  const snapshot = editHistory[direction](); if (!snapshot) return;
-  restoringEdit = true;
-  try {
-    const selected = state.selected;
-    state.scenarios = clone(snapshot.scenarios); state.metadata = clone(snapshot.metadata); state.evidence = clone(snapshot.evidence);
-    state.needsCompile = snapshot.needsCompile; activeModel = resolveHousingModel(snapshot.modelVersion).model;
-    $('#legacy-model-banner').hidden = activeModel.version === housingModel.version;
-    $('#model-version').textContent = `${activeModel.label} · ${activeModel.version}`;
-    $('#compile-report').replaceChildren(); if (state.metadata.compilation) showCompileReport(state.metadata.compilation);
-    for (const [id, value] of Object.entries(snapshot.fields)) $(`#${id}`).value = value;
-    state.selected = state.scenarios.some(s => s.id === selected) ? selected : state.scenarios[0]?.id;
-    renderScenarios(); markDirty(); clearTimeout(previewTimer);
-    status(`${direction === 'undo' ? 'Undid' : 'Redid'} draft edit. Stored futures remain unchanged. Save to commit this revision.`);
-  } finally { restoringEdit = false; updateEditHistory(); }
 }
 
 function validateInput(input) {
@@ -272,20 +257,10 @@ function renderParameters() {
     renderFields(); renderCurve(); uncertainty.append(distribution, fields); row.append(mini, uncertainty); const role = definition.role || definition.controlGroup || definition.parameterRole; const group = /policy|lever/.test(role || '') || !role && policyIds.has(definition.id) ? 'policy' : 'world'; groups[group].append(row);
   }
 }
-function updateParameterDiff() { renderParameterDiff($('#scenario-parameter-diff'), currentInput(), activeModel, state.selected); }
-function updateRunDescription() { updateParameterDiff(); $('#run-description').textContent = `${Number($('#run-count').value).toLocaleString()} futures × ${state.scenarios.length} scenarios. Same seed sequence, different choices.`; }
+function updateRunDescription() { $('#run-description').textContent = `${Number($('#run-count').value).toLocaleString()} futures × ${state.scenarios.length} scenarios. Same seed sequence, different choices.`; }
 function updateDraftTrust() { trust.update({ experiment: currentInput(), runs: [], aggregates: [], comparisons: [], model: activeModel, evidence: collectedEvidence(), readOnly: state.readonly }); }
 function markDirty() {
-  updateParameterDiff();
   if (state.readonly) return;
-  if (!restoringEdit) editHistory?.record(editableSnapshot());
-  updateEditHistory();
-  // Input edits supersede pending create/start/reopen requests as well as polls.
-  // The server may finish its immutable record; it no longer owns this draft.
-  activeRequest++;
-  state.watch?.destroy(); state.watch = null;
-  traceSelectionToken++; state.tracePending = false;
-  if (state.busy) setBusy(false);
   state.dirty = true; state.generation++; updateAdvancedStudio(); $('#share-experiment').disabled = true;
   if (!state.results) updateDraftTrust();
   $('#result-context').textContent = state.results ? 'Assumptions changed. Results below belong to the previous experiment until a new run finishes.' : 'Assumptions ready. Run the experiment to explore outcomes.';
@@ -323,7 +298,7 @@ function useExample() {
 }
 
 function setBusy(busy) {
-  state.busy = busy; updateEditHistory(); updateAdvancedStudio(); $('#run-experiment').disabled = busy || state.readonly; $('#cancel-experiment').disabled = !busy || state.readonly || state.experiment?.status !== 'running';
+  state.busy = busy; updateAdvancedStudio(); $('#run-experiment').disabled = busy || state.readonly; $('#cancel-experiment').disabled = !busy || state.readonly || state.experiment?.status !== 'running';
   $('#save-experiment').disabled = busy || state.readonly; $('#try-example').disabled = busy;
 }
 function successfulRuns(runs = []) { return runs.filter(run => ['completed', 'successful', 'succeeded'].includes(run.status) && !run.error && run.metrics && Object.values(run.metrics).some(Number.isFinite)); }
@@ -334,8 +309,7 @@ function renderResults(result) {
   const data = { ...result, experiment: state.experiment, runs: summaryRows.map(row=>mergeRunTrace(row,runTraces.peek(state.experiment.id,row.id))), previousResults: state.previousResults, model: result.model || resolveHousingModel(state.experiment?.modelVersion || activeModel.version).model, readOnly: state.readonly, evidence: state.evidence, apiErrors: state.errors };
   state.summaryResults = {...data,runs:summaryRows,previousResults:undefined};
   continuity.update(decisionSnapshot({ ...data, job: continuityJob, selectedRun: state.selectedRun }), { namespace: 'decision', experimentId: state.experiment?.id });
-  prediction.reveal(data);
-  state.results = data; rotationTheater.update(data); badges.update(data); visuals.update(data); trust.update(data); diagnostics.update(data);
+  state.results = data; visuals.update(data); trust.update(data); diagnostics.update(data);
   syncConstructionWorld(); worldTools?.update(); updateAdvancedStudio();
   const experiment = state.experiment;
   updateExecutiveSummary();
@@ -364,7 +338,6 @@ async function runExperiment({ preview = false, reproduction = null } = {}) {
   try {
     const created = await client.create(input); if (token !== activeRequest) return;
     state.experiment = created.experiment;
-    prediction.bind(created.experiment, { preview });
     const started = await client.start(state.experiment.id); if (token !== activeRequest) return;
     state.experiment = started.experiment || state.experiment; state.evidence = clone(input.metadata?.evidence || []); setBusy(true);
     updateExperimentUrl(state.experiment.id);
@@ -386,7 +359,7 @@ async function runExperiment({ preview = false, reproduction = null } = {}) {
   } catch (error) { if (token === activeRequest) { setBusy(false); status(error.message, true); } }
 }
 let activeRequest = 0;
-function updateExperimentUrl(id) { const url = new URL(location.href); url.searchParams.set('experiment', id); url.searchParams.delete('project'); url.searchParams.delete('demo'); url.searchParams.delete('share'); if (!state.readonly) url.searchParams.delete('readonly'); history.replaceState(null, '', url); }
+function updateExperimentUrl(id) { const url = new URL(location.href); url.searchParams.set('experiment', id); url.searchParams.delete('demo'); url.searchParams.delete('share'); if (!state.readonly) url.searchParams.delete('readonly'); history.replaceState(null, '', url); }
 function setReadonly(value) {
   state.readonly = value; worldTools?.update({readOnly: value}); document.body.classList.toggle('readonly', value); $('#readonly-banner').hidden = !value; applyReadonly();
   if (state.results) trust.update({ ...state.results, readOnly: value });
@@ -401,24 +374,20 @@ function applyReadonly() {
   $('#run-experiment').disabled = state.busy || state.readonly; $('#cancel-experiment').disabled = !state.busy || state.readonly;
   $('#reproduce-experiment').disabled = !state.experiment?.id || state.readonly;
   $('#apply-import').disabled = state.readonly || !upload;
-  updateEditHistory();
 }
 async function reopenExperiment(id, readonly = false) {
   if (!id) throw new Error('Choose an experiment to reopen.');
   if (state.busy) throw new Error('Cancel the running experiment before opening another.');
   clearTimeout(previewTimer); state.watch?.destroy(); runTraces.clear();traceSelectionToken++;automaticTraceKey=null;const token = ++activeRequest;
   status('Opening saved experiment…');
-  let result;
-  try { result = readonly ? await client.share(id) : await client.results(id); }
-  catch (error) { if (token !== activeRequest) return; throw error; }
+  const result = readonly ? await client.share(id) : await client.results(id);
   if (token !== activeRequest) return;
   if (!result.experiment) throw new Error('The server did not return an experiment.');
   state.results=null;state.summaryResults=null;state.selectedRun=null;constructionRun=null;state.experiment=result.experiment;runTraces.setExperiment(result.experiment.id);
   loadInput(result.experiment); setReadonly(readonly); state.preview = Boolean(result.experiment.metadata?.preview); state.hasRun = true; state.dirty = false;
-  editHistory?.reset(editableSnapshot()); updateEditHistory();
   renderResults(result); updateExperimentUrl(id); status(readonly ? 'Read-only experiment opened. Explore the original inputs, futures, and decision brief.' : 'Experiment reopened with its original inputs and results.');
   if (result.experiment.status === 'running') {
-    setBusy(true); state.watch = client.watch(id, { onUpdate(next) { if (token !== activeRequest) return; renderResults(next); if (['completed', 'cancelled', 'failed'].includes(next.experiment?.status)) setBusy(false); }, onError(error) { if (token !== activeRequest) return; setBusy(false); status(error.message, true); } });
+    setBusy(true); state.watch = client.watch(id, { onUpdate(next) { if (token !== activeRequest) return; renderResults(next); if (['completed', 'cancelled', 'failed'].includes(next.experiment?.status)) setBusy(false); }, onError(error) { setBusy(false); status(error.message, true); } });
   }
 }
 function loadInput(input) {
@@ -503,11 +472,11 @@ function syncConstructionWorld() {
   projects = preview.projects;
   const maxMonth = Math.max(1, (state.results?.experiment?.years || Number($('#run-years').value) || 10) * 12);
   constructionMonth = Math.max(0, Math.min(maxMonth, constructionMonth));
-  $('#building-month').max = String(maxMonth); $('#building-month').value = String(constructionMonth); $('#building-month-label').textContent = String(constructionMonth);
+  $('#building-month').step = '0.1'; $('#building-month').max = String(maxMonth); $('#building-month').value = String(constructionMonth); $('#building-month-label').textContent = String(constructionMonth);
   $('#building-month').setAttribute('aria-valuetext', `Month ${constructionMonth}`);
   const unloadedTrace = constructionRun?.traceDelivery === 'on-demand';
   $('#building-play').disabled = !constructionRun || unloadedTrace;
-  constructionView.update({ projects, run: unloadedTrace ? null : constructionRun, month: constructionMonth, worldVisuals: preview.worldVisuals });
+  constructionView.update({ projects, run: unloadedTrace ? null : constructionRun, month: constructionMonth, presentation: Object.fromEntries(projects.map(project=>[project.id,constructionFrame(constructionRun,project.id,constructionMonth).visual])), worldVisuals: preview.worldVisuals });
   if (state.experiment?.id) { const target = new URL('/world',location.origin);target.searchParams.set('decisionExperiment',state.experiment.id); if(constructionRun)target.searchParams.set('decisionRun',constructionRun.id);target.searchParams.set('month',String(constructionMonth));$('#open-neighborhood-world').href=target.pathname+target.search; }
   $('#building-context').textContent = unloadedTrace ? `${current.name} · ${constructionRun.id}: complete monthly/project states are stored and available on demand. ${state.traceError || 'Loading the selected future’s full replay trace…'}` : constructionRun ? `${current.name} · stored future ${constructionRun.id} · model ${constructionRun.modelVersion} · month ${constructionMonth}. ${state.dirty ? 'Input revisions are newer than these stored results.' : 'Phases, completed homes, occupancy, and spending come from stored monthly states.'}` : 'Unapproved / unrun world. Approve a project and simulate to replay its actual construction.';
   const summary = $('#building-project-summary'); summary.replaceChildren();
@@ -517,22 +486,26 @@ function syncConstructionWorld() {
     card.append(el('p', unloadedTrace ? 'Full monthly trace is stored, not missing. Loading this selected future before replay.' : `${stored.status} · ${Math.round((stored.progress || 0) * 100)}% · floor ${stored.floorsBuilt || 0}/${project.geometry.floors} · ${stored.completedUnits || 0} completed homes · ${stored.occupiedUnits || 0} occupied`)); summary.append(card);
   }
   if(unloadedTrace && state.experiment?.id) {const key=`${state.experiment.id}/${constructionRun.id}`;if(automaticTraceKey!==key){automaticTraceKey=key;void hydrateVisibleRun(constructionRun);}}
+  updateAdvancedStudio();
 }
-function stopConstructionPlayback() { clearInterval(constructionTimer); constructionTimer = null; $('#building-play').textContent = 'Play'; $('#building-play').setAttribute('aria-label', 'Play construction'); }
+function stopConstructionPlayback() { sound.mute();soundButton.setAttribute('aria-pressed','false');soundButton.textContent='Enable subtle sound'; playbackGeneration++; parentResolver.cancel(); pairedPresentation=null; forkPanel.replaceChildren(); presentationLabel.textContent='Visual interpolation between recorded months; outcomes retain the preceding recorded state.'; recordedPlayer?.dispose(); recordedPlayer=null; stressCues.clear(); constructionTimer = null; $('#building-play').textContent = 'Play'; $('#building-play').setAttribute('aria-label', 'Play construction'); }
 $('#building-scenario').addEventListener('change', () => { state.selected = $('#building-scenario').value; constructionRun = null; constructionMonth = 0; stopConstructionPlayback(); renderScenarios(); });
 $('#building-run').addEventListener('change', () => {const run=state.results?.runs.find(row=>row.id===$('#building-run').value);if(run)void selectRun(run);});
-$('#building-month').addEventListener('input', () => { constructionMonth = Number($('#building-month').value); syncConstructionWorld(); });
+$('#building-month').addEventListener('input', () => { stopConstructionPlayback(); futureTransitions.cancel('scrub'); constructionMonth = Number($('#building-month').value); syncConstructionWorld(); });
 $('#building-reset').addEventListener('click', () => { stopConstructionPlayback(); constructionMonth = 0; syncConstructionWorld(); });
-$('#building-play').addEventListener('click', () => {
+$('#building-play').addEventListener('click', async () => {
   if (constructionTimer) { stopConstructionPlayback(); return; }
   if (!constructionRun) return;
+  const playbackToken=++playbackGeneration;
   if (constructionMonth >= Number($('#building-month').max)) constructionMonth = 0;
   $('#building-play').textContent = 'Pause'; $('#building-play').setAttribute('aria-label', 'Pause construction');
-  constructionTimer = setInterval(() => { constructionMonth += Number($('#building-speed').value); if (constructionMonth >= Number($('#building-month').max)) stopConstructionPlayback(); syncConstructionWorld(); }, 200);
+  futureTransitions.cancel('playback'); let lastPaint=-1; const selectedPlayback=constructionRun; const projectId=constructionRun.projects?.[0]?.projectId; if(constructionRun.fork){const result=await parentResolver.resolve({run:{...constructionRun,modelId:state.results?.experiment?.modelId},scenario:state.results?.experiment?.scenarios?.find(s=>s.id===constructionRun.scenarioId),projectId});if(constructionRun!==selectedPlayback||playbackToken!==playbackGeneration)return;if(result.status==='ready')pairedPresentation=result;else forkPanel.textContent=`Paired fork presentation unavailable: ${result.reason}`;}
+  recordedPlayer=createRecordedPlayback({run:constructionRun,...(pairedPresentation?{parent:pairedPresentation.parent,forkMonth:pairedPresentation.forkMonth}:{}),projectId:constructionRun.projects?.[0]?.projectId,endMonth:Number($('#building-month').max),onCue:cue=>stressCues.show(cue),onFrame:frame=>{const tick=String(Math.floor(frame.month*10))+':'+frame.reducedMotion;if(tick===lastPaint&&frame.playing)return;lastPaint=tick;constructionMonth=frame.month;if(frame.reducedMotion)stressCues.clear();syncConstructionWorld();renderForkPresentation(frame);presentationLabel.textContent=`Visual interpolation only · recorded stress events: ${frame.events.map(e=>e.message||e.presetId).join(', ')||'none through this month'}`;if(!frame.playing){$('#building-play').textContent='Play';constructionTimer=null;}}});
+  recordedPlayer.scrub(constructionMonth); recordedPlayer.play(Number($('#building-speed').value)*5); constructionTimer=true;
 });
 
 function updateAdvancedStudio() {
-  prediction.update();
+  checkpointUI?.update();
   advancedStudio?.update({ input: currentInput(), results: state.results, selectedRun: state.selectedRun || constructionRun, previousResults: state.previousResults, readOnly: state.readonly, busy: state.busy, stale: state.dirty, scenarioId: state.selected, month: constructionMonth });
 }
 function proposeApprovedEdit(proposal) {
@@ -573,15 +546,16 @@ function proposeInputChange(next) {
   proposeApprovedEdit({schemaVersion:'world-edit.v1',summary:'Review proposed alternative before applying',operations,requiresSimulationRerun:true,warnings:[],provider:'user',model:'advanced-studio.v1',prompt:'Review proposed scenario input',baseRevision:getWorldRevisionId(input)});
 }
 async function enterFuture(run, {month = constructionMonth} = {}) {
+  futureTransitions.cancel('enter selection');
   if (typeof run === 'string') run = state.results?.runs.find(row=>row.id===run);
   if (run?.experimentId && run.experimentId !== state.results?.experiment?.id) await reopenExperiment(run.experimentId,state.readonly);
   if (!run || !state.results?.runs.some(row=>row.id===run.id && row.seed===run.seed)) throw new Error('Select an actual stored future from this experiment.');
   await selectRun(run); if(state.selectedRun?.id!==run.id)return; constructionMonth = Number.isFinite(Number(month)) ? Number(month) : 0; stopConstructionPlayback(); syncConstructionWorld();
   document.body.classList.add('entered-future'); $('#future-entry-banner').hidden = false; $('#entered-future-name').textContent = `Inside ${run.id} · seed ${run.seed} · model ${run.modelVersion}`;
   const url=new URL(location.href);url.searchParams.set('run',run.id);url.searchParams.set('month',String(constructionMonth));url.hash='#physical-world';history.replaceState(null,'',url);
-  $('#physical-world').scrollIntoView({behavior:'smooth',block:'start'}); updateAdvancedStudio();
+  updateAdvancedStudio(); void futureTransitions.flyTo('city');
 }
-$('#return-multiverse').addEventListener('click', () => { stopConstructionPlayback(); document.body.classList.remove('entered-future'); $('#future-entry-banner').hidden = true; const url=new URL(location.href);url.hash='#futures';history.replaceState(null,'',url); $('#futures').scrollIntoView({behavior:'smooth',block:'start'}); });
+$('#return-multiverse').addEventListener('click', () => { stopConstructionPlayback(); document.body.classList.remove('entered-future'); $('#future-entry-banner').hidden = true; const url=new URL(location.href);url.hash='#futures';history.replaceState(null,'',url); void futureTransitions.flyTo('multiverse'); });
 
 function projects() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); } catch { return []; } }
 function refreshLocalProjects() {
@@ -590,12 +564,11 @@ function refreshLocalProjects() {
 }
 function saveProject(duplicate = false, silent = false) {
   if (state.readonly) return;
-  if (duplicate) { state.projectId = null; $('#project-name').value = `${$('#project-name').value} copy`; editHistory?.record(editableSnapshot()); updateEditHistory(); }
+  if (duplicate) { state.projectId = null; $('#project-name').value = `${$('#project-name').value} copy`; }
   const input = currentInput(); const entries = projects(); const id = state.projectId || `project_${crypto.randomUUID().replaceAll('-', '')}`;
-  const project = { id, editRevision: editHistory?.revision ?? 0, savedAt: new Date().toISOString(), input }; const index = entries.findIndex(p => p.id === id);
+  const project = { id, savedAt: new Date().toISOString(), input }; const index = entries.findIndex(p => p.id === id);
   if (index >= 0) entries[index] = project; else entries.unshift(project);
   localStorage.setItem(LOCAL_KEY, JSON.stringify(entries.slice(0, 50))); state.projectId = id; refreshLocalProjects(); $('#local-projects').value = id;
-  const url = new URL(location.href); url.searchParams.set('project', id); url.searchParams.delete('experiment'); url.searchParams.delete('readonly'); history.replaceState(null, '', url);
   if (!silent) status(duplicate ? 'Editable project duplicated and saved in this browser.' : 'Project saved in this browser, including scenarios, uncertainty, and evidence metadata.');
 }
 async function refreshExperiments() {
@@ -616,6 +589,10 @@ async function hydrateVisibleRun(run) {
   try {
     const full=await runTraces.get(experimentId,run.id);
     if(!full||token!==traceSelectionToken||state.results?.experiment?.id!==experimentId||constructionRun?.id!==run.id)return null;
+    await hydrateComparisonBaseline({ results: state.results, selectedRun: run,
+      loadRun: (id, runId) => runTraces.get(id, runId),
+      isCurrent: () => token === traceSelectionToken && state.results?.experiment?.id === experimentId && constructionRun?.id === run.id });
+    if(token!==traceSelectionToken||state.results?.experiment?.id!==experimentId||constructionRun?.id!==run.id)return null;
     const latest=state.summaryResults;
     if(!latest||latest.experiment?.id!==experimentId)return null;
     // Merge into the most recent progressive envelope, never the snapshot that
@@ -689,15 +666,6 @@ function renderImportPreview() {
 }
 async function safe(action) { try { await action(); } catch (error) { status(error?.message || String(error), true); } }
 const on = (id, action) => $(`#${id}`).addEventListener('click', () => safe(action));
-on('undo-edit', () => restoreEdit('undo'));
-on('redo-edit', () => restoreEdit('redo'));
-// Text fields retain native text undo; shortcuts outside editors operate on the session.
-addEventListener('keydown', event => {
-  if (event.defaultPrevented || event.altKey || !(event.ctrlKey || event.metaKey) || event.target.closest?.('input,textarea,select,[contenteditable]')) return;
-  const key = event.key.toLowerCase();
-  const direction = key === 'z' ? (event.shiftKey ? 'redo' : 'undo') : key === 'y' ? 'redo' : null;
-  if (direction && !state.readonly && !state.busy) { event.preventDefault(); restoreEdit(direction); }
-});
 on('try-example', useExample);
 on('describe-decision', () => { $('#studio').scrollIntoView({ behavior: 'smooth' }); $('#decision-text').focus(); });
 on('compile-plan', compilePlan);
@@ -710,19 +678,19 @@ on('duplicate-scenario', () => {
 $('#scenario-name').addEventListener('input', () => { if (state.readonly) return; scenario().name = $('#scenario-name').value; const tab = [...$('#scenario-tabs').children].find(n => n.dataset.scenarioId === state.selected); if (tab) tab.textContent = scenario().name; markDirty(); });
 $('#decision-text').addEventListener('input', () => { state.needsCompile = true; });
 for (const id of ['project-name', 'decision-text', 'run-years', 'run-seed']) $(`#${id}`).addEventListener('input', markDirty);
-$('#run-count').addEventListener('change', () => { updateRunDescription(); markDirty(); });
+$('#run-count').addEventListener('change', updateRunDescription);
 $('#auto-preview').addEventListener('change', () => { if (!$('#auto-preview').checked) clearTimeout(previewTimer); });
 on('save-project', () => saveProject()); on('duplicate-project', () => saveProject(true));
 on('open-local', () => {
   if (state.busy) throw new Error('Cancel the running experiment before opening another project.');
   const project = projects().find(p => p.id === $('#local-projects').value); if (!project) throw new Error('Choose a saved local project.');
-  resetResults(); loadInput(project.input); state.projectId = project.id; setReadonly(false); editHistory?.reset(editableSnapshot(), project.editRevision); updateEditHistory(); status('Local project reopened. Run it to calculate fresh results.');
+  resetResults(); loadInput(project.input); state.projectId = project.id; setReadonly(false); status('Local project reopened. Run it to calculate fresh results.');
 });
-on('save-experiment', async () => { const result = await client.create(validateInput(currentInput())); state.experiment = result.experiment; state.preview = false; state.dirty = false; renderResults({experiment: result.experiment, runs: [], aggregates: [], comparisons: []}); updateExperimentUrl(result.experiment.id); await refreshExperiments(); $('#server-experiments').value = result.experiment.id; status('Experiment saved on the server. Reopen it or simulate when ready.'); });
+on('save-experiment', async () => { const result = await client.create(validateInput(currentInput())); state.experiment = result.experiment; state.preview = false; state.dirty = false; renderResults({experiment: result.experiment, runs: [], aggregates: [], comparisons: []}); await refreshExperiments(); $('#server-experiments').value = result.experiment.id; status('Experiment saved on the server. Reopen it or simulate when ready.'); });
 on('refresh-experiments', refreshExperiments); on('open-server', () => reopenExperiment($('#server-experiments').value));
 on('export-project', () => download(currentInput(), 'hbl-decision-project.json'));
 on('download-manifest', async () => download(await client.manifest(state.experiment.id), `hbl-${state.experiment.id}-manifest.json`));
-on('reproduce-experiment', async () => { const manifest = await client.manifest(state.experiment.id); const input = experimentInputFromManifest(manifest); resetResults(); loadInput(input); editHistory?.reset(editableSnapshot()); updateEditHistory(); await runExperiment({ reproduction: input }); });
+on('reproduce-experiment', async () => { const manifest = await client.manifest(state.experiment.id); const input = experimentInputFromManifest(manifest); resetResults(); loadInput(input); await runExperiment({ reproduction: input }); });
 on('share-experiment', async () => { const url = new URL(location.href); url.search = ''; url.searchParams.set('experiment', state.experiment.id); url.searchParams.set('readonly', '1'); try { await navigator.clipboard.writeText(url.href); status('Read-only experiment link copied. Recipients can inspect the saved experiment and results.'); } catch { status(`Read-only link: ${url.href}`); } });
 on('upgrade-model', () => { if (state.readonly) return; const previous = activeModel.version; activeModel = housingModel; state.metadata.modelUpgrade = { from: previous, to: housingModel.version, approvedAt: new Date().toISOString() }; $('#legacy-model-banner').hidden = true; markDirty(); renderScenarios(); status(`Editable draft upgraded from ${previous} to ${housingModel.version}. Stored results retain their original version; simulate to compare the new model.`); });
 on('fork-shared', () => { setReadonly(false); state.projectId = null; $('#project-name').value += ' copy'; const url = new URL(location.href); url.searchParams.delete('readonly'); url.searchParams.delete('experiment'); history.replaceState(null, '', url); status('Editable copy ready. New simulations will create a separate experiment.'); });
@@ -731,14 +699,14 @@ function updateExecutiveSummary() {
   $('#executive-question').textContent = input.decision || 'Describe a housing decision to begin.';
   $('#executive-options').textContent = `${input.scenarios.map(s => s.name).join('  /  ')} · ${input.runs} futures per scenario · ${input.years} years · ${housingModel.label}`;
 }
-on('executive-toggle', () => { const active = document.body.classList.toggle('executive-mode'); $('#executive-summary').hidden = !active; updateExecutiveSummary(); $('#executive-toggle').setAttribute('aria-pressed', String(active)); $('#executive-toggle').textContent = active ? 'Analyst mode' : 'Executive mode'; if (active) $('#studio').scrollIntoView({ behavior: 'smooth' }); });
+on('executive-toggle', () => { const active = document.body.classList.toggle('executive-mode'); $('#executive-summary').hidden = !active; updateExecutiveSummary(); $('#executive-toggle').setAttribute('aria-pressed', String(active)); $('#executive-toggle').textContent = active ? 'Analyst mode' : 'Executive mode'; if (active) {let share=$('#executive-share');if(!share){share=el('section');share.id='executive-share';$('#executive-summary').append(share);}mountPresentationShare(share,new URL('/world/decision.html',location.origin).href,state.experiment?.id);$('#studio').scrollIntoView({ behavior: 'smooth' });} });
 $('#parameter-upload').addEventListener('change', () => safe(async () => {
   const file = $('#parameter-upload').files[0]; if (!file) return;
   if (file.size > 2 * 1024 * 1024) throw new Error('Use a CSV or JSON file smaller than 2 MB.');
   const parsed = parseParameterUpload(await file.text(), file.name);
   if (parsed.manifest) {
     if (state.busy) throw new Error('Cancel the running experiment before importing a project.');
-    const input = experimentInputFromManifest(parsed.manifest); resetResults(); loadInput(input); setReadonly(false); state.projectId = null; editHistory?.reset(editableSnapshot()); updateEditHistory();
+    const input = experimentInputFromManifest(parsed.manifest); resetResults(); loadInput(input); setReadonly(false); state.projectId = null;
     status('Run manifest imported. Original parameters, seeds, uncertainty, and horizon restored. Click Simulate this plan to reproduce.');
   } else { renderImportMapping(parsed, file.name); status('Data loaded. Map columns, review the selected row, then apply inputs.'); }
 }));
@@ -749,9 +717,9 @@ on('apply-import', () => {
   renderParameters(); markDirty(); status(`Applied ${Object.keys(values).length} inputs to ${scenario().name}. Original filename and mapping recorded in the evidence ledger.`);
 });
 function resetResults() {
-  clearTimeout(previewTimer); stopConstructionPlayback(); constructionRun = null; constructionMonth = 0; worldPreview = null; worldVisualPreview = null; state.watch?.destroy(); activeRequest++; runTraces.clear();traceSelectionToken++;automaticTraceKey=null;state.summaryResults=null;state.tracePending=false;state.traceError=null; state.experiment = null; state.results = null; state.previousResults = null; state.selectedRun = null; state.hasRun = false; state.dirty = false; state.preview = false;
+  futureTransitions.cancel('reset'); clearTimeout(previewTimer); stopConstructionPlayback(); constructionRun = null; constructionMonth = 0; worldPreview = null; worldVisualPreview = null; state.watch?.destroy(); activeRequest++; runTraces.clear();traceSelectionToken++;automaticTraceKey=null;state.summaryResults=null;state.tracePending=false;state.traceError=null; state.experiment = null; state.results = null; state.previousResults = null; state.selectedRun = null; state.hasRun = false; state.dirty = false; state.preview = false;
   const empty = { experiment: null, runs: [], aggregates: [], comparisons: [], model: housingModel, evidence: state.evidence };
-  badges.update(empty); visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
+  visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
   $('#share-experiment').disabled = $('#download-manifest').disabled = $('#reproduce-experiment').disabled = true;
   $('#result-context').textContent = 'Run the project to calculate its possible futures.';
   syncConstructionWorld(); updateAdvancedStudio();
@@ -764,15 +732,9 @@ window.hblDecisionStudio = { state, currentInput, runExperiment, reopenExperimen
 renderScenarios(); refreshLocalProjects(); resetResults();
 refreshExperiments().catch(error => status(`Experiment library unavailable: ${error.message}. Local editing and saving remain available.`, true));
 async function initialize(params) {
-  if (params.has('project') && !params.has('experiment') && !params.has('readonly')) {
-    const project = projects().find(p => p.id === params.get('project'));
-    if (!project) throw new Error('Saved local project unavailable in this browser.');
-    loadInput(project.input); state.projectId = project.id; editHistory?.reset(editableSnapshot(), project.editRevision); updateEditHistory(); return;
-  }
   const id = params.get('experiment') || params.get('share') || localContextId(continuity.getContext()?.experimentId, 'experiment', 'decision');
   if (id) { await reopenExperiment(id, params.get('readonly') === '1' || Boolean(params.get('share'))); if (params.get('run') || continuity.getContext()?.runId) { const run=state.results?.runs.find(row=>row.id===(params.get('run') || localContextId(continuity.getContext()?.runId, 'run', 'decision'))); if(run) { selectRun(run); constructionMonth=Number(params.get('month'))||0;syncConstructionWorld(); if(location.hash!=='#futures')enterFuture(run,{month:constructionMonth}); } } }
   else if (params.get('demo') === '1') { useExample(); await runExperiment(); }
 }
 
-editHistory = createEditHistory(editableSnapshot()); updateEditHistory();
-safe(async () => { await initialize(initialQuery); updateEditHistory(); });
+safe(() => initialize(initialQuery));

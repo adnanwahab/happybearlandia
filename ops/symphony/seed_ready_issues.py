@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Opt-in, idempotent GitHub Issues intake from the approved sprint bootstrap table.
+"""Opt-in, idempotent GitHub Issues intake from the approved sprint READY table.
 
 Preview by default. Creates issues ONLY with --apply --ids ..., and makes
 only R01-R05 dispatchable with an additional --dispatch-first-wave flag.
@@ -40,7 +40,8 @@ def parse_ready_table(markdown: str) -> dict[str, dict[str, str]]:
         task_id, priority, requirement, dependency, ownership, verification = cols
         if task_id in rows:
             raise ValueError(f"Duplicate backlog ID: {task_id}")
-
+        if not re.search(r"\bREADY\b", priority):
+            continue
         rows[task_id] = {
             "priority": priority,
             "requirement": requirement,

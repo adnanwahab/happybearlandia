@@ -10,58 +10,15 @@ Only mapped district `city-policy` interventions with exact allowlisted type, am
 
 Open `/world/causal.html` and choose **Record deterministic scenario** once. This explicitly records the seed-2911 fixture through POST `/api/causality/world-scenario`. The endpoint accepts no client payload and rejects foreign origins. The fixed run is idempotent after completion, and later visits load it read-only.
 
-The timeline requests the immutable checkpoint for the selected month and, where available, the previous month. It compares the displayed fields for districts, buildings, households, people, businesses and district links. When the model records a housing project's completion and produces its building, selecting the new building opens the corresponding construction trace. Other entities open their recorded history. The event picker jumps directly to a recorded event. The page preserves unrelated URL parameters and uses `month`, `event` and `inspectEntity` for its own selection.
+The timeline requests the immutable checkpoint for the selected month and, where available, the previous month. It compares the displayed fields for buildings, households, people, businesses and district links. When the model records a housing project's completion and produces its building, selecting the new building opens the corresponding construction trace. Other entities open their recorded history. The event picker jumps directly to a recorded event. The page preserves unrelated URL parameters and uses `month`, `event` and `inspectEntity` for its own selection.
 
 The Time Machine links to the [Living Newspaper](../newspaper/index.html) and [Surprising Discoveries](../discoveries/index.html). Both read the same stored simulation through the causal API. The newspaper presents selected events in yearly editions. Discoveries scores completed monthly World observations using explicit rules and links to the evidence.
 
 This view covers months 0–20 of the synthetic monthly CityState fixture. The general World map, the minute-based population runtime, arbitrary run selection, and branching from the selected month require additional integration. Checkpoints provide recorded playback; verified recomputation requires independently recorded target digests.
 
-### Sharing an investigation
 
-Select a building or district in the inventory and choose **Copy investigation
-link**. The absolute URL retains the saved `runId`, checkpoint `month`, canonical
-`inspectEntity`, and any selected construction `event`, along with unrelated URL
-context. Opening it in another browser session reads the same server's saved
-checkpoints without recording a new run. Clipboard denial reveals a selectable
-link for manual copying. Copy is disabled during checkpoint loading and failure.
+## Fixture grid prototype (NB-U01)
 
-If an entity ID is absent from the checkpoint and its previous-month removal
-rows, the page clears that selection, shows a notice, and keeps the stored month.
-An unavailable event falls back to the requested month and entity; an unavailable
-run retains the existing explicit error and retry action. Links depend on the
-server retaining that run, and do not embed or upload checkpoint data.
+`neighborhood-grid-view.js` exports `createNeighborhoodGridView(container,{onSelect})` with `update(fixture)`, `setMetric(id)`, `focusCell(id)`, `getStats()` and `dispose()`. Hosts must link `neighborhood-grid-view.css`. No production entry point mounts it. `normalizeGridFixture` accepts only `{source:'fixture',metrics:[{id,label,unit,min,max}],cells:[{id,row,column,values:{metricId:{value,reason,source}}}]}`. Bounds:12metrics,256cells,16positions per axis. Cells are schematic fixtures; they are not actual City districts or geographic positions. Null/nonfinite values remain unavailable, numeric zero remains valid; units and sources accompany selections. Canvas2D uses DOM buttons for keyboard accessibility, and absent Canvas contexts retain DOM presentation. No animation loop or model runs are created.
 
-### District metric evidence
-
-District heatmaps aggregate finite monthly checkpoint values. Missing fields,
-unknown occupancy statuses and absent inventories remain “No data”; genuine
-numeric zero stays zero. Rent covers rental units only; occupancy recognizes
-occupied, available, under-renovation and under-construction model statuses.
-Each value shows an assumption-based, partial, or missing-data label. Hover for
-provenance and limitations, or focus/expand the label for keyboard/touch access.
-Coverage counts usable versus eligible records. Dataset/revision/month and stored
-assumptions come from the same checkpoint. These model outputs have no established
-empirical confidence; OSM geometry does not verify housing or income values.
-
-### Selected-month entity trail
-
-Selecting an inventory entity also shows its exact selected-month event trail,
-with recorded event IDs and run/model/seed context. Links open the existing
-stored explanation and survive reload. Only explicit entity references and the
-model-owned construction mapping are included. Shared month or district does
-not establish causation. When no matching event exists, the trail says so;
-checkpoint differences alone do not supply missing causes. Coverage remains
-limited to the transitions instrumented by the monthly City model.
-
-### Returning from evidence
-
-Following an inspector record retains an in-memory stack of run, event, entity,
-clock, tab and correlation-filter checkpoints. **Return to previous checkpoint**
-restores one step at a time. On the city page, recorded monthly events with a
-stored checkpoint also update the inventory, heatmap, event picker and URL.
-An unavailable city mapping retains the previous city checkpoint and explains the
-limit; the evidence inspector remains usable. Absent inventory entities are not
-invented. Reload starts a new investigation at the URL selection; the return
-stack is session-local. Manual inspector form submissions start a new trail.
-The existing evidence-backed pulses and reduced-motion static graph are reused;
-no geographic animation or cross-model identity mapping is implied.
+Verify pure checks with `bun test test/neighborhood-grid-view.test.js`. Include the actual Chromium fixture harness with `HBL_GRID_BROWSER=1` (optional `HBL_GRID_TEST_DEPENDENCY_ROOT` resolves an installed Playwright dependency tree). Its320/1440 screenshots are component evidence only. NB-U02 and geographic G02/G03 contracts must be completed and verified before real City data or any production-page integration is enabled.

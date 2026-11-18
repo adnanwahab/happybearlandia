@@ -41,9 +41,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Finder (MacOS) folder config
 .DS_Store
 
-# Playwright artifacts
-/test-results/
-/playwright-report/
+# Generated browser evidence belongs in trusted CI artifacts
+/.mini-symphony-evidence/
+**/test-results/
+**/playwright-report/
 
 # Private coupled-city SQLite storage
 .hbl-city/
@@ -62,3 +63,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Local simulation benchmark score archives
 .hbl-benchmarks/
+
+# Local Mini Symphony browser artifacts (CI uploads them separately)
+/artifacts/mini-symphony/
+/.mini-symphony-evidence/

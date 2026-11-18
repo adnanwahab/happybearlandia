@@ -1,0 +1,48 @@
+name: PR screenshot evidence (observational)
+
+# Visual evidence is deliberately NOT a required check.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+ 
+permissions:
+  contents: read
+
+jobs:
+  visual-evidence:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out PR merge result
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: candidate
+          persist-credentials: false
+      - name: Check out exact PR base
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: baseline
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install locked candidate dependencies without lifecycle scripts
+        working-directory: candidate
+        run: bun install --frozen-lockfile --ignore-scripts
+      - name: Install matching Playwright Chromium binary and Linux dependencies
+        working-directory: candidate
+        run: bunx playwright install --with-deps chromium
+      - name: Capture before and after using isolated disposable app state
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: candidate
+        run: bun scripts/capture-pr-evidence.ts
+      - name: Upload Playwright screenshots and phase manifests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-screenshots-${{ github.event.pull_request.number || github.run_id }}-${{ github.run_attempt }}
+          path: candidate/test-results/pr-screenshots/
+          if-no-files-found: error
+          retention-days: 14

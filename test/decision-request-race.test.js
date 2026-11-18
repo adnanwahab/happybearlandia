@@ -14,7 +14,7 @@ function harness() {
   const state = {generation:0,readonly:false,busy:false,hasRun:false,results:null};
   let input = {seed:42,policies:['old']};
   const client = {create:async()=>result('old'),start:async id=>result(id),results:async id=>result(id),watch(id,callbacks){const watch={id,...callbacks,destroyed:false,destroy(){this.destroyed=true;}};watches.push(watch);return watch;}};
-  const context = {editHistory:null,restoringEdit:false,updateEditHistory(){},editableSnapshot(){return input;},state,client,activeRequest:0,traceSelectionToken:0,automaticTraceKey:null,constructionRun:null,previewTimer:null,
+  const context = {prediction:{bind(){}},editHistory:null,restoringEdit:false,updateEditHistory(){},editableSnapshot(){return input;},state,client,activeRequest:0,traceSelectionToken:0,automaticTraceKey:null,constructionRun:null,previewTimer:null,
     $:id=>{if(!nodes.has(id))nodes.set(id,{value:10,checked:false});return nodes.get(id);},
     clearTimeout, setTimeout, clone:structuredClone, validateInput:x=>x,currentInput:()=>structuredClone(input),
     runTraces:{clear(){},setExperiment(){}},updateAdvancedStudio(){},updateDraftTrust(){},

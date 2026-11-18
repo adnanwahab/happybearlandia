@@ -1,3 +1,4 @@
+import { mountDrainage } from './drainage.js';
 import { mountDepthCutaway } from './cutaway.js';
 import { mountHazardField } from './hazard-field.js';
 import { mountControlReadiness } from '../onboarding/first-run-repairs.js';
@@ -41,6 +42,7 @@ const scene = mountStormScene(find('scene'), { onCell(index) {
   renderScene();
 } });
 
+const drainage = mountDrainage(find('hazard-field'));
 const cutaway = mountDepthCutaway(find('hazard-field'), index => { selected = index; renderScene(); });
 const hazard = mountHazardField(find('hazard-field'), index => { selected = index; renderScene(); });
 
@@ -138,6 +140,7 @@ function renderScene() {
     provenance: `${comparison.recipe.version} · ${arm.water.modelVersion} · ${arm.water.backend} solver · seed ${comparison.recipe.seed} · ${armPicker.value} · step ${tick} · rain ${comparison.recipe.rainRate} m per step · synthetic terrain and drain inputs; closed edges, illustrative runoff rules` };
   hazard.render(hazardFrame);
   cutaway.render(hazardFrame);
+  drainage.render({ arm: armPicker.value, step: tick, drainage: arm.water.drainage?.[tick] });
   const entity = buildings.find(row => row.cells.includes(selected)) ?? roads.find(row => row.cells.includes(selected));
   find('selection').textContent = `Selected ${cellLabel(selected)}${entity ? ' · ' + entity.name : ''} · Depth ${number.format(depth[selected])} m`;
   find('step-label').value = `Step ${tick} of ${comparison.recipe.steps}`;
@@ -347,6 +350,7 @@ window.addEventListener('pagehide', () => {
   scene.destroy();
   hazard.destroy();
   cutaway.destroy();
+  drainage.destroy();
 });
 // Recreate resources when returning from the browser back/forward cache.
 window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });

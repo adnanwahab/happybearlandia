@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "name": "HBL Policy Impact sprint",
+  "repository": "../../..",
+  "githubRepository": "adnanwahab/happybearlandia",
+  "linearProjectId": "3f960f14-ee1f-4b2b-a4f8-b1b67483b88a",
+  "linearProjectUrl": "https://linear.app/shel-bernstein/project/hbl-1m-player-launch-week-1-da57f913e8aa",
+  "baseBranch": "main",
+  "dataDirectory": "../../..",
+  "syncIntervalMs": 60000,
+  "requiredLabels": ["hbl-agent-ready", "hbl-coordinator-approved"],
+  "cleanupMergedWorkspaces": false,
+  "screenshots": {
+    "command": ["bun", "--no-env-file", "run", "server.js"],
+    "paths": ["/", "/world/?demo=1&synthetic=1&people=16"],
+    "timeoutMs": 90000
+  }
+}

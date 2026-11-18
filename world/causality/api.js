@@ -8,6 +8,7 @@ import {createReplayRepository} from '../replay/repository.js';
 import {createCityReplayAdapter} from '../replay/city-adapter.js';
 import {createHistoricalStateHandler} from '../replay/api.js';
 import {createCounterfactualHandler} from '../counterfactual/api.js';
+import {createSavedFuturesHandler} from '../sprint2/futures-api.js';
 /** Single modular registration point. Dependencies can be replaced by authorized hosts. */
 export function createCausalityHandler({store,dbPath,extensions=[],forkHandler=createCounterfactualHandler()}={}) {
  let owned,handlers;
@@ -17,7 +18,7 @@ export function createCausalityHandler({store,dbPath,extensions=[],forkHandler=c
   try{
    if(!handlers){const records=store||(owned=createWorldPersistenceStore(dbPath??resolveWorldDatabasePath())).causality;
     const service=new HistoricalStateService({repository:createReplayRepository(records),registry:new ReplayAdapterRegistry().register(createCityReplayAdapter())});
-    handlers=[...extensions,createWorldCausalScenarioHandler({store:records}),async request=>new URL(request.url).pathname==='/api/causality/compare'?createStoredPairedComparisonHandler({store:records})(request):null,createHistoricalStateHandler({service}),createCausalityReadHandler({store:records})];
+    handlers=[...extensions,createSavedFuturesHandler({store:records}),createWorldCausalScenarioHandler({store:records}),async request=>new URL(request.url).pathname==='/api/causality/compare'?createStoredPairedComparisonHandler({store:records})(request):null,createHistoricalStateHandler({service}),createCausalityReadHandler({store:records})];
    }
    if(/^\/api\/causality\/(forks|jobs)(\/|$)/.test(path))return forkHandler(request);
    for(const handle of handlers){const response=await handle(request);if(response)return response;}

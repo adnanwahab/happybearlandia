@@ -1,13 +1,15 @@
 import { defineConfig } from '@playwright/test';
 
-const port = process.env.HBL_PLAYWRIGHT_PORT ?? '3100';
-const partyPort = process.env.HBL_PLAYWRIGHT_PARTY_PORT ?? '3257';
-const baseURL = 'http://127.0.0.1:' + port;
-const partyURL = 'http://127.0.0.1:' + partyPort;
+import {createBrowserEnvironment} from './test/support/browser-environment.js';
+const app=createBrowserEnvironment({name:'playwright'});
+const party=createBrowserEnvironment({name:'playwright-party',portEnv:'HBL_PLAYWRIGHT_PARTY_PORT'});
+const baseURL=app.baseURL,partyURL=party.baseURL;
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 
 export default defineConfig({
   testDir: './test/e2e',
+  globalSetup:'./test/support/browser-global-setup.js',
+  metadata: {partyURL,browserEnvironments:[app.descriptor,party.descriptor]},
   testMatch: '**/*.e2e.js',
   timeout: 60_000,
   expect: { timeout: 30_000 },
@@ -23,14 +25,14 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'bun run server.js',
-      env: { PORT: port },
+      command: 'bun --no-env-file run server.js',
+      env: app.serverEnv,
       url: baseURL + '/game',
       reuseExistingServer: false,
     },
     {
-      command: 'bun run test/e2e/act-normal-short-server.js',
-      env: { PORT: partyPort },
+      command: 'bun --no-env-file run test/e2e/act-normal-short-server.js',
+      env: party.serverEnv,
       url: partyURL + '/world/party/act-normal',
       reuseExistingServer: false,
     },

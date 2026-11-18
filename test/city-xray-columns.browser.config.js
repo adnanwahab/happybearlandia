@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./e2e',testMatch:'city-xray-columns.e2e.js',workers:1,outputDir:process.env.XRAY_ARTIFACTS||'/private/tmp/SHE-1046-browser',use:{baseURL:'http://127.0.0.1:41046',browserName:'chromium'},webServer:{cwd:require('node:path').resolve(__dirname,'..'),command:'bun --no-env-file world/city-xray/columns-demo/serve.js',url:'http://127.0.0.1:41046/world/city-xray/columns-demo/index.html',reuseExistingServer:false}});

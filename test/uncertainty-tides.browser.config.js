@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./e2e',testMatch:'uncertainty-tides.e2e.js',workers:1,use:{baseURL:'http://127.0.0.1:41942',browserName:'chromium'},webServer:{cwd:process.cwd(),command:`${process.env.HBL_TEST_BUN || 'bun'} run server.js`,env:{PORT:'41942',HBL_BIND_HOST:'127.0.0.1'},url:'http://127.0.0.1:41942/world/worlds.html',reuseExistingServer:false}});

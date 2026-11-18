@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "policy-impact-preview.v1",
+  "source": {
+    "system": "civic-synthesis-demo",
+    "proposalId": "synthetic-drainage-policy",
+    "versionId": "drainage-demo-v2",
+    "contentHash": "745768b9ba8fa6d892db30c958344c54f927d83471f1ca4656336c6278f1f8da",
+    "type": "bill",
+    "title": "Synthetic drainage policy demonstration",
+    "url": "https://example.org/synthetic-drainage-policy/v2",
+    "visibility": "public"
+  },
+  "legal": {
+    "baseVersionId": "drainage-demo-v1",
+    "clauses": [
+      {
+        "clauseId": "drainage-section-2",
+        "sourcePolicyId": "f_drainage",
+        "operation": "add",
+        "beforeText": "",
+        "afterText": "Section 2. Authorize a drainage resilience project in the synthetic demonstration jurisdiction through the reviewed drainage mechanism."
+      }
+    ]
+  },
+  "baseline": {
+    "kind": "prior-proposal-version",
+    "versionId": "drainage-demo-v1",
+    "label": "Synthetic prior proposal without drainage authorization"
+  },
+  "simulation": {
+    "seed": 42,
+    "runs": 100,
+    "months": 24
+  }
+}

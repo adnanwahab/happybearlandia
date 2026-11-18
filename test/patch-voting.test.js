@@ -1,3 +1,8 @@
+import './patch-voting-abuse.test.js';
+// The fast required CI gate already runs this file. Include the companion
+// governance and GitHub App regressions without widening workflow permissions.
+import './patch-governance.test.js';
+import './patch-github-api.test.js';
 import { createHmac } from 'node:crypto';
 import { test, expect } from 'bun:test';
 import { createPatchVotingHandler } from '../ops/patch-voting/api.js';

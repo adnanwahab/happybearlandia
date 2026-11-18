@@ -1,0 +1,1360 @@
+{
+  "source": {
+    "sourceRoot": "/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia",
+    "sourceRevision": "d489ee23f0c17042dfeecd473d180b9a9c67a82a",
+    "actualWorkers": 1
+  },
+  "points": [
+    [
+      55404.744118029725,
+      8,
+      68.14525119853266,
+      65.94741036250407,
+      72.07766069595871
+    ],
+    [
+      62444.74317009842,
+      8,
+      70.21248619734078,
+      68.22676114331477,
+      73.79374576987087
+    ],
+    [
+      69484.74222216711,
+      8,
+      72.03820875656154,
+      70.23546505823079,
+      75.33011782737222
+    ],
+    [
+      76524.74127423581,
+      8,
+      73.67162123551817,
+      72.03231878571086,
+      76.71425707506128
+    ],
+    [
+      83564.74032630451,
+      8,
+      75.14069093391215,
+      73.64241776342547,
+      77.96758353377355
+    ]
+  ],
+  "expected": [
+    {
+      "count": 8,
+      "mean": 68.14525119853266
+    },
+    {
+      "count": 8,
+      "mean": 70.21248619734078
+    },
+    {
+      "count": 8,
+      "mean": 72.03820875656154
+    },
+    {
+      "count": 8,
+      "mean": 73.67162123551817
+    },
+    {
+      "count": 8,
+      "mean": 75.14069093391215
+    }
+  ],
+  "audit": {
+    "years": 10,
+    "audits": [
+      {
+        "runId": "plan-a_0001",
+        "seed": 2996419116,
+        "modelVersion": "1.2.0",
+        "version": "housing-arithmetic-audit.v1",
+        "absolute": 1e-8,
+        "relative": 1.4210854715202004e-14,
+        "comparisons": [
+          {
+            "metricId": "housing_supply",
+            "stored": 1263818.1496705373,
+            "rerun": 1263818.1496705373,
+            "delta": 0,
+            "tolerance": 1.7959936111403427e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "median_rent",
+            "stored": 2018.405765415205,
+            "rerun": 2018.405765415205,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "affordability",
+            "stored": 70.16391128442547,
+            "rerun": 70.16391128442547,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "homelessness_proxy",
+            "stored": 881.231496091139,
+            "rerun": 881.231496091139,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "displacement_risk",
+            "stored": 25.354308356344138,
+            "rerun": 25.354308356344138,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "construction",
+            "stored": 308321.30687315605,
+            "rerun": 308321.30687315605,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "public_expenditure",
+            "stored": 14284533333.333345,
+            "rerun": 14284533333.333345,
+            "delta": 0,
+            "tolerance": 0.00020299542787446037,
+            "accepted": true
+          },
+          {
+            "metricId": "employment",
+            "stored": 1151889.2540373022,
+            "rerun": 1151889.2540373022,
+            "delta": 0,
+            "tolerance": 1.6369330837126515e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "commute_burden",
+            "stored": 97.02393141850293,
+            "rerun": 97.02393141850293,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "tax_revenue",
+            "stored": 3448885643.0831757,
+            "rerun": 3448885643.0831757,
+            "delta": 0,
+            "tolerance": 0.00004901161280320104,
+            "accepted": true
+          },
+          {
+            "metricId": "implementation_success",
+            "stored": 68,
+            "rerun": 68,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "low_income_rent_burden",
+            "stored": 53.76219010571416,
+            "rerun": 53.76219010571416,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "vacancy_rate",
+            "stored": 7.330954384141197,
+            "rerun": 7.330954384141197,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_housing_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_public_cost",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_capacity_used",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_occupied_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_affordable_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          }
+        ],
+        "mismatches": [],
+        "roundoff": [],
+        "method": "Cross-engine floating arithmetic tolerance only; every retained difference is disclosed, not an empirical uncertainty interval."
+      },
+      {
+        "runId": "plan-a_0002",
+        "seed": 3013196735,
+        "modelVersion": "1.2.0",
+        "version": "housing-arithmetic-audit.v1",
+        "absolute": 1e-8,
+        "relative": 1.4210854715202004e-14,
+        "comparisons": [
+          {
+            "metricId": "housing_supply",
+            "stored": 1293383.9040555712,
+            "rerun": 1293383.9040555712,
+            "delta": 0,
+            "tolerance": 1.838009075151449e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "median_rent",
+            "stored": 2304.4289939454043,
+            "rerun": 2304.4289939454043,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "affordability",
+            "stored": 65.93591383843791,
+            "rerun": 65.93591383843791,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "homelessness_proxy",
+            "stored": 2855.120600803892,
+            "rerun": 2855.120600803892,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "displacement_risk",
+            "stored": 35.80205752464042,
+            "rerun": 35.80205752464042,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "construction",
+            "stored": 338194.82573132333,
+            "rerun": 338194.82573132333,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "public_expenditure",
+            "stored": 14278549305.227047,
+            "rerun": 14278549305.227047,
+            "delta": 0,
+            "tolerance": 0.00020291038972043007,
+            "accepted": true
+          },
+          {
+            "metricId": "employment",
+            "stored": 1209186.76425605,
+            "rerun": 1209186.76425605,
+            "delta": 0,
+            "tolerance": 1.7183577430387943e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "commute_burden",
+            "stored": 96.69677854643145,
+            "rerun": 96.69677854643145,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "tax_revenue",
+            "stored": 3687138909.226221,
+            "rerun": 3687138909.226221,
+            "delta": 0,
+            "tolerance": 0.00005239739535378222,
+            "accepted": true
+          },
+          {
+            "metricId": "implementation_success",
+            "stored": 68,
+            "rerun": 68,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "low_income_rent_burden",
+            "stored": 61.67368532954492,
+            "rerun": 61.67368532954492,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "vacancy_rate",
+            "stored": 5.4505454940822755,
+            "rerun": 5.4505454940822755,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_housing_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_public_cost",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_capacity_used",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_occupied_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_affordable_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          }
+        ],
+        "mismatches": [],
+        "roundoff": [],
+        "method": "Cross-engine floating arithmetic tolerance only; every retained difference is disclosed, not an empirical uncertainty interval."
+      },
+      {
+        "runId": "plan-a_0003",
+        "seed": 3029974354,
+        "modelVersion": "1.2.0",
+        "version": "housing-arithmetic-audit.v1",
+        "absolute": 1e-8,
+        "relative": 1.4210854715202004e-14,
+        "comparisons": [
+          {
+            "metricId": "housing_supply",
+            "stored": 1298657.3509784678,
+            "rerun": 1298657.3509784678,
+            "delta": 0,
+            "tolerance": 1.8455030939584103e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "median_rent",
+            "stored": 1597.4820975488985,
+            "rerun": 1597.4820975488985,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "affordability",
+            "stored": 76.3860080065683,
+            "rerun": 76.3860080065683,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "homelessness_proxy",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "displacement_risk",
+            "stored": 12.662988329861685,
+            "rerun": 12.662988329861685,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "construction",
+            "stored": 343784.3912426817,
+            "rerun": 343784.3912426817,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "public_expenditure",
+            "stored": 14284533333.333345,
+            "rerun": 14284533333.333345,
+            "delta": 0,
+            "tolerance": 0.00020299542787446037,
+            "accepted": true
+          },
+          {
+            "metricId": "employment",
+            "stored": 1119726.9019168695,
+            "rerun": 1119726.9019168695,
+            "delta": 0,
+            "tolerance": 1.5912276323843876e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "commute_burden",
+            "stored": 96.80109600567161,
+            "rerun": 96.80109600567161,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "tax_revenue",
+            "stored": 3925585729.3208075,
+            "rerun": 3925585729.3208075,
+            "delta": 0,
+            "tolerance": 0.00005578592847144829,
+            "accepted": true
+          },
+          {
+            "metricId": "implementation_success",
+            "stored": 68,
+            "rerun": 68,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "low_income_rent_burden",
+            "stored": 42.160073748498085,
+            "rerun": 42.160073748498085,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "vacancy_rate",
+            "stored": 13.004221355957156,
+            "rerun": 13.004221355957156,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_housing_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_public_cost",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_capacity_used",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_occupied_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_affordable_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          }
+        ],
+        "mismatches": [],
+        "roundoff": [],
+        "method": "Cross-engine floating arithmetic tolerance only; every retained difference is disclosed, not an empirical uncertainty interval."
+      },
+      {
+        "runId": "plan-a_0004",
+        "seed": 3046751973,
+        "modelVersion": "1.2.0",
+        "version": "housing-arithmetic-audit.v1",
+        "absolute": 1e-8,
+        "relative": 1.4210854715202004e-14,
+        "comparisons": [
+          {
+            "metricId": "housing_supply",
+            "stored": 1364599.4561565209,
+            "rerun": 1364599.4561565209,
+            "delta": 0,
+            "tolerance": 1.9392124615883985e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "median_rent",
+            "stored": 1703.311117757816,
+            "rerun": 1703.311117757816,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "affordability",
+            "stored": 74.82164265955096,
+            "rerun": 74.82164265955096,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "homelessness_proxy",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "displacement_risk",
+            "stored": 15.701366778845863,
+            "rerun": 15.701366778845863,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "construction",
+            "stored": 410879.50354753365,
+            "rerun": 410879.50354753365,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "public_expenditure",
+            "stored": 14284533333.333345,
+            "rerun": 14284533333.333345,
+            "delta": 0,
+            "tolerance": 0.00020299542787446037,
+            "accepted": true
+          },
+          {
+            "metricId": "employment",
+            "stored": 1200332.9914451335,
+            "rerun": 1200332.9914451335,
+            "delta": 0,
+            "tolerance": 1.70577577512906e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "commute_burden",
+            "stored": 96.32179683688703,
+            "rerun": 96.32179683688703,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "tax_revenue",
+            "stored": 4806970734.611686,
+            "rerun": 4806970734.611686,
+            "delta": 0,
+            "tolerance": 0.00006831116272979451,
+            "accepted": true
+          },
+          {
+            "metricId": "implementation_success",
+            "stored": 68,
+            "rerun": 68,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "low_income_rent_burden",
+            "stored": 45.1632991790091,
+            "rerun": 45.1632991790091,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "vacancy_rate",
+            "stored": 11.819140123391335,
+            "rerun": 11.819140123391335,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_housing_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_public_cost",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_capacity_used",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_occupied_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_affordable_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          }
+        ],
+        "mismatches": [],
+        "roundoff": [],
+        "method": "Cross-engine floating arithmetic tolerance only; every retained difference is disclosed, not an empirical uncertainty interval."
+      },
+      {
+        "runId": "plan-a_0005",
+        "seed": 2929308640,
+        "modelVersion": "1.2.0",
+        "version": "housing-arithmetic-audit.v1",
+        "absolute": 1e-8,
+        "relative": 1.4210854715202004e-14,
+        "comparisons": [
+          {
+            "metricId": "housing_supply",
+            "stored": 1312380.1288139387,
+            "rerun": 1312380.1288139387,
+            "delta": 0,
+            "tolerance": 1.8650043341692974e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "median_rent",
+            "stored": 1599.0405793636178,
+            "rerun": 1599.0405793636178,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "affordability",
+            "stored": 76.36297051703953,
+            "rerun": 76.36297051703953,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "homelessness_proxy",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "displacement_risk",
+            "stored": 12.779726084348523,
+            "rerun": 12.779726084348523,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "construction",
+            "stored": 357712.1308212882,
+            "rerun": 357712.1308212882,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "public_expenditure",
+            "stored": 14284533333.333345,
+            "rerun": 14284533333.333345,
+            "delta": 0,
+            "tolerance": 0.00020299542787446037,
+            "accepted": true
+          },
+          {
+            "metricId": "employment",
+            "stored": 1131332.579356872,
+            "rerun": 1131332.579356872,
+            "delta": 0,
+            "tolerance": 1.607720291981525e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "commute_burden",
+            "stored": 96.67543115717362,
+            "rerun": 96.67543115717362,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "tax_revenue",
+            "stored": 4082763352.7737184,
+            "rerun": 4082763352.7737184,
+            "delta": 0,
+            "tolerance": 0.00005801955684281834,
+            "accepted": true
+          },
+          {
+            "metricId": "implementation_success",
+            "stored": 68,
+            "rerun": 68,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "low_income_rent_burden",
+            "stored": 42.21240603360231,
+            "rerun": 42.21240603360231,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "vacancy_rate",
+            "stored": 13.410763594021763,
+            "rerun": 13.410763594021763,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_housing_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_public_cost",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_capacity_used",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_occupied_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_affordable_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          }
+        ],
+        "mismatches": [],
+        "roundoff": [],
+        "method": "Cross-engine floating arithmetic tolerance only; every retained difference is disclosed, not an empirical uncertainty interval."
+      },
+      {
+        "runId": "plan-a_0006",
+        "seed": 2946086259,
+        "modelVersion": "1.2.0",
+        "version": "housing-arithmetic-audit.v1",
+        "absolute": 1e-8,
+        "relative": 1.4210854715202004e-14,
+        "comparisons": [
+          {
+            "metricId": "housing_supply",
+            "stored": 1308373.2125570779,
+            "rerun": 1308373.2125570779,
+            "delta": 0,
+            "tolerance": 1.8593101636910744e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "median_rent",
+            "stored": 1882.1041215785808,
+            "rerun": 1882.1041215785808,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "affordability",
+            "stored": 72.17872317570621,
+            "rerun": 72.17872317570621,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "homelessness_proxy",
+            "stored": 10.169279659641253,
+            "rerun": 10.169279659641253,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "displacement_risk",
+            "stored": 20.71927727629584,
+            "rerun": 20.71927727629584,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "construction",
+            "stored": 353679.24329528544,
+            "rerun": 353679.24329528544,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "public_expenditure",
+            "stored": 14284533333.333345,
+            "rerun": 14284533333.333345,
+            "delta": 0,
+            "tolerance": 0.00020299542787446037,
+            "accepted": true
+          },
+          {
+            "metricId": "employment",
+            "stored": 1171308.300928589,
+            "rerun": 1171308.300928589,
+            "delta": 0,
+            "tolerance": 1.6645292091206286e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "commute_burden",
+            "stored": 96.69002743574838,
+            "rerun": 96.69002743574838,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "tax_revenue",
+            "stored": 4062279925.2636037,
+            "rerun": 4062279925.2636037,
+            "delta": 0,
+            "tolerance": 0.000057728469830402726,
+            "accepted": true
+          },
+          {
+            "metricId": "implementation_success",
+            "stored": 68,
+            "rerun": 68,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "low_income_rent_burden",
+            "stored": 50.0429033803107,
+            "rerun": 50.0429033803107,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "vacancy_rate",
+            "stored": 9.419014762245187,
+            "rerun": 9.419014762245187,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_housing_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_public_cost",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_capacity_used",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_occupied_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_affordable_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          }
+        ],
+        "mismatches": [],
+        "roundoff": [],
+        "method": "Cross-engine floating arithmetic tolerance only; every retained difference is disclosed, not an empirical uncertainty interval."
+      },
+      {
+        "runId": "plan-a_0007",
+        "seed": 2962863878,
+        "modelVersion": "1.2.0",
+        "version": "housing-arithmetic-audit.v1",
+        "absolute": 1e-8,
+        "relative": 1.4210854715202004e-14,
+        "comparisons": [
+          {
+            "metricId": "housing_supply",
+            "stored": 1348897.505146712,
+            "rerun": 1348897.505146712,
+            "delta": 0,
+            "tolerance": 1.9168986471338372e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "median_rent",
+            "stored": 1796.732333906538,
+            "rerun": 1796.732333906538,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "affordability",
+            "stored": 73.44068956246308,
+            "rerun": 73.44068956246308,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "homelessness_proxy",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "displacement_risk",
+            "stored": 17.934772871625587,
+            "rerun": 17.934772871625587,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "construction",
+            "stored": 394984.11230038677,
+            "rerun": 394984.11230038677,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "public_expenditure",
+            "stored": 14284533333.333345,
+            "rerun": 14284533333.333345,
+            "delta": 0,
+            "tolerance": 0.00020299542787446037,
+            "accepted": true
+          },
+          {
+            "metricId": "employment",
+            "stored": 1206110.815632308,
+            "rerun": 1206110.815632308,
+            "delta": 0,
+            "tolerance": 1.7139865571384517e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "commute_burden",
+            "stored": 96.4472376360406,
+            "rerun": 96.4472376360406,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "tax_revenue",
+            "stored": 4657940887.4837885,
+            "rerun": 4657940887.4837885,
+            "delta": 0,
+            "tolerance": 0.0000661933212240312,
+            "accepted": true
+          },
+          {
+            "metricId": "implementation_success",
+            "stored": 68,
+            "rerun": 68,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "low_income_rent_burden",
+            "stored": 47.733169233470726,
+            "rerun": 47.733169233470726,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "vacancy_rate",
+            "stored": 10.34113143853512,
+            "rerun": 10.34113143853512,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_housing_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_public_cost",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_capacity_used",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_occupied_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_affordable_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          }
+        ],
+        "mismatches": [],
+        "roundoff": [],
+        "method": "Cross-engine floating arithmetic tolerance only; every retained difference is disclosed, not an empirical uncertainty interval."
+      },
+      {
+        "runId": "plan-a_0008",
+        "seed": 2979641497,
+        "modelVersion": "1.2.0",
+        "version": "housing-arithmetic-audit.v1",
+        "absolute": 1e-8,
+        "relative": 1.4210854715202004e-14,
+        "comparisons": [
+          {
+            "metricId": "housing_supply",
+            "stored": 1358317.9145547189,
+            "rerun": 1358317.9145547189,
+            "delta": 0,
+            "tolerance": 1.930285854079328e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "median_rent",
+            "stored": 1918.5765656519845,
+            "rerun": 1918.5765656519843,
+            "delta": -2.2737367544323206e-13,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "affordability",
+            "stored": 71.63958724194413,
+            "rerun": 71.63958724194413,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "homelessness_proxy",
+            "stored": 270.352001616877,
+            "rerun": 270.352001616877,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "displacement_risk",
+            "stored": 22.329289415033177,
+            "rerun": 22.329289415033173,
+            "delta": -3.552713678800501e-15,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "construction",
+            "stored": 404418.0548024813,
+            "rerun": 404418.0548024813,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "public_expenditure",
+            "stored": 14284533333.333345,
+            "rerun": 14284533333.333345,
+            "delta": 0,
+            "tolerance": 0.00020299542787446037,
+            "accepted": true
+          },
+          {
+            "metricId": "employment",
+            "stored": 1216568.0848527807,
+            "rerun": 1216568.0848527804,
+            "delta": -2.3283064365386963e-10,
+            "tolerance": 1.728847230499441e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "commute_burden",
+            "stored": 96.30941604829313,
+            "rerun": 96.30941604829313,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "tax_revenue",
+            "stored": 4670447502.133564,
+            "rerun": 4670447502.133564,
+            "delta": 0,
+            "tolerance": 0.00006637105090779818,
+            "accepted": true
+          },
+          {
+            "metricId": "implementation_success",
+            "stored": 68,
+            "rerun": 68,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "low_income_rent_burden",
+            "stored": 51.09964638320845,
+            "rerun": 51.09964638320845,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "vacancy_rate",
+            "stored": 9.500721887607234,
+            "rerun": 9.50072188760725,
+            "delta": 1.5987211554602254e-14,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_housing_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_public_cost",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_capacity_used",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_occupied_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "project_affordable_units",
+            "stored": 0,
+            "rerun": 0,
+            "delta": 0,
+            "tolerance": 1e-8,
+            "accepted": true
+          }
+        ],
+        "mismatches": [],
+        "roundoff": [
+          {
+            "metricId": "median_rent",
+            "stored": 1918.5765656519845,
+            "rerun": 1918.5765656519843,
+            "delta": -2.2737367544323206e-13,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "displacement_risk",
+            "stored": 22.329289415033177,
+            "rerun": 22.329289415033173,
+            "delta": -3.552713678800501e-15,
+            "tolerance": 1e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "employment",
+            "stored": 1216568.0848527807,
+            "rerun": 1216568.0848527804,
+            "delta": -2.3283064365386963e-10,
+            "tolerance": 1.728847230499441e-8,
+            "accepted": true
+          },
+          {
+            "metricId": "vacancy_rate",
+            "stored": 9.500721887607234,
+            "rerun": 9.50072188760725,
+            "delta": 1.5987211554602254e-14,
+            "tolerance": 1e-8,
+            "accepted": true
+          }
+        ],
+        "method": "Cross-engine floating arithmetic tolerance only; every retained difference is disclosed, not an empirical uncertainty interval."
+      }
+    ]
+  }
+}

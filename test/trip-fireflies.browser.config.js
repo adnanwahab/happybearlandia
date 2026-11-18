@@ -1,3 +1,4 @@
 import {defineConfig} from '@playwright/test';
-import base from './future-machine.browser.config.js';
-export default defineConfig({...base,testMatch:'trip-fireflies.e2e.js',outputDir:'test-results/trip-fireflies',webServer:{...base.webServer,command:`${process.env.HBL_BUN_EXECUTABLE||'bun'} --no-env-file run server.js`}});
+import {createBrowserEnvironment} from './support/browser-environment.js';
+const app=createBrowserEnvironment({name:'trip-fireflies',portEnv:'HBL_TRIP_FIREFLIES_PORT'});
+export default defineConfig({globalSetup:'./support/browser-global-setup.js',metadata:{browserEnvironments:[app.descriptor]},testDir:'./e2e',testMatch:'trip-fireflies.e2e.js',workers:1,timeout:120000,expect:{timeout:30000},outputDir:process.env.HBL_TRIP_FIREFLIES_ARTIFACTS||'/private/tmp/SHE734-reconcile-browser',use:{baseURL:app.baseURL,browserName:'chromium',channel:'chrome',viewport:{width:1440,height:1000},trace:'retain-on-failure',launchOptions:{args:['--enable-unsafe-webgpu']}},webServer:{command:'bun --no-env-file run server.js',cwd:process.cwd(),url:app.baseURL+'/api/health',reuseExistingServer:false,env:app.serverEnv}});

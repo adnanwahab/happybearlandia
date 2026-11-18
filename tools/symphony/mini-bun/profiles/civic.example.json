@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "Dear Congress / Civic Synthesis",
+  "repository": "/absolute/path/to/dear_congress",
+  "githubRepository": "adnanwahab/dear_congress",
+  "linearProjectId": "36b11054-5397-473e-9e3b-2092a100de5e",
+  "linearProjectUrl": "https://linear.app/shel-bernstein/project/civic-synthesis-24f935081b94",
+  "baseBranch": "main",
+  "dataDirectory": "/absolute/path/to/dear_congress/.mini-symphony",
+  "syncIntervalMs": 60000,
+  "heldIssues": {
+    "SHE-269": "Coordination parent; execute child tasks without duplicate work.",
+    "SHE-280": "Production deployment requires explicit owner approval."
+  },
+  "prerequisiteIssueIds": ["SHE-281"],
+  "cleanupMergedWorkspaces": true
+}

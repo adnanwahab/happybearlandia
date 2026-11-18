@@ -58,3 +58,10 @@ window and bounded client registry are unchanged. On 2026-11-12 the existing
 production-default and malformed-test-setting regressions. This supersedes the
 older local listener blocker above for HTTP verification; Chromium launch is
 still blocked before page creation.
+
+## Operator hold
+
+The optional [emergency mode](emergency-mode.md) runs before this budget and
+handler dispatch. It preserves a pinned synthetic default comparison and rejects
+new covered work without consuming admission slots. Existing windows and identity
+rules are unchanged on deactivation. See its explicit draining and coverage limits.

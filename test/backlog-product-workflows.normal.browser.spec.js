@@ -1,0 +1,46 @@
+import {test,expect} from '@playwright/test';
+import {writeFile} from 'node:fs/promises';
+test('mounted normal Studio workflows: consent, review, local receipt, reopen, export/delete and errors',async({page,context},info)=>{
+ const errors=[],writes=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+ page.on('request',r=>{if(new URL(r.url()).pathname==='/api/product-workflows'&&r.method()==='POST')writes.push(r.postDataJSON());});
+ await page.goto('/world/decision.html#trust');
+ const panel=page.getByRole('region',{name:'Local product workflows'}),status=panel.getByRole('status');
+ await expect(panel).toBeVisible();expect(writes).toEqual([]);
+ await expect(panel.getByRole('button',{name:'Store pilot locally',exact:true})).toBeDisabled();
+ await panel.getByLabel('Pilot brief').fill('Normal Studio reviewed local housing pilot');
+ await panel.getByLabel('I consent to local storage').check();
+ await expect(panel.getByRole('button',{name:'Store pilot locally',exact:true})).toBeDisabled();
+ await panel.getByRole('button',{name:'Review pilot brief'}).click();
+ await panel.getByLabel('I reviewed this exact brief').check();
+ await panel.getByRole('button',{name:'Store pilot locally',exact:true}).click();
+ await expect(status).toContainText('Stored locally; not submitted externally');
+ await panel.getByRole('button',{name:'Store pilot locally',exact:true}).click();
+ await expect(status).toContainText('Stored locally; not submitted externally');
+ expect(writes).toHaveLength(2);expect(writes[0].key).toBe(writes[1].key);expect(writes[0].owner).toBeUndefined();
+ await panel.getByLabel('I reviewed the selected event').check();
+ await panel.getByRole('button',{name:'Store selected event locally'}).click();
+ await expect(status).toContainText('Stored locally; not submitted externally');
+ const cookie=(await context.cookies()).find(c=>c.name==='hbl_local_cap');expect(cookie.httpOnly).toBe(true);
+ await panel.screenshot({path:info.outputPath('normal-studio-local-receipt.png')});
+ await page.reload();await expect(panel).toBeVisible();
+ await expect(panel.getByLabel('I consent to local storage')).not.toBeChecked();
+ const downloadPromise=page.waitForEvent('download');await panel.getByRole('button',{name:'Export my local records'}).click();
+ const download=await downloadPromise;await download.saveAs(info.outputPath('local-workflows-export.json'));
+ await expect(status).toContainText('studio_opened');
+ const exported=JSON.parse(await status.innerText());expect(exported.records).toHaveLength(2);
+ await panel.getByRole('button',{name:'Delete my local records'}).click();await expect(status).toContainText('Deleted 2 local records');
+ await panel.getByRole('button',{name:'Export my local records'}).click();await expect(status).toContainText('"records": []');
+ await panel.getByLabel('Pilot brief').fill('Preserved normal-route draft');await panel.getByRole('button',{name:'Review pilot brief'}).click();
+ await panel.getByLabel('I consent to local storage').check();await panel.getByLabel('I reviewed this exact brief').check();
+ // Transport rejection tests failure UI without manufacturing a successful submission.
+ await page.route('**/api/product-workflows',route=>route.abort('failed'));
+ await panel.getByRole('button',{name:'Store pilot locally',exact:true}).click();
+ await expect(status).toContainText('Local storage failed');await expect(panel.getByLabel('Pilot brief')).toHaveValue('Preserved normal-route draft');
+ await panel.screenshot({path:info.outputPath('normal-studio-storage-error.png')});
+ // Chromium logs the deliberately aborted network request; assert all other console errors absent.
+ const unexpected=errors.filter(e=>!e.includes('net::ERR_FAILED'));
+ await writeFile(info.outputPath('normal-route-evidence.json'),JSON.stringify({route:'/world/decision.html#trust',writes:writes.map(({key,...rest})=>rest),exported,errors,unexpected,cookieHttpOnly:cookie.httpOnly,serverRestartTested:false},null,2));
+ expect(unexpected).toEqual([]);
+});

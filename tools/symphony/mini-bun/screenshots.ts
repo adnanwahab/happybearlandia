@@ -8,10 +8,6 @@ export function validateScreenshotConfig(config:ScreenshotConfig) {
  if(!config||!Array.isArray(config.command)||!config.command.length||config.command.some(x=>typeof x!=='string'||!x)||!Array.isArray(config.paths)||!config.paths.length||config.paths.length>2||config.paths.some(p=>typeof p!=='string'||!p.startsWith('/')||p.startsWith('//')||p.includes('\\')||/[\r\n#]/.test(p))||config.timeoutMs!==undefined&&(!Number.isInteger(config.timeoutMs)||config.timeoutMs<1000||config.timeoutMs>120000))throw Error('Invalid screenshot configuration');
 }
 export type ScreenshotEvidence={stage?:'before'|'after';files:{path:string;route:string;viewport:string}[];capturedAt:string};
-export function screenshotMarkdown(repo:string,head:string,evidence:ScreenshotEvidence) {
- if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||! /^[a-f0-9]{40}$/.test(head))throw Error('Invalid screenshot source identity');
- return '\n\n## Browser screenshots\n\nCaptured from this task worktree with disposable local data. Visual smoke evidence; not proof of all acceptance criteria.\n'+evidence.files.map(f=>{if(!/^\.mini-symphony-evidence\/[\w.-]+\.png$/.test(f.path))throw Error('Invalid screenshot path');return `\n### ${evidence.stage==='before'?'Before':'After'}: ${f.viewport} — ${f.route.replace(/[<>\[\]\r\n]/g,'')}\n\n![${f.viewport} browser capture](https://github.com/${repo}/blob/${head}/${f.path}?raw=true)\n`;}).join('');
-}
 export async function captureScreenshots(workspace:string,config:ScreenshotConfig,signal?:AbortSignal,stage:'before'|'after'='after',taskId=''):Promise<ScreenshotEvidence> {
  validateScreenshotConfig(config);
  if(taskId&&!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(taskId))throw Error('Invalid screenshot task identity');

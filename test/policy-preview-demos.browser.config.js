@@ -1,0 +1,4 @@
+import {defineConfig} from '@playwright/test';
+import {createBrowserEnvironment} from './support/browser-environment.js';
+const app=createBrowserEnvironment({name:'policy-preview-demos',portEnv:'HBL_DEMOS_BROWSER_PORT'});
+export default defineConfig({globalSetup:'./support/browser-global-setup.js',metadata:{browserEnvironments:[app.descriptor]},outputDir:'/private/tmp/SHE1043-playwright',testDir:'./e2e',testMatch:'policy-preview-demos.e2e.js',workers:1,timeout:240000,expect:{timeout:60000},use:{baseURL:app.baseURL,browserName:'chromium',channel:'chromium',launchOptions:{args:['--enable-unsafe-webgpu','--enable-unsafe-swiftshader']}},webServer:{command:'bun --no-env-file run server.js',cwd:process.cwd(),url:app.baseURL+'/api/health',reuseExistingServer:false,timeout:60000,env:{...app.serverEnv,HBL_POLICY_PREVIEW_ORIGIN:app.baseURL,HBL_POLICY_PREVIEW_TOKEN:'demo-browser-local-token',HBL_POLICY_PREVIEW_DIR:app.store+'/policy-previews'}}});

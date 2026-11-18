@@ -1,9 +1,26 @@
+import {createEmergencyMode,buildEmergencyComparison} from './ops/security/emergency-mode.js';
+const handleEmergencyMode=createEmergencyMode({file:process.env.HBL_EMERGENCY_FILE,comparison:process.env.HBL_EMERGENCY_FILE?await buildEmergencyComparison():undefined});
+import { createServerLogs } from './ops/server-logs/api.js';
 import {createRescueHandler} from './world/storm/rescue-api.js';
+import {createPlayerFeedbackHandler} from './ops/player-feedback/api.js';
+// Redacted request, error and warning logs, published at /api/server-logs.
+// Start capturing before other handlers initialize. See ops/server-logs/README.md.
+const serverLogs = createServerLogs(process.env);
+serverLogs.captureConsole();
 const handleStormRescue=createRescueHandler();
+const handlePlayerFeedback=createPlayerFeedbackHandler({directory:process.env.HBL_PLAYER_FEEDBACK_DIR||undefined});
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
+import {createCheckpointHandler} from './world/decision/checkpoint-api.js';
+import { createLocalCapabilityBoundary, loadLocalCapabilitySecret } from './world/decision/local-capability.js';
+import {createProductWorkflowStore,createProductWorkflowHandler} from './world/decision/backlog-product-workflows/index.js';
+const localPeers=new WeakSet();
+const localCapabilities=createLocalCapabilityBoundary({secret:loadLocalCapabilitySecret(process.env.HBL_LOCAL_CAPABILITY_KEY_PATH),isLocalPeer:request=>localPeers.has(request)});
+const workflowStore=createProductWorkflowStore({directory:process.env.HBL_WORKFLOW_STORE_DIR||'.data/product-workflows'});
+const handleCheckpoints=createCheckpointHandler({authorize:request=>localCapabilities.owner(request),directory:process.env.HBL_CHECKPOINT_STORE_DIR||'.data/housing-checkpoints'});
+const handleProductWorkflows=createProductWorkflowHandler({store:workflowStore,authorize:request=>localCapabilities.owner(request)});
 import {createGitHubHandler} from './ops/previews/api.js';
 const handleGitHub=createGitHubHandler();
 import {createDetectiveHandler} from './ops/detective/api.js';
@@ -18,13 +35,13 @@ const handleReleaseExperiment=createExperimentHandler({
 import {createSimulationAdmission,simulationAdmissionOptionsFromEnv} from './ops/security/simulation-admission.js';
 import {createLawBehaviorHandler} from './world/laws/behavior-api.js';
 const admitSimulation=createSimulationAdmission(simulationAdmissionOptionsFromEnv(process.env));
-import {createPlayerFeedbackHandler} from './ops/player-feedback/api.js';
-const handlePlayerFeedback=createPlayerFeedbackHandler();
+
 import {createSessionSurveyHandler} from './ops/session-survey/api.js';
 const handleSessionSurvey=createSessionSurveyHandler();
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
 import { createPatchVotingHandler } from './ops/patch-voting/api.js';
+import { createPatchGithubWebhookHandler } from './ops/patch-voting/github-webhook.js';
 const releaseStorage=initializeReleaseStorage();
 const handleReleaseHealth=createReleaseHealthHandler(releaseStorage);
 let handlePatchVoting = null;
@@ -35,6 +52,17 @@ function patchVoting(request) {
   } catch {
     console.error('[patch-voting] unavailable; keeping game routes alive');
     return Response.json({ error: 'Patch voting temporarily unavailable.' }, { status: 503, headers: { 'cache-control': 'no-store' } });
+  }
+}
+let handlePatchGithubWebhook = null;
+function patchGithubWebhook(request) {
+  try {
+    handlePatchVoting ||= createPatchVotingHandler();
+    handlePatchGithubWebhook ||= createPatchGithubWebhookHandler({ store: handlePatchVoting.store });
+    return handlePatchGithubWebhook(request);
+  } catch {
+    console.error('[patch-github-webhook] unavailable; keeping game routes alive');
+    return Response.json({ error: 'Patch GitHub webhook unavailable.' }, { status: 503, headers: { 'cache-control': 'no-store' } });
   }
 }
 const handleCausality=createCausalityHandler({dbPath:releaseStorage.worldDbPath});
@@ -61,6 +89,8 @@ const handleTemporalCity=createTemporalCityHandler({dbPath:process.env.HBL_TEMPO
 import {createCharacterJournalsHandler} from './world/journals/api.js';
 const handleCharacterJournals=createCharacterJournalsHandler({root:process.env.HBL_JOURNAL_ROOT||'.hbl-city'});
 import {createConstitutionSourceHandler} from './world/constitution-city/source-api.js';
+import {createPolicyPreviewHandler} from './world/policy-preview-api.js';
+import {policyEmbedOrigins,policyViewerHeaders} from './world/policy-preview-security.js';
 import {createEconomyRecordsHandler} from './world/economy-records-api.js';
 const handleEconomyRecords=createEconomyRecordsHandler();
 import { handleConstitutionSummary } from './world/constitution-summary-api.js';
@@ -80,6 +110,8 @@ import { createBusinessCompilerHandler } from "./world/models/business-v1/compil
 const handleBusinessCompiler = createBusinessCompilerHandler();
 
 const PORT = process.env.PORT === '0' ? 0 : Number(process.env.PORT) || 3000;
+const policyOrigins=policyEmbedOrigins(process.env.HBL_POLICY_EMBED_ORIGINS);
+const handlePolicyPreviews=createPolicyPreviewHandler({directory:process.env.HBL_POLICY_PREVIEW_DIR||'.data/policy-previews',token:process.env.HBL_POLICY_PREVIEW_TOKEN,canonicalOrigin:process.env.HBL_POLICY_PREVIEW_ORIGIN||`http://localhost:${PORT}`});
 const DEAR_CONGRESS_URL = civicProviderUrl(process.env);
 const DEAR_CONGRESS_ORIGIN = publicProviderOrigin(DEAR_CONGRESS_URL);
 
@@ -465,9 +497,16 @@ const server = serve({
   port: PORT,
   hostname: process.env.HBL_BIND_HOST || undefined,
 
-  async fetch(request, server) {
+  fetch: serverLogs.instrument(async function routeRequest(request, server) {
+    const emergencyResponse=handleEmergencyMode(request);
+    if(emergencyResponse)return emergencyResponse;
     const releaseResponse=handleReleaseExperiment(request);
     if(releaseResponse)return releaseResponse;
+    const peer=server.requestIP(request)?.address;
+    if(['127.0.0.1','::1','::ffff:127.0.0.1'].includes(peer))localPeers.add(request);
+    const capabilityResponse=localCapabilities.handle(request);if(capabilityResponse)return capabilityResponse;
+    const checkpointResponse=await handleCheckpoints(request);if(checkpointResponse)return checkpointResponse;
+    const workflowResponse=await handleProductWorkflows(request);if(workflowResponse)return workflowResponse;
     const { pathname } = new URL(request.url);
     if (pathname === '/logs' || pathname === '/logs/') return serveFile('./world/session-logs.html');
     if (pathname === '/mini-symphony' || pathname === '/mini-symphony/') return serveFile('./tools/mini-symphony-dashboard/index.html');
@@ -475,14 +514,25 @@ const server = serve({
     if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');
     if (pathname === '/mini-symphony/style.css') return serveFile('./tools/mini-symphony-dashboard/style.css');
     if (pathname === "/api/operations-observatory") return handleOperationsObservatory(request);
+    if (pathname === "/api/server-logs" || pathname === "/api/server-logs/") return serverLogs.handle(request);
     if (pathname === "/tools/operations-observatory") return Response.redirect(new URL("/tools/operations-observatory/",request.url),302);
     const admission=admitSimulation(request,server.requestIP(request)?.address);
     if(admission)return admission;
+    // Exact public media allowlist; do not expose arbitrary repository files.
+    if (pathname === '/preview.mp4' || pathname === '/preview.jpg') {
+      const file = Bun.file(`.${pathname}`);
+      return await file.exists() ? new Response(file, { headers: {
+        'content-type': pathname.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg',
+        'cache-control': 'public, max-age=3600',
+      } }) : notFound();
+    }
     if (pathname === "/api/health" || pathname === "/api/ready" || pathname === "/api/demo/ready") return handleReleaseHealth(request);
     if (pathname === "/api/law-behavior") return handleLawBehavior(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
     if(pathname === '/api/storm/rescue' || pathname.startsWith('/api/storm/rescue/'))return handleStormRescue(request);
+    if (pathname === '/api/patches' || /^\/api\/patches\/[A-Za-z0-9_-]{1,32}\/(impact|vote)\/?$/.test(pathname)) return patchVoting(request);
+    if (pathname === '/webhooks/github') return patchGithubWebhook(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
     if(/^\/world\/party\/act-normal\/?$/.test(pathname))return serveFile('./world/party/act-normal.html');
 
@@ -509,6 +559,7 @@ const server = serve({
     if (pathname.startsWith("/api/github/")) return await handleGitHub(request);
     if (/^\/github(?:\/pulls\/[1-9]\d{0,7}|\/previews\/[a-f0-9]{32})?\/?$/.test(pathname)) return serveFile("./web/github/index.html");
     if (pathname === "/github-client.js") return serveFile("./web/github/client.js");
+    if (pathname === "/privacy" || pathname === "/privacy/") return serveFile("./privacy.html");
     // Public landing page
     if (pathname === "/" || pathname === "/index.html") {
       return serveFile("./index.html");
@@ -591,6 +642,8 @@ const server = serve({
     if (pathname === "/api/world/parameter-patch") return handlePlanParameterPatch(request);
     if (pathname === "/api/constitution-summary") return handleConstitutionSummary(request);
     if (pathname === "/api/constitution-city/plan") return handleConstitutionSource(request);
+    if (under(pathname, "/api/policy-previews")) return handlePolicyPreviews(request);
+    if (pathname.replace(/\/$/, "") === "/world/impact" || pathname === '/world/policy-impact.html') return policyViewerHeaders(await serveFile('./world/policy-impact.html'),policyOrigins);
     if (/^\/r\/[A-Za-z0-9_-]{8,16}\/?$/.test(pathname)) return serveFile("./world/reality-compiler.html");
     if (["/change", "/reality-compiler", "/city-speaks"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/reality-compiler.html");
     // Bar night is an independent social scene with its own local progress.
@@ -614,8 +667,10 @@ const server = serve({
     if (under(pathname, "/world")) {
       let decodedWorldPath;
       try { decodedWorldPath = normalize(decodeURIComponent(pathname)); } catch { return notFound(); }
+      if (decodedWorldPath === '/world/policy-impact.html') return policyViewerHeaders(await serveFile('./world/policy-impact.html'),policyOrigins);
       if (decodedWorldPath === "/world/models/business-v1/compiler-api.js") return notFound();
       if (decodedWorldPath === "/world/constitution-city/source-api.js") return notFound();
+      if (/^\/world\/policy-preview.*\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/temporal\/(api|store)\.js$/.test(decodedWorldPath)) return notFound();
       if (decodedWorldPath === "/world/reality/share-store.js") return notFound();
       if (decodedWorldPath === "/world/guest/api.js") return notFound();
@@ -630,7 +685,7 @@ const server = serve({
     if (under(pathname, "/blog")) return serveStatic("/blog", "./blog/dist", pathname);
 
     return notFound();
-  },
+  }),
 
   websocket: {
     pong(ws){if(ws.data?.roomId)actNormalService.websocket.pong(ws);},
@@ -670,3 +725,4 @@ console.log(`  /blog   http://localhost:${server.port}/blog (after building blog
 console.log(`  ws      ws://localhost:${server.port}/ws`);
 console.log(`  overpass ${OVERPASS_ENDPOINTS.map(endpoint => publicProviderOrigin(endpoint) ?? "invalid provider endpoint").join(" | ")} (timeout ${OVERPASS_TIMEOUT_MS}ms)`);
 console.log(`  dear-congress proxy origin ${DEAR_CONGRESS_ORIGIN}`);
+serverLogs.started();

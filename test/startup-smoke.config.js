@@ -1,13 +1,11 @@
 import { defineConfig } from '@playwright/test';
-import { mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const store = mkdtempSync(join(tmpdir(), 'hbl-startup-smoke-'));
-const port = process.env.HBL_STARTUP_SMOKE_PORT || '39961';
-const baseURL = `http://127.0.0.1:${port}`;
+import {createBrowserEnvironment} from './support/browser-environment.js';
+const {baseURL,serverEnv,descriptor}=createBrowserEnvironment({name:'startup-smoke',portEnv:'HBL_STARTUP_SMOKE_PORT'});
 
 export default defineConfig({
+ globalSetup:'./support/browser-global-setup.js',metadata:{browserEnvironments:[descriptor]},
   testDir: './e2e',
   testMatch: 'startup-smoke.e2e.js',
   workers: 1,
@@ -18,6 +16,7 @@ export default defineConfig({
   use: {
     baseURL,
     browserName: 'chromium',
+    // Native World readiness needs the full Chromium GPU backend, not headless shell.
     channel: 'chromium',
     trace: 'retain-on-failure',
     launchOptions: {
@@ -32,13 +31,6 @@ export default defineConfig({
     url: `${baseURL}/api/health`,
     reuseExistingServer: false,
     timeout: 60_000,
-    env: {
-      PORT: port,
-      HBL_WORLD_DB_PATH: join(store, 'world.sqlite'),
-      HBL_CITY_DATA_DIR: join(store, 'city'),
-      HBL_REALITY_SHARE_DB_PATH: join(store, 'shares.sqlite'),
-      HBL_JOURNAL_ROOT: join(store, 'journals'),
-      DECISION_STORE_DIR: join(store, 'decision'),
-    },
+    env: serverEnv,
   },
 });

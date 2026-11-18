@@ -12,7 +12,9 @@ test('the production server keeps merged feature routes and simulation admission
       HBL_WORLD_DB_PATH: ':memory:',
       DECISION_STORE_DIR: join(directory, 'decision'),
       HBL_JOURNAL_ROOT: join(directory, 'journals'),
+      HBL_SERVER_LOG_DIR: join(directory, 'server-logs'),
       HBL_DETECTIVE_ROOT: join(directory, 'detective'),
+      HBL_SERVER_LOG_DIR: join(directory, 'server-logs'),
       NODE_ENV: 'test',
       HBL_TEST_SIMULATION_PER_CLIENT: '2',
       HBL_TEST_SIMULATION_TOTAL: '2',
@@ -45,6 +47,15 @@ test('the production server keeps merged feature routes and simulation admission
     expect(home.status).toBe(200);
     expect(home.headers.get('content-type')).toContain('text/html');
     expect(await home.text()).toContain('Try Today’s Features');
+    for (const path of ['/privacy', '/privacy/']) {
+      const notice = await fetch(origin + path);
+      expect(notice.status).toBe(200);
+      expect(notice.headers.get('set-cookie')).toBeNull();
+      const copy = await notice.text();
+      expect(copy).toContain('Privacy &amp; cookies');
+      expect(copy).toContain('no automatic expiry or visitor deletion control');
+      expect(copy).toContain('hbl.onboarding.v1');
+    }
     for (const path of ['/shared/media/pipeline.js', '/shared/media/preferences.js']) {
       const module = await fetch(origin + path, { signal: AbortSignal.timeout(3000) });
       expect(module.status).toBe(200);
@@ -54,6 +65,7 @@ test('the production server keeps merged feature routes and simulation admission
     for (const path of ['/shared/media/not-public.js', '/shared/not-public.js', '/.env']) {
       expect((await fetch(origin + path, { signal: AbortSignal.timeout(3000) })).status).toBe(404);
     }
+
 
 
     for (const path of ['/demo-gallery', '/demo-gallery/', '/tools/demo-gallery/manifest.js', '/tools/demo-gallery/gallery.js', '/tools/demo-gallery/style.css', '/demo-gallery/media/future-machine.mp4']) {
@@ -100,6 +112,16 @@ test('the production server keeps merged feature routes and simulation admission
       expect(response.headers.get('content-type')).toContain('javascript');
     }
     expect((await fetch(origin + '/shared/media/private.js')).status).toBe(404);
+
+    // Requests through the real dispatcher reach the redacted server log.
+    const serverLogs = await fetch(origin + '/api/server-logs?since=1h&level=warn');
+    expect(serverLogs.status).toBe(200);
+    expect(serverLogs.headers.get('cache-control')).toBe('no-store');
+    const logBody = await serverLogs.json();
+    expect(logBody.schemaVersion).toBe('server-logs.v1');
+    expect(logBody.summary.requests.notFound.some(item => item.path === '/shared/media/private.js')).toBe(true);
+    const lifecycle = await (await fetch(origin + '/api/server-logs?type=lifecycle')).json();
+    expect(lifecycle.entries[0]).toMatchObject({ type: 'lifecycle', message: 'server started' });
 
     // Invalid bodies consume admission but never start a simulation or write a run.
     const submit = () => fetch(origin + '/api/runs', {

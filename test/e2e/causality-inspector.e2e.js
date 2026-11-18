@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import {contextURL, DEFAULT_CONTEXT} from '../../world/universe/navigation.js';
 
 const runId = 'run:test:1';
 const source = {
@@ -213,14 +214,16 @@ for (const mobile of [false, true]) test(`returns through evidence checkpoints (
       ? { nodes: [source], edges: [], evidence: [], incomplete: true, reasons: ['missing-dependency'], missingIds: ['lost'] }
       : { nodes: [target, source], edges: [edge], evidence: [source] } });
   });
-  await page.goto(inspect(target) + '&entityId=origin-entity&tick=5');
+  await page.goto(contextURL('/world/causality/inspect.html', {
+    ...DEFAULT_CONTEXT, runId, tick: 5, entityId: 'entity:test:origin',
+  }) + '&targetId=' + encodeURIComponent(target.id));
   const origin = page.url();
   const select = page.getByRole('button', { name: 'Inspect Construction inputs' });
   if (mobile) await select.tap(); else await select.press('Enter');
   await expect(page.getByText('A dependency record is unavailable.', { exact: true })).toBeVisible();
   const back = page.getByRole('button', { name: 'Return to previous checkpoint' });
   if (mobile) await back.tap(); else await back.press('Enter');
-  await expect(page.getByRole('textbox', { name: 'Entity', exact: true })).toHaveValue('origin-entity');
+  await expect(page.getByRole('textbox', { name: 'Entity', exact: true })).toHaveValue('entity:test:origin');
   await expect(page.getByRole('textbox', { name: 'Record', exact: true })).toHaveValue(target.id);
   await expect(page.getByRole('spinbutton', { name: 'Tick', exact: true })).toHaveValue('5');
   await expect(back).toHaveCount(0);

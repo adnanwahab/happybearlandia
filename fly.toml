@@ -12,6 +12,8 @@ primary_region = 'dfw'
   DECISION_STORE_DIR = '/data/decision-experiments'
   HBL_CITY_DATA_DIR = '/data/city-experiments'
   HBL_REALITY_SHARE_DB_PATH = '/data/reality-shares.sqlite'
+  # On the volume so /api/server-logs history survives machine stops and deploys.
+  HBL_SERVER_LOG_DIR = '/data/server-logs'
 
 [build]
 

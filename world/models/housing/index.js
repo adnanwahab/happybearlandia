@@ -144,19 +144,22 @@ export function compileHousingPlan(text = "") {
 
 function seededRandom(seed) {
   let state = seed >>> 0;
-  return () => {
+  const random = () => {
     state += 0x6D2B79F5;
     let value = state;
     value = Math.imul(value ^ value >>> 15, value | 1);
     value ^= value + Math.imul(value ^ value >>> 7, value | 61);
     return ((value ^ value >>> 14) >>> 0) / 4294967296;
   };
+  random.getState = () => state;
+  random.setState = value => { state = value; };
+  return random;
 }
 
 /** Monthly stock-flow model. Draw exactly three exogenous innovations per month,
  * regardless of policy, to preserve matched-seed comparisons between scenarios.
  */
-export function simulateHousingRun({ parameters: input = {}, seed = 42, years = 10, projects = [], scheduledStress = [], fork } = {}) {
+export function simulateHousingRun({ parameters: input = {}, seed = 42, years = 10, projects = [], scheduledStress = [], fork, replay } = {}) {
   const checked = validateHousingParameters(input);
   if (!checked.valid) throw new Error(checked.errors.join(" "));
   if (!Number.isInteger(years) || years < 1 || years > 50) throw new Error("Housing horizon must be an integer from 1 to 50 years.");
@@ -226,7 +229,43 @@ export function simulateHousingRun({ parameters: input = {}, seed = 42, years = 
   monthlyTimeline.push({ month: 0, year: 0, metrics: snapshot() });
   let shortageFlag = false;
   let capacityFlag = false;
-  for (let month = 1; month <= years * 12; month++) {
+  const capture = month => replay?.capture?.({ month, p, housing, households, rent, income, built, lost, started, expenditure, subsidySpent, voucherSpent, projectPublicSpent, projectCompleted, projectAffordable, projectCapacityUsed, taxRevenue, transitHomes, delivered, voucherPerMonth, lastAnnualStarts, sumVacancyPressure, sumFinance, hasActiveProjects, shortageFlag, capacityFlag, pipeline, events, timeline, capacityLedger, monthlyTimeline, randomState: random.getState(), lifecycle: lifecycle.exportCheckpoint() });
+  if (replay?.state) {
+    p = structuredClone(replay.state.p);
+    housing = structuredClone(replay.state.housing);
+    households = structuredClone(replay.state.households);
+    rent = structuredClone(replay.state.rent);
+    income = structuredClone(replay.state.income);
+    built = structuredClone(replay.state.built);
+    lost = structuredClone(replay.state.lost);
+    started = structuredClone(replay.state.started);
+    expenditure = structuredClone(replay.state.expenditure);
+    subsidySpent = structuredClone(replay.state.subsidySpent);
+    voucherSpent = structuredClone(replay.state.voucherSpent);
+    projectPublicSpent = structuredClone(replay.state.projectPublicSpent);
+    projectCompleted = structuredClone(replay.state.projectCompleted);
+    projectAffordable = structuredClone(replay.state.projectAffordable);
+    projectCapacityUsed = structuredClone(replay.state.projectCapacityUsed);
+    taxRevenue = structuredClone(replay.state.taxRevenue);
+    transitHomes = structuredClone(replay.state.transitHomes);
+    delivered = structuredClone(replay.state.delivered);
+    voucherPerMonth = structuredClone(replay.state.voucherPerMonth);
+    lastAnnualStarts = structuredClone(replay.state.lastAnnualStarts);
+    sumVacancyPressure = structuredClone(replay.state.sumVacancyPressure);
+    sumFinance = structuredClone(replay.state.sumFinance);
+    hasActiveProjects = structuredClone(replay.state.hasActiveProjects);
+    shortageFlag = structuredClone(replay.state.shortageFlag);
+    capacityFlag = structuredClone(replay.state.capacityFlag);
+    pipeline.splice(0, pipeline.length, ...structuredClone(replay.state.pipeline));
+    events.splice(0, events.length, ...structuredClone(replay.state.events));
+    timeline.splice(0, timeline.length, ...structuredClone(replay.state.timeline));
+    capacityLedger.splice(0, capacityLedger.length, ...structuredClone(replay.state.capacityLedger));
+    monthlyTimeline.splice(0, monthlyTimeline.length, ...structuredClone(replay.state.monthlyTimeline));
+    random.setState(replay.state.randomState);
+    lifecycle.restoreCheckpoint(replay.state.lifecycle);
+  }
+  capture(replay?.state?.month ?? 0);
+  for (let month = (replay?.state?.month ?? 0) + 1; month <= (replay?.stopMonth ?? years * 12); month++) {
     const time = month / 12;
     if (branch && month === branch.values.month + 1) {
       for (const operation of branch.values.operations) {
@@ -329,6 +368,7 @@ export function simulateHousingRun({ parameters: input = {}, seed = 42, years = 
         projectCompletedHomes: projectCompleted, expenditure });
     }
     monthlyTimeline.push({ month, year: time, metrics: snapshot() });
+    capture(month);
   }
   return { metrics: snapshot(), timeline, events, drivers: [
     { id: "vacancy-pressure", parameterId: "rent_response", metricId: "median_rent", label: "Accumulated vacancy pressure", value: sumVacancyPressure, unit: "log rent change", description: "Recorded rent update term summed over monthly steps; not a counterfactual attribution." },

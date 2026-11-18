@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neighborhood Newswire · HappyBearLandia</title>
+  <link rel="stylesheet" href="./newswire.css">
+</head>
+<body>
+  <main>
+    <header>
+      <a href="/">HappyBearLandia</a>
+      <h1>Neighborhood Newswire</h1>
+      <p>Read stories from saved city simulations. Year 1 starts at simulation tick 1.</p>
+    </header>
+
+    <section class="controls" aria-label="Newswire filters">
+      <label class="run">Recorded run <select id="run" disabled></select></label>
+      <label>Neighborhood <select id="neighborhood" disabled></select></label>
+      <label>Month <select id="month" disabled></select></label>
+      <label>Year <select id="year" disabled></select></label>
+    </section>
+    <p id="run-context"></p>
+    <p id="status" role="status">Looking for recorded city runs…</p>
+    <p id="mapping-status" hidden></p>
+    <p id="record-help" hidden><a href="/world/causal.html">Open the Living City recorder</a></p>
+    <section id="stories" aria-label="Stories"></section>
+  </main>
+  <script type="module" src="./newswire-page.js"></script>
+</body>
+</html>

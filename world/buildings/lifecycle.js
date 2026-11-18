@@ -79,6 +79,14 @@ export function createBuildingLifecycle({ projects = [], seed = 42, parameters =
   const exposed = () => rows.map((row) => ({ ...Object.fromEntries(Object.entries(row).filter(([key]) => !key.startsWith("_"))),
     states: row._historyStart ? row.states.filter((state) => state.month >= row._historyStart) : row.states }));
   return {
+    exportCheckpoint() {
+      return structuredClone({ rows: rows.map(row => ({ ...row, _cancelMonth: Number.isFinite(row._cancelMonth) ? row._cancelMonth : null })), lastMonth });
+    },
+    restoreCheckpoint(state) {
+      rows.splice(0, rows.length, ...structuredClone(state.rows).map(row => ({ ...row, _cancelMonth: row._cancelMonth === null ? Infinity : row._cancelMonth })));
+      ids.clear(); for (const row of rows) ids.add(row.projectId);
+      lastMonth = state.lastMonth;
+    },
     /** Apply only between completed steps. Existing state/paid costs never reset.
      * Added projects have no returned state before their actual intervention month.
      */

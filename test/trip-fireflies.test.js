@@ -32,10 +32,10 @@ test('overlay click pins trip receipt, missing source clears markers, destroy re
   remove(){this.parent.children=this.parent.children.filter(child=>child!==this);}
  }
  const doc={createElement:()=>new Element(doc)},container=new Element(doc),controls=new Element(doc);
- let frame=fireflyFixture(),selected=null;
+ let frame,selected=null;
  const ui=mountTripFireflies({container,controls,getFrame:()=>frame,project:p=>({x:p.x,y:p.z}),onSelect:id=>selected=id});
  const panel=controls.children[0],toggle=panel.children[1].children[0],receipt=panel.children[3];
- toggle.checked=true;ui.update(0);expect(ui.getState().allocatedMarkers).toBe(160);
+ toggle.checked=true;ui.update(0);expect(ui.getState().allocatedMarkers).toBe(0);expect(ui.getState().latest.modeledActiveTrips).toBeNull();frame=fireflyFixture();ui.update(16);expect(ui.getState().allocatedMarkers).toBe(160);
  const overlay=container.children[0];overlay.children[0].events.click();
  expect(selected).toBe('fixture-p000');expect(receipt.textContent).toContain('"departureMinute": 1070');
  const pose=overlay.children[0].style.left;ui.update(1000);expect(overlay.children[0].style.left).toBe(pose);

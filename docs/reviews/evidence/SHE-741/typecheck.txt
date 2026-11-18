@@ -1,0 +1,43 @@
+world/buildings/lifecycle.js(54,65): error TS2339: Property 'resistance' does not exist on type '{}'.
+world/buildings/lifecycle.js(55,75): error TS2339: Property 'interest_rate' does not exist on type '{}'.
+world/buildings/lifecycle.js(56,76): error TS2339: Property 'inflation' does not exist on type '{}'.
+world/buildings/lifecycle.js(57,67): error TS2339: Property 'interest_rate' does not exist on type '{}'.
+world/buildings/lifecycle.js(57,110): error TS2339: Property 'resistance' does not exist on type '{}'.
+world/buildings/lifecycle.js(57,153): error TS2339: Property 'funding_delivery' does not exist on type '{}'.
+world/buildings/lifecycle.js(155,46): error TS2339: Property 'funding_delivery' does not exist on type '{}'.
+world/buildings/proposal.js(99,87): error TS2339: Property 'bounds' does not exist on type '{ buildings?: undefined[]; districts?: undefined[]; }'.
+world/decision/client.js(4,105): error TS2556: A spread argument must either have a tuple type or be passed to a rest parameter.
+world/decision/client.js(22,17): error TS2339: Property 'onUpdate' does not exist on type '{ interval?: number; traces?: string; }'.
+world/decision/client.js(22,27): error TS2339: Property 'onError' does not exist on type '{ interval?: number; traces?: string; }'.
+world/decision/client.js(42,39): error TS2339: Property 'loadRun' does not exist on type '{ limit?: number; }'.
+world/models/housing/counterfactual.js(24,44): error TS2339: Property 'run' does not exist on type '{ metricId?: string; }'.
+world/models/housing/counterfactual.js(24,49): error TS2339: Property 'scenario' does not exist on type '{ metricId?: string; }'.
+world/models/housing/counterfactual.js(24,59): error TS2339: Property 'years' does not exist on type '{ metricId?: string; }'.
+world/models/housing/counterfactual.js(24,66): error TS2339: Property 'parameterId' does not exist on type '{ metricId?: string; }'.
+world/models/housing/counterfactual.js(24,79): error TS2339: Property 'value' does not exist on type '{ metricId?: string; }'.
+world/models/housing/counterfactual.js(45,37): error TS2339: Property 'run' does not exist on type '{ metricId?: string; limit?: number; }'.
+world/models/housing/counterfactual.js(45,42): error TS2339: Property 'scenario' does not exist on type '{ metricId?: string; limit?: number; }'.
+world/models/housing/counterfactual.js(45,52): error TS2339: Property 'baselineRun' does not exist on type '{ metricId?: string; limit?: number; }'.
+world/models/housing/counterfactual.js(45,65): error TS2339: Property 'baselineScenario' does not exist on type '{ metricId?: string; limit?: number; }'.
+world/models/housing/counterfactual.js(45,83): error TS2339: Property 'years' does not exist on type '{ metricId?: string; limit?: number; }'.
+world/models/housing/historical.js(119,61): error TS2339: Property 'cutoffDate' does not exist on type '{}'.
+world/models/housing/historical.js(119,73): error TS2339: Property 'geography' does not exist on type '{}'.
+world/models/housing/historical.js(142,72): error TS2339: Property 'baseYear' does not exist on type '{ observations?: undefined[]; runs?: undefined[]; }'.
+world/models/housing/historical.js(142,82): error TS2339: Property 'cutoffDate' does not exist on type '{ observations?: undefined[]; runs?: undefined[]; }'.
+world/models/housing/historical.js(142,94): error TS2339: Property 'geography' does not exist on type '{ observations?: undefined[]; runs?: undefined[]; }'.
+world/models/housing/historical.js(190,77): error TS2339: Property 'baseYear' does not exist on type '{ observations?: undefined[]; parameters?: {}; candidates?: number[]; seeds?: number[]; years?: number; }'.
+world/models/housing/historical.js(190,87): error TS2339: Property 'cutoffDate' does not exist on type '{ observations?: undefined[]; parameters?: {}; candidates?: number[]; seeds?: number[]; years?: number; }'.
+world/models/housing/historical.js(190,99): error TS2339: Property 'geography' does not exist on type '{ observations?: undefined[]; parameters?: {}; candidates?: number[]; seeds?: number[]; years?: number; }'.
+world/models/housing/historical.js(200,74): error TS2353: Object literal may only specify known properties, and 'baseYear' does not exist in type '{ observations?: any[]; runs?: any[]; }'.
+world/models/housing/houston-history.js(55,95): error TS2353: Object literal may only specify known properties, and 'baseYear' does not exist in type '{ observations?: any[]; runs?: any[]; }'.
+world/models/housing/index.js(159,122): error TS2339: Property 'fork' does not exist on type '{ parameters?: {}; seed?: number; years?: number; projects?: any[]; scheduledStress?: any[]; }'.
+world/models/housing/index.js(196,71): error TS2339: Property 'events' does not exist on type '{ states: { month: number; status: any; progress: number; floorsBuilt: number; completedUnits: number; occupiedUnits: number; affordableUnits: number; publicCost: number; privateCost: number; totalCost: number; capacityUsed: number; cumulativeCapacityUsed: number; expectedCompletionMonth: any; delayedMonths: number;...'.
+world/models/housing/index.js(237,116): error TS2339: Property 'proposal' does not exist on type '{ states: { month: number; status: any; progress: number; floorsBuilt: number; completedUnits: number; occupiedUnits: number; affordableUnits: number; publicCost: number; privateCost: number; totalCost: number; capacityUsed: number; cumulativeCapacityUsed: number; expectedCompletionMonth: any; delayedMonths: number;...'.
+world/models/housing/lifecycle-v1.1.js(54,65): error TS2339: Property 'resistance' does not exist on type '{}'.
+world/models/housing/lifecycle-v1.1.js(55,75): error TS2339: Property 'interest_rate' does not exist on type '{}'.
+world/models/housing/lifecycle-v1.1.js(56,76): error TS2339: Property 'inflation' does not exist on type '{}'.
+world/models/housing/lifecycle-v1.1.js(57,67): error TS2339: Property 'interest_rate' does not exist on type '{}'.
+world/models/housing/lifecycle-v1.1.js(57,110): error TS2339: Property 'resistance' does not exist on type '{}'.
+world/models/housing/lifecycle-v1.1.js(57,153): error TS2339: Property 'funding_delivery' does not exist on type '{}'.
+world/models/housing/lifecycle-v1.1.js(132,46): error TS2339: Property 'funding_delivery' does not exist on type '{}'.
+world/models/housing/proposal-v1.1.js(100,87): error TS2339: Property 'bounds' does not exist on type '{ buildings?: undefined[]; districts?: undefined[]; }'.

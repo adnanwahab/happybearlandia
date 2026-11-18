@@ -1,10 +1,31 @@
 <!doctype html>
 <html lang="en">
 <head>
+<!-- Native cross-document opt-in must exist before delayed external CSS arrives. -->
+<style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
   <link rel="icon" href="/favicon.ico" sizes="64x64">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Change one housing decision. Compare two synthetic city futures and inspect why they differ.">
+  <meta property="og:title" content="HappyBearLandia — Explore Possible Futures">
+  <meta property="og:description" content="Build a world. Change the rules. See what happens.">
+  <meta property="og:image" content="https://happybearlandia.fly.dev/preview.jpg">
+  <meta property="og:video" content="https://happybearlandia.fly.dev/preview.mp4">
+  <meta property="og:video:type" content="video/mp4">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://happybearlandia.fly.dev/">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Two modeled city futures compared side by side, with and without a housing plan.">
+  <meta property="og:video:secure_url" content="https://happybearlandia.fly.dev/preview.mp4">
+  <meta property="og:video:width" content="1200">
+  <meta property="og:video:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="HappyBearLandia — Explore Possible Futures">
+  <meta name="twitter:description" content="Build a world. Change the rules. See what happens.">
+  <meta name="twitter:image" content="https://happybearlandia.fly.dev/preview.jpg">
+  <meta name="twitter:image:alt" content="Two modeled city futures compared side by side, with and without a housing plan.">
   <title>HappyBearLandia — One city, two futures</title>
   <style>
     :root { color-scheme: dark; font: 15px/1.5 system-ui, sans-serif; background: #08111f; color: #edf3fa; }
@@ -114,7 +135,7 @@
         <p class="eyebrow">HappyBearLandia · Start here · Synthetic city demo</p>
         <h1>Choose a housing policy. Watch two possible futures. Discover why they differ.</h1>
         <p id="demo-explanation">Watch a guided comparison of ten modeled years with and without a housing plan. Pause to explore the city and inspect why outcomes changed. No setup needed.</p>
-        <p class="launch-actions"><a class="flagship-demo" data-demo-start href="/world/future-machine.html?demo=1" aria-describedby="demo-explanation demo-disclaimer">Try the 60-second simulation <span aria-hidden="true">→</span></a><a href="#explore">Explore all experiments</a></p>
+        <p class="launch-actions"><a class="flagship-demo" data-demo-start href="/world/future-machine.html?demo=1" aria-describedby="demo-explanation demo-disclaimer">Try the 60-second simulation <span aria-hidden="true">→</span></a><a href="#explore">Explore all experiments</a><a href="/world/future-split.html">Future Split Theater</a></p>
         <section id="surprise-wonder" hidden aria-label="Discover a curated wonder">
           <form>
             <label for="wonder-seed">Selection seed</label>
@@ -137,6 +158,7 @@
         <figcaption>Actual demo capture · Month 120 · seed 42 · city-systems.1.0.0. Synthetic schematic; building heights are illustrative. Preview shows the comparison area of a retained demo screenshot.</figcaption>
       </figure>
     </div>
+    <p><a href="/privacy">Privacy &amp; cookies</a> · Browser records, saved simulations and your choices.</p>
     <div id="onboarding-experiment" data-enabled="true" hidden>
       <label><input type="checkbox"> Join the optional onboarding experiment</label>
       <p>Compare two ways to start the same synthetic housing demo. Assignment and interaction records stay in this tab for this session; nothing is uploaded.</p>

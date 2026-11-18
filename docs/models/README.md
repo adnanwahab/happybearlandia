@@ -7,7 +7,7 @@ These descriptions follow the seven elements of the [ODD 2020 protocol and autho
 | State authority or independent model | Description | Normal entry point / scope |
 | --- | --- | --- |
 | World Population | [Population and House](population.md) | Population runtime/worker; House, children, employment, firms, relationships, promises, traditions, sidewalk trips, resident encounters, life systems and versioned tiny shelf repairs share this authority |
-| Monthly City | [City](city.md) | City Lab API/worker; Future Machine reuses City rather than introducing a new model |
+| Monthly City | [City](city.md) | City Lab API/worker; Future Machine and [Policy Impact Explorer](../policy-impact-preview.md) reuse City rather than introducing a new model; [Racetrack](../../world/racetrack/README.md) reads recorded City projections |
 | Legacy World | [Legacy](legacy.md) | createWorld in world/sim.js; legacy relationship/culture/weather adapters; versioned sidewalk trips and spontaneous encounters |
 | Agent civic prototype | [Civic](civic.md) | simulateAgentCivicDynamics; aggregate outcome calculation over fixed synthetic agent traits |
 | Recorded-contact diffusion | [Ideas](ideas.md) | How Ideas Spread saved-Population overlay |
@@ -43,3 +43,9 @@ SHE-558: Tonight pantry cooking remains under World Population / House, using th
 existing recipe economy and relationship authorities. The linked Population
 submodel notes and evening contract describe its authored request selection;
 there is no additional independent model inventory row.
+
+Storm Commander (`world/storm/commander.js`) is a synthetic preparation/scoring
+wrapper around the existing heightfield hazard model, not an independent social
+ABM. Its seven-element [model contract](storm-commander.md) documents the new
+crew deadline and budget assumptions, exact building mapping, checkpoint and
+replay invariants. It does not change Population or City mechanisms.
