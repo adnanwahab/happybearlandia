@@ -1,0 +1,55 @@
+/* Life Story panel. Scoped to .life-story; inherits the launch shell's dark palette. */
+.life-story{--ls-ink:var(--ink,#f2f2ed);--ls-muted:var(--muted,#acb1bc);--ls-line:var(--line,#ffffff20);--ls-warm:#f3d9a4;--ls-good:#9fd8a8;--ls-low:#f0a07a;color:var(--ls-ink);font:13px/1.45 Arial,Helvetica,sans-serif;display:grid;gap:12px}
+.life-story h3,.life-story h4{margin:0;font-weight:400}
+.life-story-who{display:flex;gap:12px;align-items:center}
+.life-story-avatar{flex:0 0 44px;height:44px;border-radius:50%;display:grid;place-items:center;font:bold 15px Georgia,serif;color:#20242d;background:linear-gradient(135deg,var(--ls-warm),#c7d8f0)}
+.life-story-who h3{font:22px/1.1 Georgia,'Times New Roman',serif}
+.life-story-who p{margin:3px 0 0;font-size:12px;color:var(--ls-muted)}
+.life-story-now{padding:12px;border:1px solid var(--ls-line);border-radius:14px;background:#ffffff08;display:grid;gap:9px}
+.life-story-now-line{margin:0;font-size:13px!important;color:var(--ls-ink)!important}
+.life-story-now-line strong{color:var(--ls-warm);font-weight:600}
+.life-story-live-dot{display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:var(--ls-good);box-shadow:0 0 0 3px #9fd8a833;vertical-align:1px}
+.life-story-needs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
+.life-story-need{display:grid;grid-template-columns:52px 1fr 26px;align-items:center;gap:6px;font-size:11px;color:var(--ls-muted)}
+.life-story-need b{color:var(--ls-ink);font-weight:600;text-align:right}
+.life-story-meter{height:6px;border-radius:6px;background:#ffffff1a;overflow:hidden}
+.life-story-meter i{display:block;height:100%;border-radius:6px;background:var(--ls-good)}
+.life-story-need.is-low{color:var(--ls-low)}.life-story-need.is-low .life-story-meter i{background:var(--ls-low)}
+.life-story-hooks{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.life-story-hooks li{font-size:12px;padding:7px 9px;border-left:3px solid var(--ls-warm);background:#f3d9a412;border-radius:0 9px 9px 0}
+.life-story-nudge{display:grid;gap:7px}
+.life-story-nudge h4,.life-story-day{font:17px Georgia,'Times New Roman',serif}
+.life-story-nudge p{margin:0}
+.life-story-nudge-buttons{display:grid;gap:6px}
+.life-story .life-story-nudge-buttons button{display:grid;gap:1px;width:100%;text-align:left;padding:8px 14px;border-radius:14px!important;cursor:pointer}
+.life-story-nudge-buttons button small{font-size:11px;color:var(--ls-muted)}
+.life-story-nudge-buttons button:disabled{opacity:.55;cursor:progress}
+.life-story-beats{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+.life-story-beat{display:grid;grid-template-columns:42px 16px 1fr;gap:6px;padding:8px 4px;border-top:1px solid var(--ls-line)}
+.life-story-beat time{font:600 11px/1.6 ui-monospace,Menlo,monospace;color:var(--ls-muted)}
+.life-story-icon{color:var(--ls-warm);font-size:12px;line-height:1.6;text-align:center}
+.life-story-beat[data-kind=influence] .life-story-icon{color:#c7a8ff}
+.life-story-beat[data-kind=social] .life-story-icon{color:#f39cb4}
+.life-story-beat[data-kind=travel] .life-story-icon,.life-story-beat[data-kind=routine] .life-story-icon{color:var(--ls-muted)}
+.life-story-beat.is-ongoing time{color:var(--ls-good)}
+.life-story-body{min-width:0}
+.life-story-body .life-story-narration{margin:0;font-size:13px!important;color:var(--ls-ink)!important}
+.life-story details{margin-top:4px}
+.life-story summary{cursor:pointer;font-size:11px;color:var(--ls-muted);width:max-content}
+.life-story summary:focus-visible{outline:2px solid #e9d9b8;outline-offset:2px;border-radius:4px}
+.life-story-why>.life-story-narration{margin:5px 0;font-size:12px!important}
+.life-story-rule{font-size:11px!important;margin:5px 0 0}
+.life-story-facts-list{display:grid;grid-template-columns:minmax(90px,auto) 1fr;gap:3px 10px;margin:6px 0 0;font-size:11px}
+.life-story-facts-list dt{color:var(--ls-muted)}
+.life-story-facts-list dd{margin:0;overflow-wrap:anywhere}
+.life-story-facts-list dd small{display:block;color:#8d93a0;font-size:10px}
+.life-story.facts-only .life-story-narration{display:none}
+.life-story-footer{display:grid;gap:6px;padding-top:8px;border-top:1px solid var(--ls-line)}
+.life-story-toggle{font-size:12px;color:var(--ls-muted);display:flex;gap:6px;align-items:center}
+.life-story-gap,.life-story-provenance{margin:0}
+.life-story-provenance code{font-size:10px;color:#8d93a0;overflow-wrap:anywhere}
+.life-story-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.life-story-beat.is-new{animation:life-story-arrive .6s ease-out}
+@keyframes life-story-arrive{from{background:#f3d9a426}to{background:transparent}}
+@media (prefers-reduced-motion:reduce){.life-story-beat.is-new{animation:none}}
+@media (max-width:700px){.life-story-needs{grid-template-columns:1fr}.life-story-beat{grid-template-columns:38px 14px 1fr}}
