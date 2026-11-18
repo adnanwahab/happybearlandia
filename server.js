@@ -1,3 +1,5 @@
+import {createEmergencyMode,buildEmergencyComparison} from './ops/security/emergency-mode.js';
+const handleEmergencyMode=createEmergencyMode({file:process.env.HBL_EMERGENCY_FILE,comparison:process.env.HBL_EMERGENCY_FILE?await buildEmergencyComparison():undefined});
 import { createServerLogs } from './ops/server-logs/api.js';
 import {createRescueHandler} from './world/storm/rescue-api.js';
 import {createPlayerFeedbackHandler} from './ops/player-feedback/api.js';
@@ -484,6 +486,8 @@ const server = serve({
   hostname: process.env.HBL_BIND_HOST || undefined,
 
   fetch: serverLogs.instrument(async function routeRequest(request, server) {
+    const emergencyResponse=handleEmergencyMode(request);
+    if(emergencyResponse)return emergencyResponse;
     const releaseResponse=handleReleaseExperiment(request);
     if(releaseResponse)return releaseResponse;
     const { pathname } = new URL(request.url);
