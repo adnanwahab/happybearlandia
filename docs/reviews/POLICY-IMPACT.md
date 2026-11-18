@@ -18,6 +18,21 @@ A material retention distinction is documented: Constitution City ordinarily reg
 
 Documentation-worker check: the fixture content hash was independently calculated from sorted compact UTF-8 legal JSON using Python SHA-256. The fixture also passed `validatePolicyPreview` from the API worker implementation via Bun and returned the independently calculated hash. End-to-end execution awaits the coordinating agent's integrated check. Final Bun/Playwright results, screenshot path and PR reference must be added here or in the PR before review approval.
 
+Integrated acceptance on `codex/policy-impact-explorer`:
+
+- `bun test test/policy-preview.test.js test/policy-preview-security.test.js test/policy-preview-routes.test.js`: 13 passed, 80 assertions. Covers schema/auth, immutable versions and metadata, stable URLs across model upgrades, paired reproducibility, failure/partial/retry exhaustion, restart recovery, public-only submissions, static module privacy and CSP on canonical/encoded viewer aliases.
+- `bun test --timeout 30000 test/constitution-city-runtime.test.js test/constitution-city-plan.test.js test/constitution-city-analysis.test.js test/experiment-contract.test.js test/run-job-manager.test.js test/server-civic-api.test.js test/civic-experiment.test.js`: 44 passed, 284 assertions.
+- `playwright test --config=test/policy-impact.browser.config.js`: 3 passed. Actual API/Three.js/D3, recorded same-month metrics, synchronized camera poses, unsupported clause, graph inspection, mobile overflow check, unavailable preview and 100 actual completed pairs with individually selectable nonoverlapping dots. The full fixture selected pair 100 at month 24 and confirmed its stored seed; recorded permitted capacity delta is 12.
+- `playwright test --config=test/policy-impact-regression.browser.config.js --grep 'public clauses|completed batch'`: 2 passed. Existing Constitution City worker replay/drag camera synchronization/export and Experiment Lab save/reload/filter/independent replay remain functional. The Lab test had a stale exact-text assertion; it now matches the existing expanded synthetic-results disclosure. No Lab product behavior changed.
+- `git diff --check`: passed. Existing package scripts define no standalone lint/typecheck for these native JavaScript modules.
+
+Capture: [100 recorded futures](../images/policy-impact-100-futures.png).
+The standalone backend benchmark returned POST in 2 ms and completed 100 paired
+24-month runs in approximately 10.3 seconds, retaining 25,262,358 bytes. Browser
+integration completed in 16.6 seconds for its three tests. Timing is local
+verification evidence, not a service-level guarantee. Final source and test
+artifacts are committed in this feature branch; the PR carries its final reference.
+
 ## Remaining limits
 
 Synthetic scenario outputs only; no current-law verification, legal judgment, empirical forecast, calibrated probabilities, hydraulic model, lane-level transit model, complete household accounting or unsupported constitutional effects. Only public content is accepted. Civic Synthesis framing requires the actual approved deployment origin in server configuration. No merge or deployment is performed.

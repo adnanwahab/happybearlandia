@@ -35,6 +35,8 @@ const handleTemporalCity=createTemporalCityHandler();
 import {createCharacterJournalsHandler} from './world/journals/api.js';
 const handleCharacterJournals=createCharacterJournalsHandler({root:process.env.HBL_JOURNAL_ROOT||'.hbl-city'});
 import {createConstitutionSourceHandler} from './world/constitution-city/source-api.js';
+import {createPolicyPreviewHandler} from './world/policy-preview-api.js';
+import {policyEmbedOrigins,policyViewerHeaders} from './world/policy-preview-security.js';
 import {createEconomyRecordsHandler} from './world/economy-records-api.js';
 const handleEconomyRecords=createEconomyRecordsHandler();
 import { handleConstitutionSummary } from './world/constitution-summary-api.js';
@@ -54,6 +56,8 @@ import { createBusinessCompilerHandler } from "./world/models/business-v1/compil
 const handleBusinessCompiler = createBusinessCompilerHandler();
 
 const PORT = process.env.PORT === '0' ? 0 : Number(process.env.PORT) || 3000;
+const policyOrigins=policyEmbedOrigins(process.env.HBL_POLICY_EMBED_ORIGINS);
+const handlePolicyPreviews=createPolicyPreviewHandler({directory:process.env.HBL_POLICY_PREVIEW_DIR||'.data/policy-previews',token:process.env.HBL_POLICY_PREVIEW_TOKEN,canonicalOrigin:process.env.HBL_POLICY_PREVIEW_ORIGIN||`http://localhost:${PORT}`});
 const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
 const DEAR_CONGRESS_ORIGIN = publicProviderOrigin(DEAR_CONGRESS_URL);
 
@@ -540,6 +544,8 @@ const server = serve({
     if (pathname === "/api/world/parameter-patch") return handlePlanParameterPatch(request);
     if (pathname === "/api/constitution-summary") return handleConstitutionSummary(request);
     if (pathname === "/api/constitution-city/plan") return handleConstitutionSource(request);
+    if (under(pathname, "/api/policy-previews")) return handlePolicyPreviews(request);
+    if (pathname.replace(/\/$/, "") === "/world/impact" || pathname === '/world/policy-impact.html') return policyViewerHeaders(await serveFile('./world/policy-impact.html'),policyOrigins);
     if (/^\/r\/[A-Za-z0-9_-]{8,16}\/?$/.test(pathname)) return serveFile("./world/reality-compiler.html");
     if (["/change", "/reality-compiler", "/city-speaks"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/reality-compiler.html");
     // House mode observes/restores the same saved population authority as /world.
@@ -559,8 +565,10 @@ const server = serve({
     if (under(pathname, "/world")) {
       let decodedWorldPath;
       try { decodedWorldPath = normalize(decodeURIComponent(pathname)); } catch { return notFound(); }
+      if (decodedWorldPath === '/world/policy-impact.html') return policyViewerHeaders(await serveFile('./world/policy-impact.html'),policyOrigins);
       if (decodedWorldPath === "/world/models/business-v1/compiler-api.js") return notFound();
       if (decodedWorldPath === "/world/constitution-city/source-api.js") return notFound();
+      if (/^\/world\/policy-preview.*\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/temporal\/(api|store)\.js$/.test(decodedWorldPath)) return notFound();
       if (decodedWorldPath === "/world/reality/share-store.js") return notFound();
       if (decodedWorldPath === "/world/experiments/persistence-store.js") return notFound();

@@ -57,6 +57,9 @@ For `add`, `beforeText` is empty and `afterText` is nonempty. For `remove`, the 
 
 Preview identity includes proposal identity, version hash, pinned model/runtime/mapping versions and simulation configuration. Repeating the same request resolves to the same frozen snapshot and URL. Mutating a saved proposal version is a conflict, not an update. An explicit `modelRunId` requests a separate run; it never rewrites the original preview or reinterprets old results under new model rules.
 
+Existing identical inputs are resolved before calculating a new identity, including
+after a model upgrade. A new model version alone never replaces a saved preview.
+
 The baseline is a publisher declaration, not independent verification of enacted law. Prefer `prior-proposal-version` unless the publisher establishes the current-law basis. The baseline disclosure explicitly marks a current-law declaration as publisher-declared and unverified. The fixture uses a synthetic prior proposal; it makes no enacted-law claim. The baseline and proposal share a frozen initial CityState, model, seed pair, location, month and entity identities. They represent the submitted supported mechanism authorizations over that synthetic city, not a reconstruction of the entire baseline legal corpus. These synthetic Monthly City IDs are not real residents or daily Population IDs.
 
 ## Reviewed mappings and review boundary
@@ -86,3 +89,22 @@ The explanation inspector links legal source, reviewed mapping, declared paramet
 The fixture adds one exact housing clause to a synthetic prior proposal and requests 100 seed-matched pairs through month 24. It supplies no empirical observations. The viewer shows exact source text, the housing mapping, recorded states and outcomes, uncertainty, and inspectable explanation nodes. Construction and rent changes depend on actual model execution; no fixed favorable result is promised.
 
 See [the delivery record](reviews/POLICY-IMPACT.md) for code/description review scope and final acceptance evidence. The coordinator records the actual Bun and Playwright results and browser capture after integration. No deployment, production data modification or automatic merge is authorized by this contract.
+
+The completed [100-future browser capture](images/policy-impact-100-futures.png)
+shows the real synthetic fixture at month 24. Its frozen preview ID under the
+shipped model is `pp_ce00b29fc0f2a37d6288b1d7b1e1065a490a5465f65a452a4e8d05b7adc1a020`.
+After submitting the fixture, its development URL is
+`http://localhost:3000/world/impact?preview=pp_ce00b29fc0f2a37d6288b1d7b1e1065a490a5465f65a452a4e8d05b7adc1a020`.
+Submitting the fixture is required on each fresh storage installation; no test
+results or public proposals are silently seeded into a running server.
+
+The initial synthetic city has three households across three districts. In the
+captured pair, the housing authorization adds 12 permitted capacity units but
+does not add completed homes by month 24. Equal outcomes remain equal rather
+than being adjusted to illustrate a benefit. Full results for 100 pairs occupy
+about 25.3 MB; the results endpoint is bounded, with an optional per-pair filter,
+but pagination and lighter distribution responses remain future work. Events
+retain the runtime's latest 96 records per arm and disclose omissions; the graph
+does not reconstruct a missing causal chain. WebGPU availability follows the
+existing Constitution City renderer; an unsupported browser shows its renderer
+unavailable state while the recorded text and metrics remain inspectable.
