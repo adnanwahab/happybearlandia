@@ -50,7 +50,7 @@ Ranked by expected user impact ÷ implementation effort (each 1–5).
 | --- | --- | --- | --- | --- |
 | 1 | Unique resident names within a household (generator collision) | D | 3 | 1 |
 | 2 | `/world/impact` without a preview: offer the latest public previews or the Decision Studio demo instead of a dead end | D | 3 | 1 |
-| 3 | Repair or retire drifted tests: 4 of 5 `world-first-run.e2e.js` and 1 `text-adventure.test.js` fail on `main` | D | 3 | 1 |
+| 3 | Repair drifted test: `text-adventure.test.js` expects a text-adventure link that `static-city.html` no longer has | D | 3 | 1 |
 | 4 | **Life Story: a narrated, inspectable resident day with nudges, replacing raw-JSON "Recorded lives" (delivered in this change)** | W | 5 | 2 |
 | 5 | Pause new HBL-FUN mini-games; integrate the best three into one progression | W | 5 | 2 |
 | 6 | Arrival handoff: ease the camera to the Get started resident with their Life Story open | W | 4 | 2 |
@@ -91,16 +91,20 @@ coordinator.
    preview links to the Decision Studio demo and to the latest public preview
    when one exists; no network write. Verify: a new
    `test/e2e/policy-impact-empty.e2e.js` at desktop and 390 px.
-3. **Test drift.** Own `test/e2e/world-first-run.e2e.js` and
-   `test/text-adventure.test.js`. Accept: each failing assertion is updated to
-   current intended behaviour, or the test is retired with a recorded reason;
-   suite green on `main`. Verify: run both suites before and after.
+3. **Test drift.** Own `test/text-adventure.test.js`, plus
+   `world/static-city.html` only if the link should return. Accept: the
+   static-city assertion matches the intended fallback (restore the text
+   adventure link, or update the test with a recorded reason); suite green on
+   `main`. Verify: `bun test test/text-adventure.test.js`.
 4. **Arrival handoff to Life Story.** Own the `action('start')` path in
-   `world/launch-shell.js` and one camera hunk in `world/render.js`
-   (`followResident`). Accept: one click from arrival frames the resident within
-   2 s (reduced motion: cut), Life Story open, no other panels overlapping at
-   1440 and 390 px. Verify: Life Story e2e plus a WebGPU smoke test on a
-   real-GPU runner.
+   `world/launch-shell.js`, one camera hunk in `world/render.js`
+   (`followResident`) and the `world-first-run.e2e.js` guided-launch contract.
+   Decide with the owner whether Get started should open the story or keep the
+   inspector: the panel manager allows one foreground panel, so a combined
+   resident sheet may be needed. Accept: one click from arrival frames the
+   resident within 2 s (reduced motion: cut), with the story reachable in one
+   more click or shown directly; no overlapping panels at 1440 and 390 px.
+   Verify: Life Story e2e plus `first-run.browser.config.js` on CI.
 5. **City story ticker.** Own a new `world/stories/city-ticker.js` and its CSS.
    Reuse `life-story.js` patterns (facts and narration, versioned templates).
    Accept: `WORLD_*` and household-shortfall events narrated at most once per

@@ -1,7 +1,8 @@
 # Life Story
 
-**Get started** (or **Life story** in the World navigation) opens a narrated,
-inspectable account of one resident's recorded day: what they did, where, what it
+**Life story** (in the selected resident's action bar next to *Play as
+resident*, and in the World navigation) opens a narrated, inspectable account
+of one resident's recorded day: what they did, where, what it
 did to their needs and money, why the model chose it, and what is pressing now.
 Players can change the day with **Change their day** nudges and watch the
 consequences arrive as new moments.
@@ -13,6 +14,7 @@ consequences arrive as new moments.
 | `life-story.js` | Pure builder: `buildLifeStory(source)` → moments, now, hooks, gaps, provenance, facts digest |
 | `legacy-source.js` | Read-only source for the legacy World (`world/sim.js`), plus the nudge passthrough to `world.commandPerson` |
 | `life-story-view.js` | Panel renderer with live refresh; mounted by `world/launch-shell.js` |
+| `world/people/person-command-menu.js` | **Life story** button in the resident action bar; dispatches `hbl:open-life-story` |
 | `life-story.css` | Panel styles, reduced-motion aware |
 
 `world/render.js` exposes two host methods on `window.hblWorldActivity`:
@@ -70,8 +72,9 @@ narration versions and the digest.
 
 - The living population (default 10,000-resident mode) records trips and
   activity starts but not routine intervals or decision traces, so its stories
-  are events-only and say so. **Get started** uses the classic neighborhood,
-  which has full detail.
+  are events-only and say so. **Get started** follows a classic-neighborhood
+  resident, which has full detail; it still opens the inspector, as the World
+  panel manager allows one foreground panel.
 - Event detail shares a bounded global log; older moments keep routine facts but
   lose place names and prices. The story states how many were not retained and
   never reconstructs them.

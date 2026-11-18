@@ -1,8 +1,9 @@
 import {test,expect} from '@playwright/test';
 
-/* The Life Story panel inside the real launch shell, driven by the real legacy
- * World model running in the page. The 3D renderer is replaced by this small
- * host so the journey runs without a GPU; the host methods mirror render.js. */
+/* The Life Story panel inside the real launch shell and the real resident
+ * action bar, driven by the real legacy World model running in the page. The 3D
+ * renderer is replaced by this small host so the journey runs without a GPU; the
+ * host methods mirror render.js. */
 const fixture=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Life Story fixture</title>
 <link rel="stylesheet" href="/world/launch-shell.css"><style>body{margin:0;min-height:100vh;background:radial-gradient(circle at 40% 30%,#3a4a5c,#151b23)}</style></head>
 <body><div id="view"></div><script type="module">
@@ -20,7 +21,11 @@ window.hblWorldActivity={
  subscribe(listener){listeners.add(listener);return()=>listeners.delete(listener);},
  selectPerson(id){selected=world.people.find(p=>String(p.id)===String(id))??null;},
 };
-window.hblPersonCommands={getActor:()=>selected?{...selected,id:String(selected.id),label:selected.name,mode:'legacy'}:null};
+import {mountPersonCommands} from '/world/people/person-command-menu.js';
+const canvas=document.createElement('canvas');document.body.append(canvas);
+const actor=()=>selected?{...selected,id:String(selected.id),label:selected.name,mode:'legacy'}:null;
+window.hblPersonCommands=mountPersonCommands({container:document.body,canvas,getSelection:actor,onSelect(){},onWalk:async()=>({}),onSocial:async()=>({}),toGround:()=>null});
+setInterval(()=>window.hblPersonCommands.update(),200);
 window.hblGuidedActions={resident:async()=>{selected=world.people[0];},week(){},storm(){},tenYear(){}};
 window.hblFixture={world,step(minutes){world.step(minutes);for(const listener of listeners)listener({mode:'legacy',minute:world.t});}};
 setInterval(()=>{if(!document.body.dataset.paused)window.hblFixture.step(2);},250);
@@ -36,19 +41,28 @@ async function openStory(page){
  await page.goto('/world/life-story-fixture.html');
  await expect(page.locator('body[data-ready="1"]')).toBeAttached({timeout:30000});
  await page.locator('[data-launch="start"]').click();
+ const name=await page.evaluate(()=>window.hblFixture.world.people[0].name);
+ // Get started keeps its contract (follow + inspector); Life story is one click away.
+ await expect(page.locator('#launch-status')).toContainText(`Meet ${name}.`);
+ await expect(page.locator('#launch-panel')).toBeHidden();
+ await expect(page.locator('.person-commands [data-life-story]')).toBeVisible();
+ if(process.env.HBL_LIFE_STORY_SHOTS)await page.screenshot({path:`${process.env.HBL_LIFE_STORY_SHOTS}/life-story-after-get-started-${page.viewportSize().width}.png`});
+ await page.locator('.person-commands [data-life-story]').click();
  const panel=page.locator('#launch-panel');
  await expect(panel.getByRole('heading',{name:'Life story'})).toBeVisible();
  return panel;
 }
 
 for(const viewport of [{name:'desktop',width:1440,height:900},{name:'mobile',width:390,height:844}]){
- test(`Get started opens a narrated, inspectable life story (${viewport.name})`,async({page},info)=>{
+ test(`Get started then Life story shows a narrated, inspectable day (${viewport.name})`,async({page},info)=>{
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.setViewportSize({width:viewport.width,height:viewport.height});
   const panel=await openStory(page);
   const name=await page.evaluate(()=>window.hblFixture.world.people[0].name);
   await expect(panel.locator('.life-story-who h3')).toHaveText(name);
-  await expect(page.locator('#launch-status')).toContainText(`Meet ${name}.`);
+  // The resident action bar, now with its Life story button, stays within the viewport.
+  const bar=await page.locator('.person-commands').boundingBox();
+  expect(bar.x).toBeGreaterThanOrEqual(0);expect(bar.x+bar.width).toBeLessThanOrEqual(viewport.width+1);
   await expect(panel.locator('.life-story-needs [role=meter]')).toHaveCount(4);
   await expect(panel.locator('.life-story-now-line')).toContainText('Now ·');
   await page.evaluate(()=>window.hblFixture.step(150));

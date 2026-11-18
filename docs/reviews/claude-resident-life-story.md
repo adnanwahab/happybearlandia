@@ -14,8 +14,11 @@ New: `world/stories/{life-story.js,legacy-source.js,life-story-view.js,life-stor
 assessment.
 
 Edited:
-- `world/launch-shell.js`: Legends becomes **Life story**; Get started opens it;
+- `world/launch-shell.js`: Legends becomes **Life story**; Get started names the
+  resident and points to Life story; `hbl:open-life-story` opens the panel;
   `close()` stops its refresh. No open PR touches this file.
+- `world/people/person-command-menu.js`: one **Life story** button in the
+  resident action bar (beside Play as resident). No open PR touches this file.
 - `world/render.js`: two additive methods at the top of `window.hblWorldActivity`,
   inserted above the context lines that open PR #514 changes.
 
@@ -23,10 +26,11 @@ Edited:
 
 ## Behaviour delivered
 
-- **Get started** follows the first resident (unchanged) and opens their Life
-  Story: name, age, trait and household cash; now-line and needs meters; hooks
-  (lowest need, scheduled promise, unmet goal, shortfall); nudges; the day,
-  newest first. Each moment has optional **Why?** (decision trace) and **Model
+- **Get started** keeps its contract (follows the first resident, inspector
+  visible) and names the resident. **Life story** in the resident action bar, or
+  in the navigation, opens the story: name, age, trait and household cash;
+  now-line and needs meters; hooks (lowest need, scheduled promise, unmet goal,
+  shortfall); nudges; the day, newest first. Each moment has optional **Why?** (decision trace) and **Model
   facts** disclosures.
 - **Show narration** off hides all narration and opens the facts.
 - Nudges list the nearest distinct park and restaurant options from
@@ -58,15 +62,22 @@ minutes.
   residents, read-only behaviour, seed-matched replay, a nudge consequence and a
   refresh budget.
 - `npx playwright test test/e2e/life-story.e2e.js`: 4 pass. Desktop 1440×900
-  and mobile 390×844 Get started journeys; a nudge and its consequences;
+  and mobile 390×844 journeys (Get started → action-bar Life story, action bar
+  kept in bounds); a nudge and its consequences;
   facts-only mode; an open explanation surviving refresh; the empty state. The
-  journeys run the real launch shell and the real legacy model in the page,
+  journeys run the real launch shell, the real resident action bar and the real
+  legacy model in the page,
   because this sandbox's SwiftShader WebGPU loses its device during the full
   World's first render.
 - Related suites: `launch-gameplay`, `activity-history`, `legacy-checkpoint`
-  and `comparison-pinboard` pass. Pre-existing failures, identical on unmodified
-  `main` f521542: `text-adventure.test.js` (1, static-city link) and
-  `world-first-run.e2e.js` (4).
+  and `comparison-pinboard` pass. `text-adventure.test.js` fails 1 assertion
+  identically on unmodified `main` f521542 (static-city link).
+- CI on the first push (real WebGPU) failed `world-first-run.e2e.js` "guided
+  launch": Get started opening Life Story made the panel manager suppress
+  `#inspect`. Fixed by keeping Get started's contract and adding the action-bar
+  entry. Locally that suite fails 4 of 5 identically on unmodified `main`,
+  because this sandbox's SwiftShader WebGPU cannot run the full World; CI is the
+  authority for it.
 - Browser performance (Chromium, real legacy model, history recording on):
   panel refresh, which is source plus build plus DOM, takes 6.1 ms at 40
   residents and 7.8 ms at 200. Source plus build alone takes 2.4–2.6 ms, with
