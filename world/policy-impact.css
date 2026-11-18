@@ -3,3 +3,11 @@
 #graph{display:block}#graph svg{width:100%;height:auto;display:block}#graph svg [role=button]{cursor:pointer}#graph svg text{fill:#244338}#graph svg [role=button]:focus rect{stroke:#294d2e;stroke-width:3}
 
 #landscape{max-height:360px;overflow:auto;overscroll-behavior:contain}#landscape svg{height:auto;min-height:240px}
+
+button:focus-visible,[role=button]:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #355f9b;outline-offset:3px}pre{overflow-wrap:anywhere;white-space:pre-wrap;max-width:100%}.metric button{font:inherit;cursor:pointer}.city canvas[hidden]{display:none}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+#entities{overflow:auto;max-height:320px}table{border-collapse:collapse;width:100%}td,th{padding:8px;border-bottom:1px solid var(--line);text-align:left}caption{text-align:left;font-weight:600}td button{white-space:normal;overflow-wrap:anywhere}#load-status,#graphics-status{overflow-wrap:anywhere}
+
+.city[data-loading=true]>*{visibility:hidden}
+
+#landscape-note{overflow-wrap:anywhere;word-break:normal}

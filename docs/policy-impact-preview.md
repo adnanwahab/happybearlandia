@@ -187,3 +187,31 @@ heap/RSS deltas depend on allocator and GC behavior. First useful viewer render,
 actual wire/mobile timings and viewer consumption are **NOT RUN**, owned by SHE-1042.
 Human API acceptance must precede that dispatch. Cross-app staging/manual acceptance
 remains open under [SHE-1038](https://linear.app/shel-bernstein/issue/SHE-1038).
+
+### Recorded viewer consumption (SHE-1042)
+
+The viewer reads the manifest, then `policy-impact-summary.v1` pages of 50 pairs
+for the selected checkpoint month; all 100 stable run IDs/seeds remain selectable.
+It never initially requests unfiltered `/results`. Selecting a completed pair
+reads only `/results?runIndex=N`. A three-entry / 1,500,000 serialized UTF-8 byte
+LRU caches detail; the active selected record and current summary are additional
+live references, so this is not a bound on total browser heap. Oversized detail
+can be displayed but is not cached. Frozen successful records alone are cached;
+progress summaries are refreshed. New selection aborts previous requests and a
+generation guard ignores late responses even if cancellation is ineffective.
+Changing job progress during pagination fails that read rather than mixing pages.
+
+`pair`, `month`, `clause` and optional synthetic `entity` URL parameters restore
+recorded context on reload. Only shared A/B stored checkpoints are renderable;
+monthly metric observations do not create intermediate states. Invalid requested
+checkpoints fail explicitly. Loading/error states clear the previous metrics,
+entities and explanation. No browser-side simulation or synthetic substitute runs.
+WebGPU initializes separately; no-GPU visitors retain legal changes, metrics,
+paired distribution, entity table, retained events and keyboard inspector.
+Graphics unsupported/initializing/failure is separate from recorded job status.
+
+Outcome buttons expose frozen source clauses, reviewed parameter assumptions,
+run/model/mapping/seed/month and retained event context. Entity table references
+are stored synthetic IDs, with absence explicit. Dashed graph edges represent
+declared assumptions; solid edges require recorded references. Retained context
+is not an outcome attribution chain. Unconnected outcomes remain unconnected.
