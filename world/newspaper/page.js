@@ -1,3 +1,4 @@
+import { createDesk, reviewPage, FLAVOR } from './editor.js';
 import { loadArchive } from './editions.js';
 
 const status = document.querySelector('#status');
@@ -70,3 +71,66 @@ async function openArchive() {
 
 retry.addEventListener('click', openArchive);
 openArchive();
+
+let desk = null;
+let generation = 0;
+const editor = document.querySelector('#editor');
+const reviewStatus = document.querySelector('#review-status');
+const shareLabel = document.querySelector('#share-label');
+function clearShare() { shareLabel.hidden = true; document.querySelector('#share-page').value = ''; }
+document.querySelector('#open-editor').onclick = async () => {
+  const request = ++generation;
+  clearShare();
+  editor.hidden = true;
+  reviewStatus.textContent = 'Reading pinned source records…';
+  try {
+    const next = createDesk(await loadArchive());
+    if (request !== generation) return;
+    desk = next;
+    if (!desk?.stories.length) { reviewStatus.textContent = 'No source data. Open the monthly causal demo to record the pinned run.'; return; }
+    document.querySelector('#candidates').replaceChildren(...desk.stories.map(story => {
+      const row = document.createElement('fieldset');
+      const legend = document.createElement('legend');
+      legend.textContent = story.headline;
+      row.append(legend);
+      const choose = document.createElement('label');
+      const box = document.createElement('input'); box.type = 'checkbox'; box.value = story.event.id;
+      choose.append(box, ' Choose headline'); row.append(choose);
+      const fact = document.createElement('p'); fact.textContent = story.copy; row.append(fact);
+      const link = document.createElement('a'); link.href = story.href; link.textContent = 'Inspect immutable event and provenance'; row.append(link);
+      for (const [name, title, options] of [
+        ['treatment', 'Headline treatment', [['record', 'Report the recorded result'], ['prediction', 'This guarantees a better future']]],
+        ['label', FLAVOR, [['', 'Label this phrase…'], ['fact', 'Sourced fact'], ['interpretation', 'Interpretation / scripted flavor']]],
+      ]) {
+        const label = document.createElement('label'); label.textContent = title + ' ';
+        const select = document.createElement('select'); select.name = name;
+        for (const [value, text] of options) select.add(new Option(text, value));
+        label.append(select); row.append(label);
+      }
+      return row;
+    }));
+    editor.hidden = false;
+    reviewStatus.textContent = 'Choose exactly 3. Every selected phrase needs an editorial label.';
+  } catch { if (request === generation) reviewStatus.textContent = 'Source records unavailable. Try again.'; }
+};
+editor.onchange = () => { ++generation; clearShare(); reviewStatus.textContent = 'Draft changed. Review again before sharing.'; };
+document.querySelector('#cancel-editor').onclick = () => {
+  ++generation; desk = null; editor.reset(); editor.hidden = true; clearShare(); reviewStatus.textContent = 'Edition cancelled. Source records unchanged.';
+};
+editor.onsubmit = async event => {
+  event.preventDefault(); clearShare();
+  const request = ++generation;
+  const selections = [...document.querySelectorAll('#candidates fieldset')].filter(row => row.querySelector('input').checked).map(row => ({
+    id: row.querySelector('input').value, treatment: row.querySelector('[name=treatment]').value, label: row.querySelector('[name=label]').value,
+  }));
+  try {
+    const current = createDesk(await loadArchive());
+    if (request !== generation) return;
+    const result = reviewPage(desk, selections, current);
+    reviewStatus.textContent = result.ok ? 'Review passed: 3 sourced headlines. Ready to copy.' : result.errors.join(' ');
+    if (result.ok) {
+      document.querySelector('#share-page').value = JSON.stringify(result.page, null, 2);
+      shareLabel.hidden = false;
+    }
+  } catch { if (request === generation) reviewStatus.textContent = 'Review failed: source records unavailable.'; }
+};

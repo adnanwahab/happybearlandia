@@ -134,3 +134,8 @@ dd { margin: 0 0 .35rem; overflow-wrap: anywhere; }
   .stories { grid-template-columns: 1fr; }
   article:first-child { grid-column: auto; }
 }
+
+#candidates fieldset { margin: 1rem 0; min-width: 0; }
+#candidates label { display: block; margin: .6rem 0; }
+#candidates select, #share-page { max-width: 100%; }
+#share-page { display: block; width: 100%; box-sizing: border-box; }

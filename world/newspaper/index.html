@@ -26,6 +26,20 @@
     <p id="record-demo" hidden><a href="/world/causal.html">Open the demo to record a run</a></p>
     <button id="retry" type="button" hidden>Try again</button>
 
+    <section aria-labelledby="editor-title">
+      <h2 id="editor-title">Newspaper Editor</h2>
+      <p>Make the front page: choose 3 sourced headlines and label each dramatic phrase. Pinned scenario: monthly City demo, seed 2911. Synthetic toy outputs, no measured observations; dramatic phrases are scripted flavor.</p>
+      <button id="open-editor" type="button">Start editorial challenge</button>
+      <form id="editor" hidden>
+        <div id="candidates"></div>
+        <button type="submit">Review front page</button>
+        <button id="cancel-editor" type="button">Cancel edition</button>
+      </form>
+      <p id="review-status" aria-live="polite"></p>
+      <label id="share-label" hidden>Reviewed front page · copy to share
+        <textarea id="share-page" readonly rows="14"></textarea>
+      </label>
+    </section>
     <section id="archive" hidden aria-labelledby="edition-title">
       <div class="edition-bar">
         <h2 id="edition-title"></h2>
