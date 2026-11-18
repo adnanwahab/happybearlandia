@@ -73,6 +73,10 @@ export function createPolicyPreviewHandler({directory,token,canonicalOrigin,maxR
     const input=validatePolicyPreview(JSON.parse(text));
     const versionConflict=[...records.values()].find(row=>row.input.source.system===input.source.system&&row.input.source.proposalId===input.source.proposalId&&row.input.source.versionId===input.source.versionId&&row.input.source.contentHash!==input.source.contentHash);
     if(versionConflict)return json({error:'Proposal version content is immutable; use a new versionId'},409);
+    const frozen=[...records.values()].find(row=>policyHash(row.input)===policyHash(input));
+    if(frozen)return json(publicRecord(frozen),200);
+    const priorConfig=[...records.values()].find(row=>row.input.source.system===input.source.system&&row.input.source.proposalId===input.source.proposalId&&row.input.source.versionId===input.source.versionId&&policyHash(row.input.simulation)===policyHash(input.simulation)&&(row.input.modelRunId||null)===(input.modelRunId||null));
+    if(priorConfig)return json({error:'Version snapshot is immutable; conflicting metadata'},409);
     const id=`pp_${policyHash({system:input.source.system,proposalId:input.source.proposalId,versionId:input.source.versionId,contentHash:input.source.contentHash,modelVersion,simulation:input.simulation,modelRunId:input.modelRunId||null})}`;
     const existing=records.get(id);if(existing){if(policyHash(existing.input)!==policyHash(input))return json({error:'Version snapshot is immutable; conflicting metadata'},409);return json(publicRecord(existing),200);}
     if([...records.values()].filter(row=>['queued','running'].includes(row.job.status)).length>=maxRunning+maxQueued)return json({error:'Preview queue full; retry later'},429);

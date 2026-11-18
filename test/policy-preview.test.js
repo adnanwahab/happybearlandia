@@ -55,3 +55,11 @@ test('restart finalizes progress persisted just before process interruption',asy
  const {writeFileSync}=await import('node:fs');const {handler,directory}=setup();const created=await(await post(handler)).json();await settle(handler,created.id);const file=join(directory,`${created.id}.json`),record=JSON.parse(readFileSync(file,'utf8'));record.job.status='running';writeFileSync(file,JSON.stringify(record));
  const restarted=createPolicyPreviewHandler({directory,token:'secret',canonicalOrigin:'https://hbl.example'});expect((await settle(restarted,created.id)).job.status).toBe('completed');
 });
+test('saved version resolves original frozen preview across model upgrades unless explicit new run requested',async()=>{
+ const {writeFileSync}=await import('node:fs');const {handler,directory}=setup();const input=fixture(),created=await(await post(handler,input)).json();await settle(handler,created.id);
+ const file=join(directory,`${created.id}.json`),record=JSON.parse(readFileSync(file,'utf8'));record.modelVersion='retired-city-model.0';writeFileSync(file,JSON.stringify(record));
+ const upgraded=createPolicyPreviewHandler({directory,token:'secret',canonicalOrigin:'https://hbl.example'});const repeated=await post(upgraded,input);expect(repeated.status).toBe(200);expect((await repeated.json()).id).toBe(created.id);
+ const fetched=await(await upgraded(new Request(`https://hbl.example/api/policy-previews/${created.id}`))).json();expect(fetched.modelVersion).toBe('retired-city-model.0');
+ const conflicting=fixture();conflicting.source.title='Changed metadata after upgrade';expect((await post(upgraded,conflicting)).status).toBe(409);
+ const explicit=fixture();explicit.modelRunId='new-model-review';const fresh=await(await post(upgraded,explicit)).json();expect(fresh.id).not.toBe(created.id);await settle(upgraded,fresh.id);
+});
