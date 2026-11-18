@@ -7,7 +7,7 @@ async function openWorldControls(page) {
   await expect(page.locator('#runCycleBtn')).toBeVisible();
 }
 
-const fixture = '<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="/world/first-run-guide.css"></head><body><script type="module" src="/world/first-run-guide.js"></script></body></html>';
+const fixture = '<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="/world/first-run-guide.css"></head><body><script type="module">import {mountWorldFirstRunGuide} from "/world/first-run-guide.js"; if (!new URLSearchParams(location.search).has("embed")) mountWorldFirstRunGuide();</script></body></html>';
 
 test.beforeEach(async ({page}) => {
   await page.route('**/world/first-run-fixture.html*', route => route.fulfill({contentType:'text/html',body:fixture}));
@@ -75,7 +75,10 @@ test('World HTML keeps primary actions visible and advanced controls opt-in', as
   expect(html).toContain('Advanced settings');
   expect(html).toContain('id="runCycleBtn"');
   expect(html).toContain('id="demoBtn"');
-  expect(html).toContain('/world/first-run-guide.js');
+  expect(html).toContain('/world/first-run-guide.css');
+  const renderer = await request.get('/world/render.js');
+  expect(renderer.ok()).toBe(true);
+  expect(await renderer.text()).toContain("import {mountFirstRunGuide} from './first-run-guide.js'");
 });
 
 test('guided launch selects an actual resident and controls the same simulation', async ({page}) => {
