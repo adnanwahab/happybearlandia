@@ -397,3 +397,19 @@ navigation validates carried checksum/pose/source/version pins before native
 model restoration; missing saves retain a skip-capable failure panel. Tours use
 manual cuts and pause at arrival. No model or camera mapping across authorities
 is introduced, and no hosted private-sharing or revocation support is claimed.
+
+## Commuter fireflies (SHE-734)
+
+In `/world?living=1`, World controls → advanced controls → Commuter fireflies
+opts into up to 160 gold markers from committed Population walking-route samples.
+A marker opens the existing resident inspector and a current-trip receipt.
+Modeled active trips and capped rendered samples are separate counts. Routes
+must be valid `mapped-sidewalk` / `sidewalks.v1` segments; missing routes and
+straight-line approximations produce no glow. Progress uses the model snapshot,
+with no decorative clock or independent RNG. Active trips cover all purposes.
+Glow is decorative and source trips are synthetic. Sampling weights are unknown;
+supplied representation weights are separately labeled. No total is extrapolated.
+Legacy and standalone Canvas2D do not provide this layer.
+`hblTripFireflies.getState()` exposes allocation and CPU callback diagnostics;
+pagehide destroys the overlay. Consumer hardware and visual acceptance remain
+unverified. See [the contract and acceptance record](../../docs/reviews/SHE-734.md).

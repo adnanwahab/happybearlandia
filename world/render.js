@@ -1,3 +1,4 @@
+import {mountTripFireflies} from './population/fireflies.js';
 import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
@@ -523,6 +524,10 @@ window.hblWorldActivity={
  subscribe(listener){activityListeners.add(listener);return()=>activityListeners.delete(listener);},
  selectPerson(id){if(livingWorld?.active)return livingWorld.selectPerson(String(id));const index=town.people.findIndex(person=>String(person.id)===String(id));if(index>=0)select({type:'person',id:index});}
 };
+const tripFirefliesUI=mountTripFireflies({container:document.body,controls:document.getElementById('worldAdvanced')||document.body,getFrame:()=>livingWorld?.active?livingWorld.getSnapshot():null,project:point=>{const p=new THREE.Vector3(point.x,1.5,point.z).project(camera);if(p.z < -1||p.z > 1||Math.abs(p.x)>1||Math.abs(p.y)>1)return null;const r=renderer.domElement.getBoundingClientRect();return{x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};},onSelect:id=>window.hblWorldActivity.selectPerson(id)});
+window.hblTripFireflies=tripFirefliesUI;
+window.addEventListener('pagehide',()=>tripFirefliesUI.destroy(),{once:true});
+
 const playbackFacts=mountPlaybackFacts(document);
 playbackFacts.update({mood:world.summary().mood,seed:town.seedKey});
 const activityButton=$('activity-dashboard-button');
@@ -2229,6 +2234,7 @@ let last = performance.now();
 
 function frame(now) {
   if(startupAbort.signal.aborted)return;
+  tripFirefliesUI.update(now);
   mapControls.update(now);fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
   if(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400){streamingEnabled=true;mapStreamer.update();}updateContextMinimap();
   const cpuStart = performance.now();
