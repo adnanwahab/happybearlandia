@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "policy-impact-preview.v1",
+  "source": {
+    "system": "civic-synthesis-demo",
+    "proposalId": "synthetic-constitutional-draft",
+    "versionId": "constitutional-demo-v2",
+    "contentHash": "471afdc534ca4a01964578eed17e4c4239f9a7a1a226f145b63b3fea3cd111ef",
+    "type": "constitutional-amendment",
+    "title": "Unsupported synthetic constitutional draft",
+    "url": "https://example.org/synthetic-constitutional-draft/v2",
+    "visibility": "public"
+  },
+  "legal": {
+    "baseVersionId": "constitutional-demo-v1",
+    "clauses": [
+      {
+        "clauseId": "constitution-section-1",
+        "sourcePolicyId": "constitutional_process",
+        "operation": "add",
+        "beforeText": "",
+        "afterText": "Section 1. Establish a new constitutional deliberation process in this illustrative draft."
+      }
+    ]
+  },
+  "baseline": {
+    "kind": "prior-proposal-version",
+    "versionId": "constitutional-demo-v1",
+    "label": "Synthetic prior constitutional draft"
+  },
+  "simulation": {
+    "seed": 42,
+    "runs": 100,
+    "months": 24
+  }
+}

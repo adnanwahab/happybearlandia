@@ -1,0 +1,10 @@
+{
+  "jurisdiction": "Draft synthetic demonstration jurisdiction; no real legal authority",
+  "status": "Illustrative public drafts; human legal applicability review remains open",
+  "demos": [
+    {"id":"housing","mappingId":"h_lots","limitation":"Permitted capacity differs from completed housing. No guaranteed construction or rent benefit."},
+    {"id":"drainage","mappingId":"f_drainage","limitation":"Synthetic resilience index, not calibrated avoided loss or hydraulic protection. Benefits require recorded flood shocks."},
+    {"id":"transit","mappingId":"t_brt","limitation":"Coarse synthetic link capacity/travel, not real corridor ridership, commute time or a guaranteed improvement."},
+    {"id":"unsupported","mappingId":"constitutional_process","limitation":"Not Modeled. Exact constitutional legal diff retained; legal validity and constitutional effects Not Available."}
+  ]
+}
