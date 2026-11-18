@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Riverside Bakery evidence · HappyBearLandia</title>
+  <link rel="stylesheet" href="../journeys/bakery.css">
+  <link rel="stylesheet" href="./bakery-export.css">
+</head>
+<body>
+  <header class="masthead">
+    <a id="journey-link" href="../journeys/bakery.html">← Riverside Bakery journey</a>
+    <span class="model-label">Synthetic city scenario</span>
+  </header>
+  <main>
+    <header class="intro">
+      <div>
+        <h1>Bakery evidence</h1>
+        <p>Download both monthly timelines, recorded events, transport inputs, and solver traces as JSON.</p>
+      </div>
+    </header>
+    <p id="export-status" role="status">Replaying the Bakery comparison…</p>
+    <section class="intervention" id="evidence-comparison" aria-labelledby="comparison-title" hidden>
+      <h2 id="comparison-title">Baseline and road intervention</h2>
+      <p id="recipe-details"></p>
+      <p id="intervention-summary"></p>
+      <p id="final-summary"></p>
+      <a class="download-link" id="download" download>Download evidence JSON</a>
+    </section>
+    <section class="evidence export-limitations" aria-labelledby="limitations-title">
+      <h2 id="limitations-title">Model limitations</h2>
+      <ul id="limitations"></ul>
+    </section>
+  </main>
+  <script type="module" src="./bakery-export-page.js"></script>
+</body>
+</html>

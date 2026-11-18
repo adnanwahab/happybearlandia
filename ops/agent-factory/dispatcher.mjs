@@ -8,7 +8,6 @@ import { fileURLToPath } from 'node:url';
 import { createPatchVotingStore } from '../patch-voting/api.js';
 import { buildReadyQueue } from '../patch-voting/queue.js';
 import { approvedPatchCandidates } from '../patch-voting/candidates.js';
-import { createGitHubPatchPublisher } from '../patch-voting/github-api.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const privateRoot = join(root, '.hbl-private/agent-factory');
@@ -17,7 +16,6 @@ const args = process.argv.slice(2);
 const execute = args.includes('--execute');
 const loop = args.includes('--loop');
 const draftPR = args.includes('--draft-prs');
-const githubAppPR = args.includes('--github-app-prs');
 const useReviewers = !args.includes('--no-reviewers');
 const requested = Number(process.env.HBL_AGENT_MAX_WORKERS || 6);
 const maxWorkers = Math.max(1, Math.min(Number.isInteger(requested) ? requested : 6, process.env.HBL_AGENT_EXPERIMENTAL_50 === '1' ? 50 : 6));
@@ -144,22 +142,11 @@ async function doTask(task) {
       await checked('gemini', ['-p', prompt, '--approval-mode', 'plan', '--sandbox', '--output-format', 'text'], worktree, { input: diff, worker: true, log, timeout: 480000 });
     }
     let pr = null;
-    if (draftPR || githubAppPR) {
+    if (draftPR) {
       await checked('git', ['push', '--set-upstream', 'origin', branch], worktree, { log, timeout: 180000 });
-      if (githubAppPR) {
-        const publisher = createGitHubPatchPublisher();
-        await publisher.publishIssue(task);
-        const testedHeadSha = await checked('git', ['rev-parse', 'HEAD'], worktree);
-        const published = await publisher.publishDraft(task, branch, testedHeadSha);
-        const voteStore = createPatchVotingStore();
-        try { voteStore.linkGithub(task.taskId, published); }
-        finally { voteStore.close(); }
-        pr = published.prUrl;
-      } else {
-        pr = await checked('gh', ['pr', 'create', '--draft', '--base', base, '--head', branch,
-          '--title', '[agent] ' + task.taskId + ' ' + task.title,
-          '--body', 'Reviewed, voter-ranked patch candidate. Human integration and full browser CI required. No auto-merge.'], worktree, { log, timeout: 60000 });
-      }
+      pr = await checked('gh', ['pr', 'create', '--draft', '--base', base, '--head', branch,
+        '--title', '[agent] ' + task.taskId + ' ' + task.title,
+        '--body', 'Reviewed, voter-ranked patch candidate. Human integration and full browser CI required. No auto-merge.'], worktree, { log, timeout: 60000 });
     }
     await update(task.taskId, { status: 'REVIEW', finishedAt: new Date().toISOString(), changed, pr });
     console.log('READY FOR HUMAN INTEGRATION', task.taskId, pr || branch);

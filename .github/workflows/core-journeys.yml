@@ -1,38 +1,55 @@
 name: HappyBearLandia core journeys
 
-# Fast required gate. The full browser/replay suite runs in post-merge-observations.yml.
 on:
-  pull_request:
   push:
     branches: [main]
-  workflow_dispatch:
+  pull_request:
 
 permissions:
   contents: read
 
 jobs:
   verify:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
       - uses: oven-sh/setup-bun@v2
-      - name: Install locked dependencies
+      - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Essential security, replay, navigation and civic regressions
+      - name: Verify simulation, causal storage, and navigation contracts
         run: >
           bun test --timeout 60000
           test/universe-shell.test.js
           test/html-navigation.test.js
+          test/local-journeys.test.js
           test/causality-contracts.test.js
-          test/future-machine-boundaries.test.js
-          test/city-replay-golden.test.js
-          test/patch-voting.test.js
-          test/patch-queue.test.js
-          test/run-input-security.test.js
-          test/server.test.js
+          test/causal-storage.test.js
+          test/causality-read.test.js
+          test/time-machine-checkpoints.test.js
+          test/checkpoint-replay.test.js
+          test/world-causal-adapter.test.js
+          test/bakery-journey.test.js
+          test/bakery-scenario.test.js
+          test/living-city-recipe.test.js
+          test/living-city-network.test.js
+          test/living-city-quests.test.js
+          test/future-split.test.js
+          test/future-split-evidence.test.js
+          test/living-city-council.test.js
+          test/decision-storage.test.js
           test/release-health.test.js
-      - name: Verify guarded auto-merge policy
-        run: node --test test/auto-merge.test.cjs
+          test/server.test.js
+          test/world-database-path.test.js
+          test/overpass-diagnostics.test.js
+          test/first-run-guide.test.js
+      - name: Install Chromium for browser journeys
+        run: bunx playwright install --with-deps chromium
+      - name: Universe shell, sprint experiences, and saved future journey
+        run: bunx playwright test --config test/release-browser.config.js
+      - name: Time Machine recording and playback with a fresh store
+        run: bunx playwright test --config test/time-machine.browser.config.js world-time-machine.browser.js --workers=1
+      - name: Causal inspector component
+        run: bunx playwright test --config test/causality.browser.config.js
+      - name: First-run World guidance and feedback
+        run: bunx playwright test --config test/first-run.browser.config.js

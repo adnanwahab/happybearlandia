@@ -1,0 +1,196 @@
+bun test v1.4.2 (744846f84)
+
+test/future-machine-boundaries.test.js:
+{"seed":0,"initialHash":"f49da5e5da9b2f7cc668435b725a6e266bb2dbb3aff52d1b71dce6fd249aa850","baselineHash":"c8dbfeef6bbd045eb32a119ec470eb4f6bcd7d505718b8f4be052c961a335b6d","firstPhysicalMonth":16,"homes":{"baseline":36,"plan":60,"delta":24,"unit":"homes","status":"available","missing":[]},"capital":{"baseline":0,"plan":1000000,"delta":1000000,"unit":"USD cumulative","status":"available","missing":[]},"travel":{"baseline":15.000006527999998,"plan":15.000021176888891,"delta":0.00001464888889302074,"unit":"minutes/link","status":"available","missing":[]}}
+(pass) persisted boundary seed 0 retains exact horizon and original [5656.40ms]
+{"seed":4294967295,"initialHash":"643d4b0396befbef4e24a09ec3fd061739ff5d591a4e45072ae657b7b13451b9","baselineHash":"acc26d52682a6f489ba566c67e52a60b1e6faa4a552f2925e49036f9704de5e9","firstPhysicalMonth":16,"homes":{"baseline":36,"plan":60,"delta":24,"unit":"homes","status":"available","missing":[]},"capital":{"baseline":0,"plan":1000000,"delta":1000000,"unit":"USD cumulative","status":"available","missing":[]},"travel":{"baseline":15.000081699555556,"plan":15.000378816000001,"delta":0.000297116444444967,"unit":"minutes/link","status":"available","missing":[]}}
+(pass) persisted boundary seed 4294967295 retains exact horizon and original [7208.35ms]
+(pass) reject stale saved identity and stale creation recipe before replay [7.18ms]
+(pass) bad saved generator, versions and mismatched replay states fail explicitly [1713.04ms]
+(pass) abort polling or delayed replay cannot leak stale results into retry [2557.24ms]
+
+test/future-machine-effects.test.js:
+(pass) only explicit recorded changes animate; selection can glow without animation [2.36ms]
+(pass) same-identity recorded height transition is smooth, ground anchored and finite [0.30ms]
+(pass) reduced motion and ghosts never animate; no height tween without changed evidence [0.31ms]
+(pass) material arrays are isolated and disposed once; original materials remain owned by stage [0.80ms]
+(pass) flat and structured diffs preserve exact collection keys and partial valid evidence [0.26ms]
+Effects verified model stop: {"month":16,"entity":{"collection":"buildings","id":"building-project-policy-1-0"}}
+(pass) fixed seed actual monthly model yields +24 homes and first mapped physical stop [1058.45ms]
+
+test/future-machine-canvas.test.js:
+(pass) pure projection helpers preserve exact identities and recorded month [0.93ms]
+(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.86ms]
+(pass) fit handles empty data and sourced footprints, mode is bounded [0.45ms]
+(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [3.25ms]
+(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [2.33ms]
+(pass) cancel, lost capture, right click and distant release never select or poison camera [0.69ms]
+(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [7.83ms]
+(pass) context and initial draw exceptions release every owned node and listener [0.97ms]
+
+test/future-machine-ui.test.js:
+(pass) shared calendar includes exact Month 0 and Month 120 [62.11ms]
+(pass) timeline clamps invalid and out of range input [0.15ms]
+(pass) measurements preserve zero and units, never coerce missing data to zero [1.09ms]
+(pass) metrics use matched A/B values, explicit unavailable, and no invented delta [0.42ms]
+(pass) metric direction does not invent welfare, and tiny nonzero values survive formatting [0.18ms]
+(pass) household rent and burden require an exact reciprocal occupied-unit identity [4.11ms]
+(skip) Chromium controls, loading, failure, keyboard, mobile and cleanup
+
+test/future-machine-scene.test.js:
+(pass) Future Machine City scene projection > module imports without DOM or Three initialization [0.06ms]
+(pass) Future Machine City scene projection > zero difference and immutable source records [0.27ms]
+(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.13ms]
+(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.64ms]
+(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.08ms]
+(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.21ms]
+(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.21ms]
+(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.15ms]
+(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.06ms]
+
+test/future-machine-storage.test.js:
+(pass) City manifest, runs and share records survive close/reopen and an integrity-checked backup [340.39ms]
+
+test/building-lifecycle.test.js:
+(pass) building lifecycle and housing integration > same project seed reproduces every stored month and events, other seeds vary [10.66ms]
+(pass) building lifecycle and housing integration > stores full construction phases, rising floors, one completion, and occupancy [1.18ms]
+(pass) building lifecycle and housing integration > short builds retain every monthly phase and never mutate input proposals [1.61ms]
+(pass) building lifecycle and housing integration > proposed and cancelled projects have zero numerical effect; removal returns exact CRN baseline [4.84ms]
+(pass) building lifecycle and housing integration > projects reserve shared capacity and both mass and public costs reconcile [2.48ms]
+(pass) building lifecycle and housing integration > completion changes the housing market against systemic policy alone [2.01ms]
+(pass) building lifecycle and housing integration > independent project random streams and deterministic capacity shortage [0.65ms]
+(pass) building lifecycle and housing integration > seeded cancellation retains sunk costs without completed stock [1.10ms]
+(pass) building lifecycle and housing integration > timed stresses affect math only from their actual scheduled month [4.28ms]
+(pass) building lifecycle and housing integration > v1 resolver retains original numerical implementation and rejects new interventions [5.88ms]
+
+test/future-machine-backend.test.js:
+(pass) actual initialized native flag required; renderer type alone is insufficient [1.59ms]
+(pass) force GL, disabled preference and missing API never load GPU module [0.33ms]
+(pass) load and construction failures select truthful fallback [0.51ms]
+(pass) failed init cleans backend without resurrecting partial renderer [1.50ms]
+(pass) initialized failed candidates cannot block fallback with throwing async disposal [1.39ms]
+(pass) deadline bounds stalled init; late initialized resources are released again [8.82ms]
+(pass) late init rejection is consumed and cleaned; late module never constructs renderer [13.69ms]
+(pass) fallback failure propagates so host can retain Canvas/inventory fallback [0.25ms]
+(pass) invalid dependencies and unbounded deadlines fail explicitly [0.18ms]
+(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke
+
+test/future-machine-story.test.js:
+(pass) first divergence, structural significance and stable ordering [1.11ms]
+(pass) director never invents a location or accepts ambiguous/unproven geometry [0.42ms]
+(pass) receipts retain arm-scoped IDs, dependencies and payload without claiming cause [0.39ms]
+(pass) household observations match only exact monthly City IDs and preserve missingness [0.29ms]
+(pass) frozen story interface handles first, large, zero, missing months and selection [0.45ms]
+(pass) real City event history produces deterministic grounded stories [2.89ms]
+(pass) seed-matched 120-month City histories keep Month 0 and 120 and immutable input [621.73ms]
+(pass) renderer creates accessible jumps, literal evidence and disposes handlers [1.10ms]
+(pass) director deduplicates repeated policy additions and includes completed physical buildings [1.78ms]
+
+test/future-machine-scrub-identity.test.js:
+(pass) real City reverse scrub has no future structure at zero and preserves exact schematic IDs [1831.68ms]
+(pass) actual reverse scrub and split/difference preserve one Canvas camera and viewport scale [636.84ms]
+
+test/future-machine-diff.test.js:
+(pass) Future Machine stable-ID diff > zero differences ignore array and object insertion order and preserve inputs [5.91ms]
+(pass) Future Machine stable-ID diff > reports stable-ID additions and removals in both directions without array matches [1.15ms]
+(pass) Future Machine stable-ID diff > physical records distinguish floors from policies, zoning, rent and savings [0.76ms]
+(pass) Future Machine stable-ID diff > missing snapshots, collections and measurements are unavailable, not zero or removals [0.73ms]
+(pass) Future Machine stable-ID diff > missing physical attributes do not become building changes and field deletion is explicit [0.61ms]
+(pass) Future Machine stable-ID diff > snapshot metrics own cumulative spending and carry contract units [0.55ms]
+(pass) Future Machine stable-ID diff > household presence is exact City inventory, with unknown housing left unlocated [0.58ms]
+(pass) Future Machine stable-ID diff > rejects duplicate/missing IDs and mismatched clocks, seeds and model versions [1.43ms]
+(pass) Future Machine stable-ID diff > real matched 120-step engine histories preserve Month 0/120 and deterministic zero/nonzero results [1519.95ms]
+(pass) Future Machine stable-ID diff > sparse histories retain 121 explicit months and reject invalid initial or run metadata [4.21ms]
+(pass) flagship seed 42 first physical difference is Month 16 with 24 homes, not 24 buildings [1724.26ms]
+
+test/housing-fork.test.js:
+(pass) true monthly housing forks > no-op forks reproduce complete original numerical/history output [23.53ms]
+(pass) true monthly housing forks > parameter changes retain every prefix and existing projects' exact progress and risk draws [11.78ms]
+(pass) true monthly housing forks > adding a project after the branch reserves capacity and pays only forward costs [5.20ms]
+(pass) true monthly housing forks > cancelling in-progress work preserves sunk cost and does not erase history [2.54ms]
+(pass) true monthly housing forks > fork stress starts after branch and leaves scheduled stress once in place [2.47ms]
+(pass) true monthly housing forks > rejects state rewrites, geometry history changes, unapproved additions and completed-stock deletion [1.54ms]
+(pass) true monthly housing forks > retained1.1 is unchanged; latest no-op preserves old metric and project prefix [5.96ms]
+(pass) equation-backed numerical explanations > OAT uses actual paired reruns with retained inputs, seed and version [3.23ms]
+(pass) equation-backed numerical explanations > old recorded versions are resolved rather than reinterpreted [3.04ms]
+(pass) equation-backed numerical explanations > top five and residual are numerical and explicitly nonadditive [11.42ms]
+
+test/future-machine-data.test.js:
+Future Machine preset: 577 ms pair; 17060382 JSON bytes
+(pass) default pair has identical original Month 0, exact 120 steps and deterministic replay [1314.28ms]
+(pass) strict versions, missing inventory, horizon and frame boundaries [182.94ms]
+(pass) API adapter persists paired seeds, normalizes replay and handles cancellation/errors [732.83ms]
+Future Machine persisted API pair + replay: 1465 ms
+(pass) real City API persists and reopens the exact 120-month pair [1957.11ms]
+(pass) normalization preserves completion provenance and rejects a missing capital ledger [104.42ms]
+
+test/housing-model.test.js:
+(pass) housing model pack > complete scenario pack conforms to shared experiment contract [0.67ms]
+(pass) housing model pack > same seed reproduces all numerical outputs, other seeds vary [1.63ms]
+(pass) housing model pack > policy changes supply, rents and cost against current policy [0.41ms]
+(pass) housing model pack > stock and pipeline conservation and spending bounds hold [0.38ms]
+(pass) housing model pack > zero adoption preserves current-policy market dynamics and no policy spend [0.37ms]
+(pass) housing model pack > every registered parameter changes actual numerical dynamics [4.39ms]
+(pass) housing model pack > seven composable stresses survive uncertain inputs and are idempotent [0.51ms]
+(pass) housing model pack > rejects malformed parameters, invalid horizon and nonnumeric values [0.09ms]
+(pass) housing model pack > long horizons and extreme schema bounds remain finite [1.28ms]
+(pass) inspectable plan compilation > extracts target months and annual billions from hero plan [0.55ms]
+(pass) inspectable plan compilation > separates annual construction and voucher allocations [0.04ms]
+(pass) inspectable plan compilation > explicit construction funding leaves separate unspecified vouchers inspectable [0.04ms]
+(pass) inspectable plan compilation > separate mechanisms retain defaults without converting explicit lump sums [0.04ms]
+(pass) inspectable plan compilation > never treats unperiodized lump sums as annual appropriations [0.04ms]
+(pass) historical data and calibration boundaries > Houston diagnostic retains real published rows and excludes later observations from initialization [1.14ms]
+(pass) historical data and calibration boundaries > imports quoted CSV, records provenance, rejects missing dates and sentinel values [0.30ms]
+(pass) historical data and calibration boundaries > availability cutoff excludes future publications; no silent dollar conversion [0.04ms]
+(pass) historical data and calibration boundaries > Census array adapter maps actual field names and initializes only pre-cutoff inputs [0.08ms]
+(pass) historical data and calibration boundaries > reports actual descriptive error and held-out percentile [0.04ms]
+(pass) historical data and calibration boundaries > calibration excludes future observations before choosing a coefficient [0.36ms]
+
+test/future-machine-evidence-trail.test.js:
+(pass) actual City trail preserves exact arm/month/event and policy-project-unit relationships [245.26ms]
+(pass) no future evidence at Month 0 or 15, exact completion at 16, reverse inspection stable [0.70ms]
+(pass) missing event, inventory or exact policy reference stays unavailable [217.05ms]
+(pass) missing snapshots, wrong-version events and ordinary buildings never invent joins [54.93ms]
+
+test/building-renderer.test.js:
+(pass) stored construction rendering > converts square feet to world meters explicitly [0.04ms]
+(pass) stored construction rendering > replay reads latest stored state without future leakage or interpolation [0.08ms]
+(pass) stored construction rendering > missing project record remains a proposal rather than inventing construction [0.02ms]
+(pass) scenario-stratified rendering > all interleaved scenarios survive a 2000-future plotting budget [0.64ms]
+(pass) scenario-stratified rendering > a small completed scenario is never dropped in proportional sampling [0.24ms]
+(pass) detached visual previews > all building and visual operations accumulate without changing approved input [0.17ms]
+(pass) suggested parcels respect complete footprints and finite world bounds [1.66ms]
+(pass) physical metric mapping uses stored monthly snapshots without interpolating missing observations [0.06ms]
+
+test/future-machine-share.test.js:
+(pass) canonical bounded recipe roundtrips and does not mutate inputs [0.26ms]
+(pass) malformed, oversized, version mismatch and unsupported input links fail explicitly [0.13ms]
+(pass) share URL retains route and exact context on refresh, with or without saved records [0.60ms]
+(pass) missing, duplicate, malformed or mismatched context cannot silently select defaults [0.32ms]
+(pass) decoded recipe regenerates identical Month 0 and Month 120 with the real monthly engine [158.62ms]
+(pass) evidence preserves provenance, month and interpretation boundaries without mutating run [0.52ms]
+(pass) evidence export bounds and serialization failures are explicit [2.65ms]
+
+test/future-machine-construction-progress.test.js:
+(pass) pure observations preserve actual stages, work and units; identity is not completion [0.63ms]
+(pass) missing or invalid measurements remain unavailable; unknown models/types cannot assert building mapping [0.04ms]
+(pass) completed stage never invents missing building; missing observations fail explicitly [0.06ms]
+Recorded construction: {"stages":["permit","construction","completion"],"month15":{"collection":"projects","id":"project-policy-1-0","month":15,"type":"housing","stage":"construction","progress":11,"duration":12,"progressRatio":0.9166666666666666,"units":24,"housingProjectBuildingId":"building-project-policy-1-0","buildingPresent":false,"modelVersion":"city-systems.1.0.0"},"month16":{"collection":"projects","id":"project-policy-1-0","month":16,"type":"housing","stage":"completion","progress":12,"duration":12,"progressRatio":1,"units":24,"housingProjectBuildingId":"building-project-policy-1-0","buildingPresent":true,"modelVersion":"city-systems.1.0.0"}}
+(pass) real fixed-seed project work precedes month16 building, shares schematic slot, and reverses exactly [176.93ms]
+(pass) markers never substitute for completed/abandoned structures or invalid progress [0.08ms]
+
+test/future-machine-outcome-timeline.test.js:
+(pass) recorded series preserve identity, zero, exact deltas, gaps and source immutability [0.18ms]
+(pass) reject unsupported metrics, duplicate months and invalid horizons [0.07ms]
+(skip) renderer-independent outcome timeline works at 320px, keyboard and missing observations
+
+3 tests skipped:
+(skip) Chromium controls, loading, failure, keyboard, mobile and cleanup
+(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke
+(skip) renderer-independent outcome timeline works at 320px, keyboard and missing observations
+
+ 137 pass
+ 3 skip
+ 0 fail
+ 3605 expect() calls
+Ran 140 tests across 19 files. [30.77s]

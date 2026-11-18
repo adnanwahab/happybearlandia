@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore how one policy changes two matched Riverside City futures.">
+  <title>Future Split Theater · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/future-split/theater.css">
+  <link rel="stylesheet" href="/world/future-split/scene.css">
+  <link rel="stylesheet" href="/world/future-split/evidence.css">
+  <script type="module" src="/world/future-split/page.js"></script>
+</head>
+<body>
+  <header class="site-bar">
+    <a class="site-home" href="/">HappyBearLandia</a>
+    <a href="/world/invention/">City Invention Studio</a>
+  </header>
+  <main>
+    <header class="theater-header">
+      <p class="eyebrow">Riverside City · Synthetic simulation</p>
+      <h1>Future Split <em>Theater</em></h1>
+      <p>Two futures begin at the same checkpoint. Follow one policy through the city and inspect what changes month by month.</p>
+    </header>
+    <form class="compare-form" aria-label="Comparison settings">
+      <label>Future B policy<select name="policy"></select></label>
+      <label>Seed<input name="seed" type="number" min="0" max="4294967295" step="1" required></label>
+      <label>Months to simulate<input name="months" type="number" min="1" max="36" step="1" required></label>
+      <button type="submit">Compare futures</button>
+    </form>
+    <p class="run-status" role="status" aria-live="polite"></p>
+    <div id="comparison" hidden>
+      <div class="scene-heading">
+        <h2>City comparison</h2>
+        <span class="month-chip" id="current-month"></span>
+      </div>
+      <div id="scene"></div>
+      <section class="evidence-section" aria-labelledby="timeline-heading">
+        <div class="timeline-heading">
+          <h2 id="timeline-heading">Divergence timeline</h2>
+          <button type="button" id="timeline-play">Play timeline</button>
+        </div>
+        <div id="timeline"></div>
+      </section>
+      <section class="evidence-section" aria-labelledby="impact-heading">
+        <h2 id="impact-heading">Impact scorecard</h2>
+        <div id="impact"></div>
+      </section>
+      <section class="evidence-section" aria-labelledby="inspector-heading">
+        <h2 id="inspector-heading">Changed entity inspector</h2>
+        <div id="inspector"></div>
+      </section>
+      <details class="provenance">
+        <summary>Run provenance</summary>
+        <dl id="run-provenance"></dl>
+      </details>
+    </div>
+  </main>
+</body>
+</html>

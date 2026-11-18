@@ -6,7 +6,7 @@ const baseURL = 'http://127.0.0.1:' + port;
 export default defineConfig({
   testDir: './e2e',
   testMatch: ['release-journey.e2e.js', 'universe-shell.e2e.js',
-    'living-city.e2e.js', 'bakery-mystery.e2e.js', 'discoveries-atlas.e2e.js'],
+    'living-city.e2e.js', 'bakery-mystery.e2e.js', 'discoveries-atlas.e2e.js', 'future-split.e2e.js'],
   workers: 1,
   timeout: 90000,
   expect: { timeout: 15000 },

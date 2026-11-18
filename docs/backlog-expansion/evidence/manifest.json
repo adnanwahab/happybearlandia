@@ -1,0 +1,240 @@
+{
+  "integrationRevision": "c21cd60578efaf316ea775698af5f646fb50a3b1",
+  "artifacts": [
+    {
+      "artifact": "docs/backlog-expansion/evidence/comparison-320.png",
+      "source": "/tmp/hbl-backlog-comparison-proof/backlog-comparison.browser-f1d23--paired-traces-and-reverses/housing-320-month-42.png",
+      "sha256": "15781b62a5b78773226703952acb44481e5457fced9971795a073c5989afbfc1",
+      "bytes": 48296,
+      "evidence": "actual running app or actual recorded model provenance; not empirical calibration"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/comparison-records.json",
+      "source": "/tmp/hbl-backlog-comparison-proof/backlog-comparison.browser-f1d23--paired-traces-and-reverses/actual-housing-records.json",
+      "sha256": "0e9baacb45bbabd415f5ce5ca94f7479ea7b824e5c39ffa5c99bcfb3e9aa1447",
+      "bytes": 4437428,
+      "evidence": "actual running app or actual recorded model provenance; not empirical calibration"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/flagship-records.json",
+      "source": "/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia/test-results/future-machine/future-machine.e2e.js-fork-2b0af-tched-monthly-City-evidence/future-machine-evidence.json",
+      "sha256": "dba514c93c48e817ef72632003040fd9dfb5c228080553e5f24e68d94805ac8f",
+      "bytes": 289979,
+      "evidence": "actual running app or actual recorded model provenance; not empirical calibration"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/fork-presentation.png",
+      "source": "/Users/wahabma/.codex/worktrees/presentation-effects/happybearlandia/test-results/backlog-presentation-effec-a5f6b-ivergence-with-cancellation/recorded-fork-divergence.png",
+      "sha256": "1297e8eb54e9a3a8931131c7e982851c2d078f7327d1d8ef192b17b6e2026741",
+      "bytes": 106914,
+      "evidence": "actual running app or actual recorded model provenance; not empirical calibration"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/factorial.png",
+      "source": "/tmp/hbl-statistics-full-audited/backlog-statistics.browser-71d73-actor-report-and-provenance/statistics-production.png",
+      "sha256": "f5f31aab2716003b8ad85ef0d6c95ce0583753e9b4888cef7ad44d91a42e925d",
+      "bytes": 147334,
+      "evidence": "actual production-route evidence; source revisions and synthetic model limits in track handoff/provenance"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/factorial-provenance.json",
+      "source": "/tmp/hbl-statistics-full-audited/backlog-statistics.browser-71d73-actor-report-and-provenance/statistics-production-provenance.json",
+      "sha256": "f09db53793c927fe574379982d377f541c705b9f051dd63b1f5994d7b1f01524",
+      "bytes": 7844,
+      "evidence": "actual production-route evidence; source revisions and synthetic model limits in track handoff/provenance"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/pdp.png",
+      "source": "/tmp/hbl-statistics-full-audited/backlog-statistics.browser-c0c8c--actual-numerical-PDP-chart/statistics-pdp.png",
+      "sha256": "a3317532d979843cbe14eefc6553581d05ba0023023b819da6862538d8d41f55",
+      "bytes": 134773,
+      "evidence": "actual production-route evidence; source revisions and synthetic model limits in track handoff/provenance"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/pdp-values.json",
+      "source": "/tmp/hbl-statistics-full-audited/backlog-statistics.browser-c0c8c--actual-numerical-PDP-chart/statistics-pdp-values.json",
+      "sha256": "f2b7fb5c2cf0ae81644d7b5fb45b3374105d306d5c021d9a921823a85a219914",
+      "bytes": 38826,
+      "evidence": "actual production-route evidence; source revisions and synthetic model limits in track handoff/provenance"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/checkpoint-ui.png",
+      "source": "/private/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-replay-browser-Ze0drP/artifacts/backlog-replay-normal.e2e.-b5d30-nd-invalidates-stale-source/normal-checkpoint-nested-resume.png",
+      "sha256": "722e6cad5f8a4d3632f738e39ea39be3867b271fbf906d4c28300d2e26a7d950",
+      "bytes": 309700,
+      "evidence": "actual production-route evidence; source revisions and synthetic model limits in track handoff/provenance"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/checkpoint-provenance.json",
+      "source": "/private/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-replay-browser-Ze0drP/artifacts/backlog-replay-normal.e2e.-b5d30-nd-invalidates-stale-source/normal-checkpoint-provenance.json",
+      "sha256": "b411e0d3f3eeeaaacd6c0612be005361355fdb9add0274619f080d66677f4aaf",
+      "bytes": 1781,
+      "evidence": "actual production-route evidence; source revisions and synthetic model limits in track handoff/provenance"
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/backlog-checks.txt",
+      "source": "/tmp/hbl-final-backlog.log",
+      "sha256": "f22e5afa970d52d0d3fc9bf3e78838c2a1dbd643c0989760b8fb9a571c17a1e2",
+      "bytes": 9621
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/model-renderer-checks.txt",
+      "source": "/tmp/hbl-final-model-renderer.log",
+      "sha256": "a4434e50cba4277e1fd5d08d4861eb31cfeaaea3125e5fc48e6b6903f608c808",
+      "bytes": 18108
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/decision-checks.txt",
+      "source": "/tmp/hbl-decision-final.log",
+      "sha256": "0bf5a11a2ab2fcaaff63f22d5c9b00bd147c357e7b67dea2e768030ff611ee23",
+      "bytes": 7167
+    },
+    {
+      "artifact": "docs/backlog-expansion/evidence/advanced-checks.txt",
+      "source": "/tmp/hbl-advanced-final.log",
+      "sha256": "10a6e859bc5bd776f113f7b6141df18f5eb154ebe5a19deea0f70c634db935d1",
+      "bytes": 5816
+    }
+  ],
+  "notes": "Individual source revision/run identities remain in provenance JSON and track handoffs. Screenshots are selected evidence, not all198-ticket acceptance.",
+  "retainedDemoQueue": {
+    "source": "docs/demo-backlog.md",
+    "sha256": "8d8eba0e39a6af7dc2a59cc518926f08f633b11db93df5cda5a38963f6a1b700",
+    "items": [
+      {
+        "id": "R01",
+        "inheritedStatus": "P0 / M / VERIFIED"
+      },
+      {
+        "id": "R02",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "R03",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "R04",
+        "inheritedStatus": "P0 / S / VERIFIED"
+      },
+      {
+        "id": "R05",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "R06",
+        "inheritedStatus": "P0 / M / VERIFIED"
+      },
+      {
+        "id": "R07",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "R08",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "R09",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "R10",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "R11",
+        "inheritedStatus": "P0 / S / VERIFIED"
+      },
+      {
+        "id": "R12",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "U01",
+        "inheritedStatus": "P1 / S / UPCOMING"
+      },
+      {
+        "id": "U02",
+        "inheritedStatus": "P1 / S / UPCOMING"
+      },
+      {
+        "id": "U03",
+        "inheritedStatus": "P1 / S / READY"
+      },
+      {
+        "id": "U04",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "U05",
+        "inheritedStatus": "P1 / S / UPCOMING"
+      },
+      {
+        "id": "U06",
+        "inheritedStatus": "P1 / S / UPCOMING"
+      },
+      {
+        "id": "U07",
+        "inheritedStatus": "P1 / S / READY"
+      },
+      {
+        "id": "U08",
+        "inheritedStatus": "P1 / S / READY"
+      },
+      {
+        "id": "U09",
+        "inheritedStatus": "P1 / S / VERIFIED"
+      },
+      {
+        "id": "U10",
+        "inheritedStatus": "P2 / S / READY"
+      },
+      {
+        "id": "U11",
+        "inheritedStatus": "P1 / S / RUNNING"
+      },
+      {
+        "id": "U12",
+        "inheritedStatus": "P1 / S / RUNNING"
+      },
+      {
+        "id": "U13",
+        "inheritedStatus": "P2 / S / VERIFIED"
+      },
+      {
+        "id": "U14",
+        "inheritedStatus": "P2 / S / READY"
+      },
+      {
+        "id": "U15",
+        "inheritedStatus": "P1 / S / UPCOMING"
+      },
+      {
+        "id": "U16",
+        "inheritedStatus": "P0 / S / UPCOMING"
+      },
+      {
+        "id": "D01",
+        "inheritedStatus": "P0 / M / VERIFIED"
+      },
+      {
+        "id": "D02",
+        "inheritedStatus": "P1 / M / VERIFIED"
+      },
+      {
+        "id": "D03",
+        "inheritedStatus": "P1 / M / VERIFIED"
+      },
+      {
+        "id": "D04",
+        "inheritedStatus": "P1 / M / VERIFIED"
+      },
+      {
+        "id": "D05",
+        "inheritedStatus": "P0 / M / VERIFIED"
+      }
+    ],
+    "alias": "D03 and U07 are the same construction task;33 distinct items across34 row IDs",
+    "claim": "Preserved finalized source evidence/status; not every inherited upcoming item is claimed newly complete."
+  }
+}

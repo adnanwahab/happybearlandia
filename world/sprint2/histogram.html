@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>100-Future Outcome Histogram · HappyBearLandia</title>
+  <link rel="stylesheet" href="./histogram.css">
+  <script type="module" src="./histogram.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <nav aria-label="Breadcrumb"><a href="/world">HappyBearLandia</a> / Evidence &amp; Futures</nav>
+      <h1>100-Future Outcome Histogram</h1>
+      <p class="intro">How does adding transit capacity change one Riverside worker’s commute across 100 possible futures?</p>
+    </header>
+
+    <section aria-labelledby="experiment-heading" class="panel">
+      <h2 id="experiment-heading">The experiment</h2>
+      <p>Each pair starts from the same synthetic Living City state and shares a seed and any flood shock. One run follows the baseline. The other proposes adding 8 units of Riverside transit capacity at a modeled cost of $160,000.</p>
+      <p>We compare the worker’s recorded commute time in the final month of each 12-month run. Negative values mean a shorter commute with the proposal.</p>
+      <div class="controls">
+        <button type="button" id="run">Run 100 pairs</button>
+        <button type="button" id="cancel" hidden>Cancel</button>
+        <p id="status" role="status"></p>
+      </div>
+    </section>
+
+    <section aria-labelledby="results-heading" class="panel" id="results" hidden>
+      <h2 id="results-heading">Commute outcomes</h2>
+      <p id="coverage"></p>
+      <dl class="stats" id="stats"></dl>
+      <table id="histogram" hidden>
+        <caption>Final-month change in commute time (intervention minus baseline)</caption>
+        <thead><tr><th scope="col">Change (minutes)</th><th scope="col" class="count">Pairs</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <details id="missing" hidden>
+        <summary>View pairs with missing commutes</summary>
+        <ul></ul>
+      </details>
+      <p class="method" id="method"></p>
+    </section>
+  </main>
+</body>
+</html>
