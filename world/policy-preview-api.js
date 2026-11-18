@@ -9,6 +9,7 @@ import {deriveSeed} from './world-generator.js';
 import {normalizeDearCongressPlan} from './constitution-city/plan.js';
 import {normalizeConstitutionRequest,simulateConstitutionCity,CONSTITUTION_RUNTIME_VERSION} from './constitution-city/runtime-core.js';
 import {validatePolicyPreview,previewParameterDiff,policyHash,POLICY_MAPPING_VERSION} from './policy-preview-contract.js';
+import {projectRuns,summarize,integerQuery,validateQuery,SUMMARY_MAX_BYTES,PAGE_MAX_BYTES} from './policy-preview-summary.js';
 const copy=value=>structuredClone(value);
 const headers={'cache-control':'no-store','x-content-type-options':'nosniff'};
 const json=(body,status=200)=>Response.json(body,{status,headers});
@@ -18,10 +19,13 @@ export function createPolicyPreviewHandler({directory,token,canonicalOrigin,maxR
  const origin=new URL(canonicalOrigin);if(!['http:','https:'].includes(origin.protocol)||origin.username||origin.password||origin.pathname!=='/'||origin.search||origin.hash)throw new Error('Invalid canonicalOrigin');
  mkdirSync(directory,{recursive:true});
  const records=new Map(),active=new Set(),manager=new RunJobManager({maxRunning,maxQueued});
- const save=record=>{const file=join(directory,`${record.id}.json`);writeFileSync(`${file}.tmp`,JSON.stringify(record),{mode:0o600});renameSync(`${file}.tmp`,file);};
- for(const name of readdirSync(directory)){if(!/^pp_[a-f0-9]{64}\.json$/.test(name))continue;const record=JSON.parse(readFileSync(join(directory,name),'utf8'));records.set(record.id,record);}
+ const load=record=>record.runs?record:JSON.parse(readFileSync(join(directory,`${record.id}.json`),'utf8'));
+ const index=record=>{const {runs,...metadata}=record;return {...metadata,projection:projectRuns(record)};};
+ const save=record=>{const file=join(directory,`${record.id}.json`);writeFileSync(`${file}.tmp`,JSON.stringify(record),{mode:0o600});renameSync(`${file}.tmp`,file);records.set(record.id,index(record));};
+ for(const name of readdirSync(directory)){if(!/^pp_[a-f0-9]{64}\.json$/.test(name))continue;const record=JSON.parse(readFileSync(join(directory,name),'utf8'));records.set(record.id,index(record));}
  const publicRecord=record=>({id:record.id,url:record.url,supportStatus:record.supportStatus,job:copy(record.job)});
  function schedule(record){
+  record=load(record);
   if(active.has(record.id)||record.job.status==='completed')return;
   if(record.modelVersion!==modelVersion){record.job.status='unavailable';record.job.error='Pinned model version unavailable; retained results remain readable';save(record);return;}
   const pending=Array.from({length:record.input.simulation.runs},(_,runIndex)=>runIndex).filter(index=>record.runs[index]?.status!=='completed'&&(record.runs[index]?.attempts||0)<3);
@@ -61,7 +65,8 @@ export function createPolicyPreviewHandler({directory,token,canonicalOrigin,maxR
    if(request.method==='POST'){
     if(!authorized(request))return json({error:'Server integration authentication required'},401);
     if(parts.length===4&&parts[3]==='retry'){
-     const record=records.get(parts[2]);if(!record)return json({error:'Preview unavailable'},404);
+     let record=records.get(parts[2]);if(!record)return json({error:'Preview unavailable'},404);
+     record=load(record);
      if(record.modelVersion!==modelVersion)return json({error:'Pinned model unavailable'},409);
      if(!active.has(record.id)&&record.runs.some(row=>row?.status==='failed'&&row.attempts<3)){record.job.status='queued';schedule(record);}
      return json(publicRecord(record),202);
@@ -87,15 +92,32 @@ export function createPolicyPreviewHandler({directory,token,canonicalOrigin,maxR
     const runtimeManifest=normalizeConstitutionRequest({initial:createCity({households:3,seed:42}),plan,scenarios:[{id:'baseline',label:input.baseline.label,clauseIds:baselineIds},{id:'proposal',label:input.source.title.slice(0,200),clauseIds:proposalIds}],...input.simulation});
     const checkpointMonths=[...new Set([0,...[12,24].filter(month=>month<input.simulation.months),input.simulation.months])];
     const record={id,url:`${origin.origin}/world/impact?preview=${id}`,input,modelVersion,mappingVersion:POLICY_MAPPING_VERSION,parameterDiff,supportStatus:supported===input.legal.clauses.length?'supported':supported?'partial':'unavailable',runtimeManifest,checkpointMonths,createdAt:new Date().toISOString(),runs:[],job:{status:'queued',completed:0,failed:0,total:input.simulation.runs},uncertainty:{synthetic:true,predictive:false,description:'Synthetic scenario outputs, not verified real-world forecasts. Seed spread is model variability, not calibrated confidence.',baseline:input.baseline.kind==='current-law'?'Publisher-declared current law; enactment unverified.':'Prior proposal version; not asserted to be enacted law.',unavailableMetrics:['legal validity','evictions','real-world causal effects'],assumptions:runtimeManifest.assumptions}};
-    save(record);records.set(id,record);setTimeout(()=>schedule(record),0);return json(publicRecord(record),202);
+    save(record);setTimeout(()=>schedule(record),0);return json(publicRecord(record),202);
    }
-   if(request.method!=='GET'||parts.length<3||parts.length>4||parts.length===4&&parts[3]!=='results')return json({error:'Unsupported preview operation'},405);
+   if(request.method!=='GET'||parts.length<3||parts.length>4||parts.length===4&&!['results','summary'].includes(parts[3]))return json({error:'Unsupported preview operation'},405);
    const record=records.get(parts[2]);if(!record)return json({error:'Preview unavailable'},404);
-   if(parts[3]==='results'){
-    let runs=record.runs.filter(Boolean);if(url.searchParams.has('runIndex')){const raw=url.searchParams.get('runIndex');if(!/^\d{1,3}$/.test(raw)||Number(raw)>=record.job.total)return json({error:'Invalid runIndex'},400);runs=runs.filter(row=>row.runIndex===Number(raw));}
-    return json({id:record.id,job:record.job,runs,checkpointMonths:record.checkpointMonths,uncertainty:record.uncertainty});
+   if(parts[3]==='summary'){
+    validateQuery(url.searchParams,['month','offset','limit']);
+    const month=integerQuery(url.searchParams,'month',record.input.simulation.months,record.input.simulation.months),offset=integerQuery(url.searchParams,'offset',0,record.job.total),limit=integerQuery(url.searchParams,'limit',20,100);
+    if(!limit)return json({error:'Invalid limit'},400);
+    const body=JSON.stringify(summarize(record,{month,offset,limit}));
+    if(Buffer.byteLength(body)>SUMMARY_MAX_BYTES)return json({error:'Summary response byte limit exceeded; reduce limit'},413);
+    return new Response(body,{headers:{...headers,'content-type':'application/json'}});
    }
-   const {runs,...manifest}=record;return json(manifest);
+   if(parts[3]==='results'){
+    validateQuery(url.searchParams,['runIndex','offset','limit']);
+    const paged=url.searchParams.has('offset')||url.searchParams.has('limit');
+    if(paged&&url.searchParams.has('runIndex'))return json({error:'runIndex cannot be combined with pagination'},400);
+    const offset=integerQuery(url.searchParams,'offset',0,record.job.total),limit=integerQuery(url.searchParams,'limit',1,5);
+    if(!limit)return json({error:'Invalid limit'},400);
+    let runs=load(record).runs.filter(Boolean);if(url.searchParams.has('runIndex')){const runIndex=integerQuery(url.searchParams,'runIndex',0,record.job.total-1);runs=runs.filter(row=>row.runIndex===runIndex);}
+    if(paged)runs=runs.filter(row=>row.runIndex>=offset&&row.runIndex<offset+limit);
+    const body={id:record.id,job:record.job,runs,checkpointMonths:record.checkpointMonths,uncertainty:record.uncertainty,...(paged?{page:{offset,limit,total:record.job.total,nextOffset:offset+limit<record.job.total?offset+limit:null},runIds:runs.map(row=>({runIndex:row.runIndex,runId:`${record.id}:pair:${row.runIndex}`}))}:{})};
+    if(paged&&Buffer.byteLength(JSON.stringify(body))>PAGE_MAX_BYTES)return json({error:'Results page byte limit exceeded; reduce limit or use runIndex'},413);
+    return json(body);
+   }
+   validateQuery(url.searchParams,[]);
+   const {runs,projection,...manifest}=record;return json(manifest);
   }catch(error){return json({error:error.status&&error.status<500?error.message:error instanceof SyntaxError?'Invalid JSON body':'Preview unavailable'},error.status|| (error instanceof SyntaxError?400:500));}
  };
 }

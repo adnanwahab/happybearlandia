@@ -112,3 +112,78 @@ unavailable state while the recorded text and metrics remain inspectable.
 Storage is a single-server-process file-backed store. Run one writer process per
 preview directory and retain that directory on durable storage; multi-process
 queue coordination, archival and result pagination are outside this increment.
+
+## Bounded summary API (SHE-1041 / SHE-1042 handoff)
+
+`GET /api/policy-previews/:id/summary?month=24&offset=0&limit=20`
+returns `policy-impact-summary.v1`. The submission schema remains
+`policy-impact-preview.v1`; no model rules or seed identities change.
+
+- `id`, `url`, `source` identity/hash, `supportStatus`, pinned `modelVersion`,
+  `mappingVersion`, root `seed`, `job` and `progress` are available while queued.
+- `recordedMonths` is the union of actual successful metric observation months;
+  `checkpointMonths` is the declared renderable state schedule. A queued job can
+  have no recorded months. Metric observations do not imply renderable states.
+- `month` defaults to the requested horizon and must be in 0..requested months.
+  `metricDefinitions` defines every projected City metric and its unit. In
+  particular `meanTravelMinutes` is the unweighted mean **link** time, not an
+  experienced household commute measure. Rent is the arithmetic mean over all
+  units. All money is synthetic.
+- `distributions[]` has `metricId` and baseline/proposal/delta statistics across
+  **all** successful pairs at that month, independent of pagination. Deltas are
+  proposal minus baseline within a pair. Count/missing, min, max, arithmetic
+  mean, and p05/median/p95 are included; quantiles use sorted index
+  `floor((count-1)*p)` without interpolation. Empty distributions have null values.
+  A pair lacking either finite metric value is excluded from all three statistics.
+- `pairs[]` includes `runIndex`, `runId` (`PREVIEW_ID:pair:INDEX`), derived `seed`,
+  status, attempts, optional recorded failure error, and `metrics`. Each metric
+  is `[baseline, proposal, proposalMinusBaseline]`, or null when unavailable.
+  Failed/pending pairs have null metrics; no synthetic replacement is added.
+  Retry preserves the ID and seed. `unsupported` retains mapping metadata for
+  unchanged/unavailable clauses. `uncertainty` retains assumptions and limits.
+- `page` contains `offset`, `limit`, `total`, and nullable `nextOffset`. Summary
+  defaults to 20 pairs, maximum 100. Offset indexes the requested pair slots,
+  including pending and failed slots; offset equal to total yields an empty page.
+
+`GET /api/policy-previews/:id/results?offset=0&limit=1` reads detailed recorded
+pairs lazily. Limit defaults to 1, maximum 5; page slots include missing pairs,
+so a page may contain no records while work is pending. The response retains
+existing fields and adds `page` and `runIds` mapping runIndex to the stable pair ID.
+The existing unpaginated `/results` and `/results?runIndex=N` retain their response
+shape and readable saved data. They are intentionally exempt from the new byte
+caps for compatibility. The bounded endpoints cap compact UTF-8 JSON bodies at
+512,000 bytes (summary) and 2,000,000 bytes (detailed page); oversize returns 413,
+never truncated JSON. Use smaller pages, or the legacy selected-pair read for an
+exceptionally large record. All reads use no-store and nosniff headers.
+
+Queries accept canonical unsigned decimal integers only. Unknown/duplicate keys,
+leading zeroes, signs, fractions, exponent notation, out-of-range values, zero
+limits, and combining `runIndex` with pagination return 400. Manifest GET accepts
+no query parameters. This tightens previously ignored invalid queries; ordinary
+legacy reads remain compatible.
+
+Storage stays single-writer, with the existing atomic per-preview JSON rename.
+Completed full results are no longer retained in the handler's catalog. On startup
+it scans saved JSON one record at a time and builds compact metric projections;
+full detail reads and job execution load a record on demand. Selected-pair reads
+still parse that preview's complete file; this does not introduce a per-pair file
+migration or a cross-process writer protocol. Startup/projection work, whole-record
+writes and full-detail reads remain proportional to saved data. Never run two
+writers against the directory. A process interruption can lose an unfinished pair;
+completed persisted pairs are retained and only unfinished eligible pairs resume.
+Atomic rename is not a power-loss/fsync durability guarantee.
+
+Checked-in `fly.toml` mounts `/data` and documents `--ha=false`, but does not set
+`HBL_POLICY_PREVIEW_DIR`; its `.data/policy-previews` default is outside that mount.
+An operator must verify a directory such as `/data/policy-previews` and one writer
+Machine before staging acceptance. No live configuration was inspected or changed.
+Deploy persistence, volume contents and singleton Machine count are **NOT RUN**.
+
+Reproduce the actual 100-pair/24-month local payload, parse and memory prototype:
+`bun --no-env-file scripts/benchmarks/policy-preview-results.js`. It uses the public
+demo fixture, root seed 42, and `deriveSeed(42, index)` for indices 0..99. Timings
+are in-process serialization/body-read/JSON parse, not network or service guarantees;
+heap/RSS deltas depend on allocator and GC behavior. First useful viewer render,
+actual wire/mobile timings and viewer consumption are **NOT RUN**, owned by SHE-1042.
+Human API acceptance must precede that dispatch. Cross-app staging/manual acceptance
+remains open under [SHE-1038](https://linear.app/shel-bernstein/issue/SHE-1038).
