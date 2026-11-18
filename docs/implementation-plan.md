@@ -101,7 +101,7 @@ synthetic mappings lack empirical calibration, storage/work needs explicit bound
 and current-law assertions need publisher evidence. No new simulation engine,
 deployment, production data mutation or automatic merge is authorized.
 
-Acceptance evidence: 13 preview/security/normal-server tests and 44 existing
+Acceptance evidence: 14 preview/security/normal-server tests and 44 existing
 runtime/mapping/analysis/civic/Experiment Lab contract tests pass; three new
 Playwright cases pass with 100 recorded pairs and exact month 0/12/24 selection.
 The two focused Constitution City and Experiment Lab browser regressions pass.

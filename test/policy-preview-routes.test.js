@@ -6,7 +6,7 @@ import {join} from 'node:path';
 test('normal server routes enforce preview auth and page-specific embedding policy',async()=>{
  const directory=await mkdtemp(join(tmpdir(),'hbl-policy-routes-'));
  const server=Bun.spawn([process.execPath,'--no-env-file','run','server.js'],{
-  env:{PATH:process.env.PATH,PORT:'0',HBL_WORLD_DB_PATH:':memory:',HBL_POLICY_PREVIEW_DIR:join(directory,'previews'),HBL_WORKFLOW_STORE_DIR:join(directory,'workflows'),HBL_CHECKPOINT_STORE_DIR:join(directory,'checkpoints'),HBL_JOURNAL_ROOT:join(directory,'journals'),DECISION_STORE_DIR:join(directory,'decision'),HBL_POLICY_PREVIEW_TOKEN:'route-test-only',HBL_POLICY_EMBED_ORIGINS:'https://civic.example,https://dear-congress.fly.dev',HBL_POLICY_PREVIEW_ORIGIN:'https://hbl.example',NODE_ENV:'test'},stdout:'pipe',stderr:'pipe'});
+  env:{PATH:process.env.PATH,PORT:'0',HBL_BIND_HOST:'127.0.0.1',HBL_WORLD_DB_PATH:':memory:',HBL_POLICY_PREVIEW_DIR:join(directory,'previews'),HBL_WORKFLOW_STORE_DIR:join(directory,'workflows'),HBL_CHECKPOINT_STORE_DIR:join(directory,'checkpoints'),HBL_JOURNAL_ROOT:join(directory,'journals'),DECISION_STORE_DIR:join(directory,'decision'),HBL_POLICY_PREVIEW_TOKEN:'route-test-only',HBL_POLICY_EMBED_ORIGINS:'https://civic.example,https://dear-congress.fly.dev',HBL_POLICY_PREVIEW_ORIGIN:'https://hbl.example',NODE_ENV:'test'},stdout:'pipe',stderr:'pipe'});
  const timeout=setTimeout(()=>server.kill(),10000);
  try{
   const reader=server.stdout.getReader(),decoder=new TextDecoder();let output='',port;

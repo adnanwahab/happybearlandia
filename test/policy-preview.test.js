@@ -63,3 +63,7 @@ test('saved version resolves original frozen preview across model upgrades unles
  const conflicting=fixture();conflicting.source.title='Changed metadata after upgrade';expect((await post(upgraded,conflicting)).status).toBe(409);
  const explicit=fixture();explicit.modelRunId='new-model-review';const fresh=await(await post(upgraded,explicit)).json();expect(fresh.id).not.toBe(created.id);await settle(upgraded,fresh.id);
 });
+
+test('maximum-length public titles and exact clause text remain valid runtime input',async()=>{
+ const value=fixture();value.source.title='H'.repeat(500);value.legal.clauses[0].afterText='Housing '.repeat(2500);value.source.contentHash=policyHash(value.legal);const {handler}=setup();const response=await post(handler,value);expect(response.status).toBe(202);const created=await response.json(),record=await settle(handler,created.id);expect(record.input.source.title).toBe(value.source.title);expect(record.input.legal.clauses[0].afterText).toBe(value.legal.clauses[0].afterText);expect(record.job.status).toBe('completed');
+});

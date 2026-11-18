@@ -51,7 +51,7 @@ The executable schema is [policy-preview.schema.json](../world/policy-preview.sc
 | `simulation` | `{seed, runs, months}`. Integer uint32 seed, 1–100 paired runs, 1–24 months. |
 | `modelRunId` | Optional explicit new-run identifier. Omit for the ordinary frozen saved-version workflow. |
 
-For `add`, `beforeText` is empty and `afterText` is nonempty. For `remove`, the reverse applies. For `modify`, both texts are nonempty. Clause IDs and mechanism IDs are distinct: the caller retains its own clause ID, while `sourcePolicyId` identifies an existing reviewed mechanism. Duplicate or conflicting mechanism declarations are rejected by validation. Use 1–32 clauses; exact clause text is bounded to 20,000 characters per side. Source URLs must be HTTP(S), have no embedded credentials, query or fragment. Unknown properties and invalid values are rejected; no coercion or natural-language parameter inference is performed.
+For `add`, `beforeText` is empty and `afterText` is nonempty. For `remove`, the reverse applies. For `modify`, both texts are nonempty. Clause IDs and mechanism IDs are distinct: the caller retains its own clause ID, while `sourcePolicyId` identifies an existing reviewed mechanism. Duplicate or conflicting mechanism declarations are rejected by validation. Use 1–32 clauses; exact clause text is bounded to 20,000 characters per side. Source URLs must be HTTP(S), have no embedded credentials, query or fragment. POST bodies are capped at 700,000 bytes. Unknown properties and invalid values are rejected; no coercion or natural-language parameter inference is performed.
 
 `source.contentHash` is lowercase SHA-256 hex over canonical UTF-8 JSON of the complete `legal` object. Canonicalization recursively sorts object keys alphabetically, preserves array order and exact string contents, and uses compact JSON separators. The fixture hash is `bcb6466a4803cc00cdba7102c4c4d2bc8925d09cb046737a314390af5421be8e`.
 
@@ -108,3 +108,7 @@ retain the runtime's latest 96 records per arm and disclose omissions; the graph
 does not reconstruct a missing causal chain. WebGPU availability follows the
 existing Constitution City renderer; an unsupported browser shows its renderer
 unavailable state while the recorded text and metrics remain inspectable.
+
+Storage is a single-server-process file-backed store. Run one writer process per
+preview directory and retain that directory on durable storage; multi-process
+queue coordination, archival and result pagination are outside this increment.
