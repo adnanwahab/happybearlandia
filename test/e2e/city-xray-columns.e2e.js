@@ -6,7 +6,7 @@ const route='/world/city-xray/columns-demo/index.html';
 for(const [name,width,height] of [['desktop',1440,1000],['mobile',390,844]]){
  test(`${name} noGPU accessible evidence and reduced motion`,async({page},info)=>{
   await page.setViewportSize({width,height});await page.emulateMedia({reducedMotion:'reduce'});const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>Object.defineProperty(navigator,'gpu',{value:undefined,configurable:true}));await page.goto(route);
-  await expect(page.locator('#status')).toContainText('NOT RUN');await expect(page.locator('tbody tr')).toHaveCount(544);await page.locator('#sample').focus();await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await expect(page.locator('#evidence')).toContainText('Missing');
+  await expect(page.locator('#status')).toContainText('NOT RUN');await expect(page.locator('tbody tr')).toHaveCount(544);await expect(page.locator('#evidence')).toContainText('0 synthetic-symbols');await page.getByRole('button',{name:'Next road',exact:true}).focus();await page.keyboard.press('Enter');await expect(page.locator('#evidence')).toContainText('Missing');await expect(page.locator('#sample')).toHaveValue('road:junction:0:0:junction:0:1');await page.getByRole('button',{name:'Previous road',exact:true}).focus();await page.keyboard.press('Space');await expect(page.locator('#evidence')).toContainText('0 synthetic-symbols');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);await page.screenshot({path:info.outputPath(`${name}-noGPU.png`),fullPage:true});
  });
  test(`${name} native GPU rendered columns and lifecycle`,async({page},info)=>{
