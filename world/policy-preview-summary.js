@@ -16,7 +16,7 @@ export const metricDefinitions=Object.entries({
 export function projectRuns(record){
  return Array.from({length:record.job.total},(_,runIndex)=>{
   const row=record.runs[runIndex];
-  return {runIndex,runId:`${record.id}:pair:${runIndex}`,seed:deriveSeed(record.input.simulation.seed,runIndex),status:row?.status||'pending',attempts:row?.attempts||0,...(row?.error?{error:row.error}:{}),months:row?.status==='completed'?Array.from({length:record.input.simulation.months+1},(_,month)=>{
+  return {runIndex,runId:`${record.id}:pair:${runIndex}`,seed:row?.seed??deriveSeed(record.input.simulation.seed,runIndex),status:row?.status||'pending',attempts:row?.attempts||0,...(row?.error?{error:row.error}:{}),months:row?.status==='completed'?Array.from({length:record.input.simulation.months+1},(_,month)=>{
    const a=row.baseline.metricsTimeline.find(r=>r.month===month)?.metrics,b=row.proposal.metricsTimeline.find(r=>r.month===month)?.metrics;
    return Object.fromEntries(metricDefinitions.map(({id})=>[id,Number.isFinite(a?.[id])&&Number.isFinite(b?.[id])?[a[id],b[id],b[id]-a[id]]:null]));
   }):[]};

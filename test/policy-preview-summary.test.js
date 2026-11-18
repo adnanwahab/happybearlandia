@@ -8,6 +8,17 @@ import {deriveSeed} from '../world/world-generator.js';
 const fixture=()=>({...JSON.parse(readFileSync(new URL('../world/policy-preview-demo.json',import.meta.url))),simulation:{seed:42,runs:3,months:2}});
 const get=(h,id,suffix='')=>h(new Request(`https://hbl.example/api/policy-previews/${id}${suffix}`));
 const post=(h,input,suffix='')=>h(new Request(`https://hbl.example/api/policy-previews${suffix}`,{method:'POST',headers:{authorization:'Bearer local-test'},body:JSON.stringify(input)}));
+test('summary preserves persisted historical seeds instead of rederiving them with current code',async()=>{
+ const {h,directory,config}=setup();try{
+ const {id}=await(await post(h,fixture())).json();await settle(h,id);
+ const file=join(directory,`${id}.json`),record=JSON.parse(readFileSync(file));
+ record.runs[0].seed=0;record.modelVersion='historical-model';writeFileSync(file,JSON.stringify(record));
+ const restarted=createPolicyPreviewHandler(config),summary=await(await get(restarted,id,'/summary')).json();
+ expect(summary.pairs[0].seed).toBe(0);
+ expect(summary.pairs[0].seed).toBe((await(await get(restarted,id,'/results?runIndex=0')).json()).runs[0].seed);
+ expect(summary.modelVersion).toBe('historical-model');
+ }finally{rmSync(directory,{recursive:true,force:true});}
+});
 async function settle(h,id){for(let i=0;i<1000;i++){const r=await(await get(h,id)).json();if(!['running','queued'].includes(r.job.status))return r;await Bun.sleep(5);}throw Error('timeout');}
 function setup(options={}){const directory=mkdtempSync(join(tmpdir(),'policy-summary-'));const config={directory,token:'local-test',canonicalOrigin:'https://hbl.example',...options};return{directory,config,h:createPolicyPreviewHandler(config)};}
 test('summary matches recorded paired values, stable identities, months, units and pages without states',async()=>{
