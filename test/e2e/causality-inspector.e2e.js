@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import {contextURL, DEFAULT_CONTEXT} from '../../world/universe/navigation.js';
 
 const runId = 'run:test:1';
 const source = {
@@ -213,7 +214,9 @@ for (const mobile of [false, true]) test(`returns through evidence checkpoints (
       ? { nodes: [source], edges: [], evidence: [], incomplete: true, reasons: ['missing-dependency'], missingIds: ['lost'] }
       : { nodes: [target, source], edges: [edge], evidence: [source] } });
   });
-  await page.goto(inspect(target) + '&entityId=entity:test:origin&tick=5');
+  await page.goto(contextURL('/world/causality/inspect.html', {
+    ...DEFAULT_CONTEXT, runId, tick: 5, entityId: 'entity:test:origin',
+  }) + '&targetId=' + encodeURIComponent(target.id));
   const origin = page.url();
   const select = page.getByRole('button', { name: 'Inspect Construction inputs' });
   if (mobile) await select.tap(); else await select.press('Enter');
