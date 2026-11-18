@@ -1,3 +1,5 @@
+import {mountCityXray} from './city-xray/app.js';
+const cityXray=new URLSearchParams(location.search).get('embed')==='1'?null:mountCityXray();
 import {cityViewURL} from './static-city-model.js';
 const params=new URLSearchParams(location.search);
 const cityLink=document.getElementById('city-view-link');if(cityLink)cityLink.href=cityViewURL(location.href,'requested');let leaving=false;
@@ -6,7 +8,7 @@ const preview=reason=>{window.addEventListener('pageswap',event=>{const pending=
 function showGameError(error){const loading=document.getElementById('loading');if(loading&&!loading.querySelector('button')){loading.replaceChildren();loading.setAttribute('role','alert');const message=document.createElement('p');message.textContent='The game could not start. Try again, or open the city view without simulation.';const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();const view=document.createElement('a');view.href=cityViewURL(location.href,'initialization');view.textContent='Open city view';loading.append(message,retry,view);}console.error('[world] Game initialization failed:',error);}
 async function start(){
  if(params.get('renderer')==='webgl2'){preview('requested');return;}
- if(!navigator.gpu){preview('unavailable');return;}
+ if(!navigator.gpu){cityXray?.setUnavailable('Native WebGPU unavailable');preview('unavailable');return;}
  let prepared,timer,expired=false;
  try{
   const{createWorldGPU}=await import('./world-gpu.js');const work=createWorldGPU({antialias:params.get('embed')!=='1'});work.then(value=>{if(expired||leaving)value.renderer.dispose();}).catch(()=>{});
