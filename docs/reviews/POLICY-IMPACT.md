@@ -46,3 +46,7 @@ all five focused Playwright cases passed again. The final preview boundary run
 passed 14 tests / 84 assertions, including a source-title/runtime-label length
 boundary discovered during review. One sandbox loopback bind attempt was rejected;
 the isolated route check passed with approved local-server permissions.
+
+`bun scripts/validate-models.mjs` also passed the published Houston housing-stock
+diagnostic and all 106 existing City deterministic replay/invariant cases.
+The model rules remain unchanged by this feature.
