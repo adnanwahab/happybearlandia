@@ -3,12 +3,11 @@
   "consumer": "SHE-1044",
   "acceptance": "Human acceptance open; SHE-1044 held on SHE-1032 and human acceptance SHE-1043; SHE-1038 remains open",
   "source": {
-    "testedHead": "2478049730b38b1c793ae6da0aadef00a860f144",
-    "sourceDirty": true,
+    "testedHead": "5a6a01abbee480132a30fe0cd47e1cfb0677c789",
+    "sourceDirty": false,
     "sourceFileHashes": {
-      "record.js": "57789b1e5013b085972629de81ec392a2f60cda541fcdc6799cd3a420d11ba7b",
-      "catalog.js": "62be95a6f089e70cfe0307f101a28647f46d08b6463d37bcce994be56f9fc54c",
-      "index.html": "aa14d6dd898fcfacf290ce91400e840cf056d6fea900c421c48ec62fb9a4e31a",
+      "record.js": "06332ce11c5fc25dcdd5ed5fc33cc2ce337ebeca8d6865a823a5635a6614d97b",
+      "index.html": "fab027533d6e1561aec91f53fd75bb2e2e2d88de309da196af2c24461004dc86",
       "catalog.json": "92741b923a2c890f86a619b5cf743c528f06901b71f0a48d0797ecf46d13095e",
       "housing.json": "73d1e9e455b45760bf4a81d63f1348c13416fa09e0c0fdc2b697d44950ee19c8",
       "drainage.json": "50719210e384a08853af3487afee919ce2bb23446e94c4c335dfaeb1b5fe6b8a",
