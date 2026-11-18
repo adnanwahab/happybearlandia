@@ -38,3 +38,22 @@ households, 120 monthly steps, housing amounts 1–100 and delay `(index * 7) % 
 for zero-based index 0–99. Other proposal fields retain DEFAULT_RECIPE. These
 inputs are synthetic assumptions, not sampled probabilities. The view reads unit
 inventory projections; it adds no social mechanism, RNG, clock or state authority.
+
+
+The [Policy Impact Explorer](../policy-impact-preview.md) freezes public legal
+versions over the existing Constitution City registry/runtime. It uses the same
+Monthly City IDs, integer-month clock and shared initial state for each paired
+seed. No agent rules change. The integration's declared initialization and
+intervention assumptions are synthetic: supported mechanism presence/absence,
+full compliance, no added delay and an illustrative USD 1,000 capital envelope
+per mechanism. `h_lots` authorizes +4 homes per modeled parcel, `f_drainage`
+adds +0.12 resilience when built, and `t_brt` adds +30 link capacity at one
+synthetic hub with the existing 0.8 travel-time multiplier on completion.
+Unknown clauses and wording-only edits do not infer new numeric effects. A
+removed authorization is compared from the common initial city, not by deleting
+built assets. Recorded metric rows are monthly; the viewer's renderable state
+checkpoints are month 0, month 12 when within the horizon and the terminal month.
+Only actual checkpoint states are displayed, and failed pairs remain missing.
+Seed spread is not calibrated real-world uncertainty. The versioned manifest and
+persisted results retain the replay basis; later model versions cannot silently
+reinterpret frozen results.

@@ -81,6 +81,43 @@ The emerging civilization roadmap depends on inspectable events and stable entit
 
 ## Housing policy vertical slice
 
+### Policy Impact Explorer (2026-11-18)
+
+Implemented on `codex/policy-impact-explorer`. Delivers a public-only, token-authenticated
+`policy-impact-preview.v1` submission through immutable storage, bounded existing
+RunJobManager execution and the existing Constitution City monthly model to
+`/world/impact?preview=ID`. The first accepted increment is an exact synthetic
+housing-clause diff with the reviewed `h_lots` adapter, 100 matched seeds,
+recorded checkpoint scrubbing, synchronized cities and inspectable evidence.
+Drainage/transit may use their existing reviewed mappings; arbitrary wording
+changes must never execute heuristic numeric effects.
+
+Prerequisites: frozen City initial state/model/runtime/mapping versions; exact
+proposal version identity; configured integration token and embedding origins.
+Acceptance: schema/auth/privacy/idempotency/failure/retry/persistence checks,
+recorded pair and checkpoint checks, focused browser flow and a captured demo;
+existing Constitution City and Experiment Lab regression checks. Material risks:
+synthetic mappings lack empirical calibration, storage/work needs explicit bounds,
+and current-law assertions need publisher evidence. No new simulation engine,
+deployment, production data mutation or automatic merge is authorized.
+
+Acceptance evidence: 14 preview/security/normal-server tests and 44 existing
+runtime/mapping/analysis/civic/Experiment Lab contract tests pass; three new
+Playwright cases pass with 100 recorded pairs and exact month 0/12/24 selection.
+The two focused Constitution City and Experiment Lab browser regressions pass.
+[Contract and request/response](policy-impact-preview.md),
+[review record](reviews/POLICY-IMPACT.md) and
+[browser capture](images/policy-impact-100-futures.png) retain the actual evidence.
+Model-upgrade resubmissions return the original frozen preview; only an explicit
+new `modelRunId` creates a new model run. The first slice intentionally caps
+horizons at 24 months with three synthetic households; calibrated forecasts,
+larger initial cities, complete event retention, finer recorded city checkpoints
+and lighter results pagination remain follow-on work. This is separate from the
+unresolved cross-model World/Worldline ten-year roadmap below.
+
+Review: [PR #558](https://github.com/adnanwahab/happybearlandia/pull/558).
+No merge or deployment performed.
+
 The next proposed cross-application milestone is the ten-year housing journey in the product design. The existing Decision Studio housing model and monthly City history are starting points. The checklist records the integration work and its acceptance gates.
 
 | Status | Task | Dependencies and acceptance |
