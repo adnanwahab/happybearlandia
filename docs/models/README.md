@@ -43,3 +43,9 @@ SHE-558: Tonight pantry cooking remains under World Population / House, using th
 existing recipe economy and relationship authorities. The linked Population
 submodel notes and evening contract describe its authored request selection;
 there is no additional independent model inventory row.
+
+Storm Commander (`world/storm/commander.js`) is a synthetic preparation/scoring
+wrapper around the existing heightfield hazard model, not an independent social
+ABM. Its seven-element [model contract](storm-commander.md) documents the new
+crew deadline and budget assumptions, exact building mapping, checkpoint and
+replay invariants. It does not change Population or City mechanisms.

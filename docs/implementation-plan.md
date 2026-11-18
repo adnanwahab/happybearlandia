@@ -115,6 +115,9 @@ larger initial cities, complete event retention, finer recorded city checkpoints
 and lighter results pagination remain follow-on work. This is separate from the
 unresolved cross-model World/Worldline ten-year roadmap below.
 
+Review: [PR #558](https://github.com/adnanwahab/happybearlandia/pull/558).
+No merge or deployment performed.
+
 The next proposed cross-application milestone is the ten-year housing journey in the product design. The existing Decision Studio housing model and monthly City history are starting points. The checklist records the integration work and its acceptance gates.
 
 | Status | Task | Dependencies and acceptance |

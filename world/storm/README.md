@@ -144,3 +144,26 @@ closed details stop animation. The renderer uses DOM/SVG, no GPU resources,
 assets, timers or requestAnimationFrame loop. Destroy removes its listener and
 all owned nodes and releases its frame; it is idempotent. Visual browser and
 physical consumer-device performance acceptance remain pending (see review).
+
+### Storm Commander (SHE-691)
+
+Choose **Storm Commander** at `/world/storm/` to open `commander.html`. The pinned
+synthetic scenario protects Center Apartments, River Court and South Flats using
+three drainage packages (two existing drain edits each). One crew has four
+abstract preparation shifts and 960,000 illustrative USD. Standard work costs
+240,000 / two shifts; express costs 360,000 / one shift. Jobs run in displayed
+order; late jobs cost money but install no drains. The authored demo is
+express/express/standard. All-standard leaves South Flats exposed.
+
+CPU-only matched arms preserve exact replay; the new surface does not change the
+existing GPU/worker storm page. Scoring uses existing flood thresholds and all
+recorded building-footprint frames. Playback shows recorded maxima in metres,
+with no invented intermediate state or real-world forecast. Full session-only
+checkpoints are frozen and inspectable. Replay verifies all recorded values;
+missing source, cancellation, solver errors and mismatch clear the score.
+
+See [model rules and invariants](../../docs/models/storm-commander.md).
+Run `bun test test/storm-commander.test.js` and
+`node node_modules/playwright/cli.js test --config test/storm-commander.browser.config.mjs`.
+Browser execution prerequisites and actual results are recorded in
+`docs/reviews/SHE-691.md`.

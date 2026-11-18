@@ -33,6 +33,10 @@ integration completed in 16.6 seconds for its three tests. Timing is local
 verification evidence, not a service-level guarantee. Final source and test
 artifacts are committed in this feature branch; the PR carries its final reference.
 
+Review request: [PR #558](https://github.com/adnanwahab/happybearlandia/pull/558).
+Current main's civic provider configuration is preserved alongside the new
+preview handler when integrating the server configuration conflict.
+
 ## Remaining limits
 
 Synthetic scenario outputs only; no current-law verification, legal judgment, empirical forecast, calibrated probabilities, hydraulic model, lane-level transit model, complete household accounting or unsupported constitutional effects. Only public content is accepted. Civic Synthesis framing requires the actual approved deployment origin in server configuration. No merge or deployment is performed.
