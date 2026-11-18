@@ -538,6 +538,7 @@ const server = serve({
     if (pathname.startsWith("/api/github/")) return await handleGitHub(request);
     if (/^\/github(?:\/pulls\/[1-9]\d{0,7}|\/previews\/[a-f0-9]{32})?\/?$/.test(pathname)) return serveFile("./web/github/index.html");
     if (pathname === "/github-client.js") return serveFile("./web/github/client.js");
+    if (pathname === "/privacy" || pathname === "/privacy/") return serveFile("./privacy.html");
     // Public landing page
     if (pathname === "/" || pathname === "/index.html") {
       return serveFile("./index.html");
