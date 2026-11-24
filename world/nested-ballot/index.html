@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nested Ballot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: compact hero with the five-scale ladder, then a working map + ballot/journal panel, then how votes roll up. Single dark cartographic theme by choice. */
+:root {
+  --ink: #0d131d;
+  --panel: #141c29;
+  --line: #253247;
+  --text: #e6ebf2;
+  --muted: #8d99ad;
+  --accent: #f0b54a;
+  --yes: #39c2ab;
+  --no: #e66f5a;
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ink); color: var(--text); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+a { color: var(--accent); }
+button, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+header.hero { padding: 40px 0 28px; display: grid; gap: 18px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 4.4vw, 52px); line-height: 1.04; margin: 0; max-width: 18ch; text-wrap: balance; letter-spacing: -0.01em; }
+.lede { color: var(--muted); max-width: 62ch; margin: 0; font-size: 17px; }
+
+.ladder { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+.rung { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 2px; text-align: left; transition: border-color .15s; }
+.rung:hover { border-color: var(--muted); }
+.rung.on { border-color: var(--accent); }
+.rung .n { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.rung .t { font-family: var(--display); font-size: 18px; font-weight: 500; }
+.rung .r { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.rung.locked { opacity: .45; cursor: default; }
+
+.app { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 16px; padding-bottom: 32px; }
+.mapbox { position: relative; min-height: 640px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background:
+  radial-gradient(ellipse at 50% 40%, #16233a 0%, var(--ink) 75%); }
+#map { position: absolute; inset: 0; }
+.maphud { position: absolute; left: 14px; top: 14px; right: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; pointer-events: none; }
+.maphud > * { pointer-events: auto; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; background: rgba(13,19,29,.82); border: 1px solid var(--line); border-radius: 999px; padding: 5px 8px; backdrop-filter: blur(6px); }
+.crumbs button { background: none; border: 0; padding: 2px 6px; border-radius: 999px; color: var(--muted); font-size: 13px; }
+.crumbs button:hover { color: var(--text); }
+.crumbs button.cur { color: var(--text); font-weight: 600; }
+.crumbs .sep { color: var(--line); font-size: 12px; }
+.up { background: rgba(13,19,29,.82); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; }
+.up:disabled { opacity: .4; cursor: default; }
+.legend { position: absolute; left: 14px; bottom: 14px; background: rgba(13,19,29,.82); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 12px; color: var(--muted); display: grid; gap: 6px; }
+.legend .bar { width: 180px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--no), #6b6f7a, var(--yes)); }
+.legend .ends { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; }
+.hint { position: absolute; right: 14px; bottom: 14px; font-size: 12px; color: var(--muted); background: rgba(13,19,29,.82); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+
+aside.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; min-height: 640px; max-height: 860px; overflow: hidden; }
+.sec { padding: 16px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
+.sec:last-child { border-bottom: 0; }
+.scroll { overflow-y: auto; flex: 1; }
+.where { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.where h2 { font-family: var(--display); font-size: 26px; font-weight: 700; margin: 0; line-height: 1.1; text-wrap: balance; }
+.pill { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); white-space: nowrap; }
+.label { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.q { font-size: 16px; font-weight: 500; margin: 0; text-wrap: pretty; }
+.tally { display: grid; gap: 6px; }
+.tbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--line); }
+.tbar .y { background: var(--yes); }
+.tbar .n { background: var(--no); }
+.tnums { display: flex; justify-content: space-between; font-size: 13px; font-variant-numeric: tabular-nums; }
+.tnums .y { color: var(--yes); } .tnums .n { color: var(--no); }
+.small { font-size: 12px; color: var(--muted); }
+.votes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.votes button { background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 8px 0; font-weight: 500; }
+.votes button:hover { border-color: var(--muted); }
+.votes button[aria-pressed="true"].vy { background: var(--yes); border-color: var(--yes); color: #062a24; }
+.votes button[aria-pressed="true"].vn { background: var(--no); border-color: var(--no); color: #2e0c06; }
+.votes button[aria-pressed="true"].va { background: var(--line); border-color: var(--muted); }
+
+.path { display: grid; gap: 4px; }
+.prow { display: grid; grid-template-columns: 96px 1fr auto; gap: 8px; font-size: 13px; align-items: center; }
+.prow .lv { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.prow .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip { font-family: var(--mono); font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.chip.yes { border-color: var(--yes); color: var(--yes); } .chip.no { border-color: var(--no); color: var(--no); }
+
+.subs { display: grid; gap: 2px; }
+.sub { display: grid; grid-template-columns: 1fr 70px 44px; gap: 10px; align-items: center; background: none; border: 0; border-radius: 8px; padding: 6px 8px; text-align: left; font-size: 13px; }
+.sub:hover, .sub.hov { background: #1b2536; }
+.sub .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub .mb { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.sub .mb i { display: block; height: 100%; }
+.sub .pc { font-variant-numeric: tabular-nums; text-align: right; color: var(--muted); font-size: 12px; }
+.sub .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 6px; vertical-align: middle; }
+
+.journal textarea { width: 100%; min-height: 84px; resize: vertical; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px; line-height: 1.45; }
+.jrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.btn { background: var(--accent); color: #2a1a00; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 600; }
+.btn:disabled { opacity: .45; cursor: default; }
+.entries { display: grid; gap: 10px; }
+.entry { border-left: 2px solid var(--line); padding: 2px 0 2px 10px; display: grid; gap: 3px; }
+.entry.mine { border-left-color: var(--accent); }
+.entry .meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.entry .meta button { background: none; border: 0; color: var(--muted); font-family: var(--mono); font-size: 11px; padding: 0; text-decoration: underline; }
+.entry p { margin: 0; font-size: 14px; }
+.empty { color: var(--muted); font-size: 13px; }
+
+section.how { padding: 24px 0 48px; display: grid; gap: 16px; border-top: 1px solid var(--line); }
+section.how h3 { font-family: var(--display); font-size: 24px; margin: 0; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.step { display: grid; gap: 6px; align-content: start; }
+.step .k { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.step p { margin: 0; color: var(--muted); max-width: 46ch; }
+.step b { color: var(--text); font-weight: 500; }
+footer { padding: 0 0 32px; color: var(--muted); font-size: 12px; }
+code { font-family: var(--mono); font-size: .92em; }
+
+@media (max-width: 960px) {
+  .app { grid-template-columns: 1fr; }
+  .mapbox { min-height: 460px; }
+  aside.panel { min-height: 0; max-height: none; }
+  .ladder { grid-template-columns: repeat(5, minmax(110px, 1fr)); overflow-x: auto; padding-bottom: 4px; }
+  .steps { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .wrap { padding: 0 16px; }
+  .hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Hierarchical voting · H3 hexagon regions</div>
+    <h1>Vote at every scale, from your block to the planet.</h1>
+    <p class="lede">Each level asks its own question. You vote where you live, write a journal entry about what you see, and both roll up through neighborhood, city and country so every layer can read the one below it.</p>
+    <nav class="ladder" id="ladder" aria-label="Scales"></nav>
+  </header>
+
+  <main class="app">
+    <div class="mapbox">
+      <div id="map" aria-label="Map of regions at the current scale"></div>
+      <div class="maphud">
+        <button class="up" id="up" type="button">↑ Up a level</button>
+        <div class="crumbs" id="crumbs"></div>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span id="legendQ">Support for this level's question</span>
+        <div class="bar"></div>
+        <div class="ends"><span>0% yes</span><span>50%</span><span>100% yes</span></div>
+      </div>
+      <div class="hint" id="hint">Click a region to go down a level</div>
+    </div>
+
+    <aside class="panel" aria-live="polite">
+      <div class="sec">
+        <div class="where"><h2 id="placeName">Earth</h2><span class="pill" id="levelPill">Global</span></div>
+        <div class="label" id="qLabel">Question at this level</div>
+        <p class="q" id="question"></p>
+        <div class="tally">
+          <div class="tbar"><div class="y" id="tY"></div><div class="n" id="tN"></div></div>
+          <div class="tnums"><span class="y" id="nY"></span><span class="small" id="nSrc"></span><span class="n" id="nN"></span></div>
+        </div>
+        <div class="votes" role="group" aria-label="Your vote">
+          <button type="button" class="vy" id="vYes" data-v="yes" aria-pressed="false">Yes</button>
+          <button type="button" class="vn" id="vNo" data-v="no" aria-pressed="false">No</button>
+          <button type="button" class="va" id="vAb" data-v="abstain" aria-pressed="false">Abstain</button>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="sec">
+          <div class="label">Your votes up this path</div>
+          <div class="path" id="path"></div>
+        </div>
+        <div class="sec" id="subsSec">
+          <div class="label" id="subsLabel">Sub-regions</div>
+          <div class="subs" id="subs"></div>
+        </div>
+        <div class="sec journal">
+          <div class="label" id="jLabel">Journal</div>
+          <label for="jText" class="small" id="jPrompt"></label>
+          <textarea id="jText" maxlength="1200" placeholder="Write what you see, need or want to change."></textarea>
+          <div class="jrow"><span class="small" id="jCount">0 / 1200</span><button class="btn" id="jAdd" type="button" disabled>Add entry</button></div>
+          <div class="entries" id="entries"></div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <section class="how">
+    <h3>How the layers talk to each other</h3>
+    <div class="steps">
+      <div class="step"><span class="k">01 · Regions are hexagons</span><p>Every region is a set of <b>H3 cells</b>. A country uses resolution-2 cells about 300 km across; a block uses resolution-8 or finer, a few hundred meters. Deck.gl's <code>H3ClusterLayer</code> merges each set into one outline.</p></div>
+      <div class="step"><span class="k">02 · Votes roll up</span><p>A city's tally for its question is the sum of what each neighborhood said. The map colors each sub-region by its own yes share, so you can see <b>where</b> support comes from before you read the total.</p></div>
+      <div class="step"><span class="k">03 · Journals roll up too</span><p>An entry you write on your block also appears in the neighborhood, city, country and global journals, tagged with where it came from. Higher levels read the ground truth; lower levels see what the wider question is.</p></div>
+    </div>
+  </section>
+  <footer>Prototype. Other residents' tallies and entries marked "Example" are illustrative. Your votes and journal entries stay in this browser only.</footer>
+</div>
+
+<script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"></script>
+<script src="https://unpkg.com/deck.gl@9.1.14/dist.min.js"></script>
+<script src="/world/nested-ballot/model.js"></script>
+<script>
+(function () {
+  const M = createModel(h3);
+  const RES_HINT = ['r2 · ~300 km', 'r5 · ~17 km', 'r7 · ~2.5 km', 'r8+ · ~900 m', 'finest'];
+  const RUNG_RES = ['whole planet', 'r2 · ~300 km cells', 'r5 · ~17 km cells', 'r7 · ~2.5 km cells', 'r8 · ~900 m cells'];
+
+  // ---- storage (this browser only) ----
+  const KEY = 'nested-ballot:v1';
+  let store = { votes: {}, journal: {} };
+  try { const s = localStorage.getItem(KEY); if (s) store = Object.assign(store, JSON.parse(s)); } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+
+  const EXAMPLES = [
+    { id: 'global', t: Date.parse('2026-11-12T15:20:00Z'), text: 'Heat is the one thing every country on this map has in common. Start the global question there.' },
+    { id: 'global/usa', t: Date.parse('2026-11-14T02:05:00Z'), text: 'Paid leave showed up in three different city journals this month. Feels like a national question, not a local one.' },
+    { id: 'global/usa/houston', t: Date.parse('2026-11-16T22:40:00Z'), text: 'Waited 38 minutes for a bus near the Energy Corridor. Frequency matters more than new routes.' },
+    { id: 'global/usa/houston/katy', t: Date.parse('2026-11-17T13:10:00Z'), text: 'Kids walk to school along a road with no sidewalk on one side. The vacant lot by the church could be shade and a garden.' }
+  ];
+
+  let current = M.ROOT;
+  let hoverId = null;
+
+  // ---- tallies ----
+  function tallyFor(node) {
+    const kids = M.childrenOf(node);
+    let yes = 0, no = 0;
+    if (kids.length) for (const k of kids) { const t = M.seededTally(k.id, node.id); yes += t.yes; no += t.no; }
+    else { const t = M.seededTally(node.id, node.id); yes = t.yes; no = t.no; }
+    const v = store.votes[node.id];
+    if (v === 'yes') yes++; if (v === 'no') no++;
+    return { yes, no, from: kids.length };
+  }
+  function share(t) { return t.yes + t.no ? t.yes / (t.yes + t.no) : 0.5; }
+  function mixColor(s) {
+    s = Math.max(0, Math.min(1, (s - 0.5) * 1.7 + 0.5));
+    const no = [230, 111, 90], mid = [107, 111, 122], yes = [57, 194, 171];
+    const a = s < 0.5 ? no : mid, b = s < 0.5 ? mid : yes, f = s < 0.5 ? s / 0.5 : (s - 0.5) / 0.5;
+    return a.map((c, i) => Math.round(c + (b[i] - c) * f));
+  }
+  const fmt = n => n.toLocaleString('en-US');
+
+  // ---- journal ----
+  function entriesUnder(node) {
+    const out = [];
+    const take = (id, e, mine) => { if (id === node.id || id.startsWith(node.id + '/')) out.push({ id, ...e, mine }); };
+    for (const [id, list] of Object.entries(store.journal)) for (const e of list) take(id, e, true);
+    for (const e of EXAMPLES) take(e.id, e, false);
+    return out.sort((a, b) => b.t - a.t);
+  }
+  function hasMineUnder(id) {
+    return Object.keys(store.journal).some(k => (k === id || k.startsWith(id + '/')) && store.journal[k].length);
+  }
+
+  // ---- map ----
+  const mapEl = document.getElementById('map');
+  const world = h3.getRes0Cells().filter(c => {
+    const b = h3.cellToBoundary(c); const lons = b.map(p => p[1]);
+    return Math.max(...lons) - Math.min(...lons) < 90 && !h3.isPentagon(c);
+  });
+  const ROOT_VIEW = { longitude: 15, latitude: 22, zoom: 0.9, pitch: 0, bearing: 0 };
+
+  const deckgl = new deck.Deck({
+    parent: mapEl,
+    initialViewState: ROOT_VIEW,
+    controller: { dragRotate: false },
+    getCursor: ({ isHovering }) => (isHovering ? 'pointer' : 'grab'),
+    getTooltip: ({ object, layer }) => {
+      if (!object || !layer || layer.id !== 'children') return null;
+      const t = M.seededTally(object.id, current.id); const s = share(t);
+      return { html: `<b>${esc(object.name)}</b><br>${Math.round(s * 100)}% yes · ${fmt(t.yes + t.no)} votes<br><span style="opacity:.7">${object.hexes.length} H3 cells · r${h3.getResolution(object.hexes[0])}</span>`,
+        style: { background: '#0d131d', color: '#e6ebf2', border: '1px solid #253247', borderRadius: '8px', fontFamily: 'IBM Plex Sans, system-ui', fontSize: '12px', padding: '8px 10px' } };
+    },
+    layers: []
+  });
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+  function viewFor(node) {
+    const kids = M.childrenOf(node);
+    const hexes = kids.length ? kids.flatMap(k => k.hexes) : node.hexes;
+    const w = mapEl.clientWidth || 800, h = mapEl.clientHeight || 600;
+    const vp = new deck.WebMercatorViewport({ width: w, height: h });
+    const pad = Math.max(20, Math.min(90, Math.min(w, h) * 0.14));
+    const { longitude, latitude, zoom } = vp.fitBounds(M.bounds(hexes), { padding: pad });
+    return { longitude, latitude, zoom: Math.min(zoom, 15), pitch: 0, bearing: 0 };
+  }
+
+  function renderMap(fly) {
+    const kids = M.childrenOf(current);
+    const kidData = kids.map(k => ({ ...k, _s: share(M.seededTally(k.id, current.id)) }));
+    const layers = [];
+    if (current.level <= 1) layers.push(new deck.H3HexagonLayer({
+      id: 'world', data: world, getHexagon: d => d, filled: true, stroked: true, extruded: false,
+      getFillColor: [30, 44, 66, current.level === 0 ? 90 : 40], getLineColor: [60, 80, 110, 60], lineWidthMinPixels: 1
+    }));
+    if (current !== M.ROOT) layers.push(new deck.H3ClusterLayer({
+      id: 'self', data: [current], getHexagons: d => d.hexes, stroked: true, filled: true,
+      getFillColor: kids.length ? [240, 181, 74, 14] : [240, 181, 74, 70], getLineColor: [240, 181, 74, 230], lineWidthMinPixels: 2
+    }));
+    if (current.level === 4) layers.push(new deck.H3HexagonLayer({
+      id: 'selfcells', data: current.hexes, getHexagon: d => d, filled: false, stroked: true, extruded: false,
+      getLineColor: [240, 181, 74, 120], lineWidthMinPixels: 1
+    }));
+    if (kids.length) {
+      layers.push(new deck.H3HexagonLayer({
+        id: 'grid', data: kids.flatMap(k => k.hexes), getHexagon: d => d, filled: false, stroked: true, extruded: false,
+        getLineColor: [230, 235, 242, 28], lineWidthMinPixels: 0.5
+      }));
+      layers.push(new deck.H3ClusterLayer({
+        id: 'children', data: kidData, getHexagons: d => d.hexes, pickable: true, stroked: true, filled: true,
+        getFillColor: d => [...mixColor(d._s), d.id === hoverId ? 235 : 165],
+        getLineColor: d => d.id === hoverId ? [255, 255, 255, 255] : [13, 19, 29, 255],
+        lineWidthMinPixels: 1.5,
+        updateTriggers: { getFillColor: [hoverId, current.id], getLineColor: [hoverId] },
+        onHover: ({ object }) => setHover(object ? object.id : null),
+        onClick: ({ object }) => object && go(object.id)
+      }));
+      layers.push(new deck.ScatterplotLayer({
+        id: 'mine', data: kids.filter(k => hasMineUnder(k.id)), getPosition: d => [d.center[1], d.center[0]],
+        getRadius: 5, radiusUnits: 'pixels', getFillColor: [240, 181, 74], getLineColor: [13, 19, 29], stroked: true, lineWidthMinPixels: 2,
+        getPixelOffset: [0, 0]
+      }));
+      layers.push(new deck.TextLayer({
+        id: 'labels', data: kidData, getPosition: d => [d.center[1], d.center[0]], getText: d => d.name,
+        getSize: 13, getColor: [240, 244, 250], getPixelOffset: [0, -14], fontFamily: 'IBM Plex Sans, system-ui, sans-serif', fontWeight: 600,
+        fontSettings: { sdf: true }, outlineWidth: 4, outlineColor: [13, 19, 29, 230], characterSet: 'auto',
+        extensions: [new deck.CollisionFilterExtension()], collisionGroup: 'labels', getCollisionPriority: d => d.hexes.length
+      }));
+    }
+    const props = { layers };
+    if (fly) props.initialViewState = { ...viewFor(current), transitionDuration: 900, transitionInterpolator: new deck.FlyToInterpolator() };
+    deckgl.setProps(props);
+  }
+
+  function setHover(id) {
+    if (id === hoverId) return;
+    hoverId = id;
+    renderMap(false);
+    document.querySelectorAll('.sub').forEach(el => el.classList.toggle('hov', el.dataset.id === id));
+  }
+
+  // ---- panel ----
+  const $ = id => document.getElementById(id);
+  function lineage(node) { const out = []; for (let n = node; n; n = n.parent) out.unshift(n); return out; }
+
+  function renderLadder() {
+    const line = lineage(current);
+    $('ladder').innerHTML = M.LEVELS.map((lv, i) => {
+      const n = line[i];
+      const cls = 'rung' + (i === current.level ? ' on' : '') + (n ? '' : ' locked');
+      return `<button type="button" class="${cls}" ${n ? `data-id="${esc(n.id)}"` : 'disabled aria-disabled="true"'}>
+        <span class="n">0${i + 1}</span><span class="t">${lv}</span><span class="r">${n ? esc(n.name) : RUNG_RES[i]}</span></button>`;
+    }).join('');
+  }
+
+  function renderPanel() {
+    const node = current, lv = M.LEVELS[node.level];
+    $('placeName').textContent = node.name;
+    $('levelPill').textContent = lv + (node.level ? ' · r' + h3.getResolution(node.hexes[0]) : '');
+    $('qLabel').textContent = lv + ' question';
+    $('question').textContent = M.QUESTIONS[node.level];
+    const t = tallyFor(node), s = share(t);
+    $('tY').style.width = (s * 100) + '%'; $('tN').style.width = ((1 - s) * 100) + '%';
+    $('nY').textContent = `Yes ${fmt(t.yes)} · ${Math.round(s * 100)}%`;
+    $('nN').textContent = `${Math.round((1 - s) * 100)}% · ${fmt(t.no)} No`;
+    $('nSrc').textContent = t.from ? `from ${t.from} ${M.LEVELS[node.level + 1].toLowerCase()} tallies` : 'votes on this block';
+    const mine = store.votes[node.id];
+    document.querySelectorAll('.votes button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === mine)));
+
+    $('path').innerHTML = lineage(node).map(n => {
+      const v = store.votes[n.id];
+      return `<div class="prow"><span class="lv">${M.LEVELS[n.level]}</span><span class="nm">${esc(n.name)}</span><span class="chip ${v || ''}">${v ? v : 'not voted'}</span></div>`;
+    }).join('');
+
+    const kids = M.childrenOf(node);
+    $('subsSec').style.display = kids.length ? '' : 'none';
+    if (kids.length) {
+      $('subsLabel').textContent = `${kids.length} ${M.LEVELS[node.level + 1].toLowerCase()} ${kids.length === 1 ? 'region' : 'regions'} · how each voted`;
+      const rows = kids.map(k => ({ k, t: M.seededTally(k.id, node.id) })).map(r => ({ ...r, s: share(r.t) })).sort((a, b) => b.s - a.s);
+      $('subs').innerHTML = rows.map(({ k, t, s }) => {
+        const c = mixColor(s);
+        return `<button type="button" class="sub" data-id="${esc(k.id)}" title="${fmt(t.yes + t.no)} votes"><span class="nm">${esc(k.name)}${hasMineUnder(k.id) ? '<span class="dot" title="You wrote here"></span>' : ''}</span>
+          <span class="mb"><i style="width:${Math.round(s * 100)}%;background:rgb(${c})"></i></span><span class="pc">${Math.round(s * 100)}%</span></button>`;
+      }).join('');
+    }
+    $('hint').textContent = kids.length ? 'Click a region to go down a level' : 'Finest scale. Your vote and journal start here.';
+    $('legendQ').textContent = kids.length ? `Yes share by ${M.LEVELS[node.level + 1].toLowerCase()}` : 'Your block';
+
+    $('jLabel').textContent = `${lv} journal · ${node.name}`;
+    $('jPrompt').textContent = M.PROMPTS[node.level];
+    const es = entriesUnder(node);
+    $('entries').innerHTML = es.length ? es.map(e => {
+      const src = M.get(e.id);
+      const where = e.id === node.id ? 'here' : `from ${esc(src ? src.name : e.id)} · ${M.LEVELS[src ? src.level : 0].toLowerCase()}`;
+      const when = new Date(e.t).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      return `<div class="entry ${e.mine ? 'mine' : ''}"><div class="meta"><span>${where}</span><span>${when}</span>${e.mine ? `<button type="button" data-del="${esc(e.id)}" data-t="${e.t}">Remove</button>` : '<span>Example</span>'}</div><p>${esc(e.text)}</p></div>`;
+    }).join('') : `<div class="empty">No entries at this level or below yet. Yours will roll up to ${node.level ? lineage(node).slice(0, -1).map(n => esc(n.name)).reverse().join(', ') : 'everyone reading the global journal'}.</div>`;
+
+    const crumbs = lineage(node);
+    $('crumbs').innerHTML = crumbs.map((n, i) => `${i ? '<span class="sep">/</span>' : ''}<button type="button" class="${n === node ? 'cur' : ''}" data-id="${esc(n.id)}">${esc(n.name)}</button>`).join('');
+    $('up').disabled = !node.parent;
+  }
+
+  function go(id) {
+    const n = M.get(id); if (!n) return;
+    current = n; hoverId = null;
+    renderLadder(); renderPanel(); renderMap(true);
+  }
+
+  // ---- events ----
+  document.addEventListener('click', e => {
+    const nav = e.target.closest('[data-id]');
+    if (nav && !nav.disabled) { go(nav.dataset.id); return; }
+    const del = e.target.closest('[data-del]');
+    if (del) {
+      const list = store.journal[del.dataset.del] || [];
+      store.journal[del.dataset.del] = list.filter(x => String(x.t) !== del.dataset.t);
+      save(); renderPanel(); renderMap(false);
+    }
+  });
+  $('subs').addEventListener('mouseover', e => { const r = e.target.closest('.sub'); if (r) setHover(r.dataset.id); });
+  $('subs').addEventListener('mouseleave', () => setHover(null));
+  $('up').addEventListener('click', () => current.parent && go(current.parent.id));
+  document.querySelectorAll('.votes button').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.v;
+    if (store.votes[current.id] === v) delete store.votes[current.id]; else store.votes[current.id] = v;
+    save(); renderPanel();
+  }));
+  const ta = $('jText');
+  ta.addEventListener('input', () => { $('jCount').textContent = `${ta.value.length} / 1200`; $('jAdd').disabled = !ta.value.trim(); });
+  $('jAdd').addEventListener('click', () => {
+    const text = ta.value.trim(); if (!text) return;
+    (store.journal[current.id] = store.journal[current.id] || []).push({ t: Date.now(), text });
+    save(); ta.value = ''; ta.dispatchEvent(new Event('input'));
+    renderPanel(); renderMap(false);
+  });
+
+  go('global');
+})();
+</script>
+</body>
+</html>
