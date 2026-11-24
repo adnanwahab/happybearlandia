@@ -33,7 +33,7 @@ describe('scroll-driven City Atlas', () => {
     expect(html).toContain('window.startHBLFallback');
     expect(html).not.toMatch(/<script[^>]+src=/i);
     expect(html).not.toMatch(/<link[^>]+href=["']https?:/i);
-    for (const match of html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)) {
+    for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
       expect(() => new Script(match[1])).not.toThrow();
     }
   });
