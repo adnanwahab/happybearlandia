@@ -304,6 +304,16 @@ export const EXPERIENCES = Object.freeze([
     "id": "optimization",
     "evidence": "synthetic",
     "role": "experience"
+  },
+  {
+    "category": "worlds",
+    "title": "City Systems Map",
+    "description": "Watch synthetic transit, power, water, health and civic systems run through a day on sourced Lower Manhattan geometry.",
+    "route": "/tools/city-systems-map",
+    "preview": "/tools/city-systems-map",
+    "id": "city-systems-map",
+    "evidence": "mixed",
+    "role": "map experience"
   }
 ].map(app => Object.freeze(app)));
 export function getExperience(id) { return EXPERIENCES.find(app => app.id === id); }

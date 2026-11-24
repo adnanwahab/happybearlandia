@@ -25,7 +25,7 @@ domTest('combobox keyboard, no results, context preservation, stale and denied n
 });
 
 test('all canonical routes remain searchable; owner guards deny hidden, busy and unknown actions',()=>{
- expect(EXPERIENCES).toHaveLength(33);
+ expect(EXPERIENCES).toHaveLength(35);
  for(const app of EXPERIENCES)expect(searchExperiences(app.route).some(row=>row.id===app.id)).toBe(true);
  const button=(action,disabled=false,hidden=false,visible=true)=>({dataset:{paletteAction:action},disabled,getClientRects:()=>visible?[{}]:[],closest:()=>hidden?{}:null});
  const allowed=button('follow'),buttons=[allowed,button('photo',true),button('why',false,true),button('compare',false,false,false),button('invent-evidence')];
