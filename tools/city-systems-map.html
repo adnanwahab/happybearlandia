@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>City Systems Map · HappyBearLandia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Public+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/tools/city-systems-map.css">
+<script defer src="https://cdn.jsdelivr.net/npm/deck.gl@9.4.1/dist.min.js"
+  integrity="sha384-MgmfghaFhzRlOya+lTLbCWa1NESjFsHp55UTFgT7doYqkH8cvOGK/V8+5SyeryGb"
+  crossorigin="anonymous"></script>
+<script type="module" src="/tools/city-systems-map.js"></script>
+</head>
+<body>
+<div id="map" role="img" aria-label="3D map of Lower Manhattan showing simulated city systems"></div>
+
+<aside class="panel" id="panel" aria-label="Map controls">
+  <button type="button" class="toggle-panel" id="togglePanel" aria-expanded="true">Hide controls</button>
+  <div class="scroll">
+    <header>
+      <div class="eyebrow">City Systems Map · synthetic systems</div>
+      <h1>Lower Manhattan</h1>
+      <p class="lede">Every major city system on one map. Building footprints, taxi routes and resident dots come from public samples; every system reading is synthetic.</p>
+    </header>
+
+    <section aria-label="Time">
+      <div class="clock">
+        <div class="time" id="clock">17:30</div>
+        <button type="button" class="btn" id="play">Pause</button>
+        <select id="speed" aria-label="Playback speed">
+          <option value="1">1× real time</option>
+          <option value="10">10×</option>
+          <option value="30" selected>30×</option>
+          <option value="120">2 min / s</option>
+          <option value="600">10 min / s</option>
+        </select>
+      </div>
+      <div class="date">Tue, Sep 15 · <span id="sunTxt"></span></div>
+      <input type="range" id="tod" min="0" max="1439" step="1" value="1050" aria-label="Time of day">
+      <div class="ticks"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span></div>
+    </section>
+
+    <section aria-label="Scenario">
+      <h2>Scenario</h2>
+      <div class="seg" role="group" aria-label="Scenario" id="scen"></div>
+      <p class="note" id="scenNote"></p>
+      <div class="surge" id="surgeBox" style="display:none">
+        <label for="surge"><span>Storm tide above normal high water</span><b id="surgeVal">9 ft</b></label>
+        <input type="range" id="surge" min="0" max="14" step="0.5" value="9">
+      </div>
+    </section>
+
+    <section aria-label="City vitals">
+      <h2>City vitals now</h2>
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <section aria-label="Ground overlay">
+      <h2>Ground overlay</h2>
+      <div class="pills" role="group" aria-label="Ground overlay" id="fields"></div>
+    </section>
+
+    <section aria-label="Buildings">
+      <div class="row"><h2 style="margin:0">Color buildings by</h2>
+      <select id="bmode" aria-label="Color buildings by"></select></div>
+    </section>
+
+    <section aria-label="Layers" id="groups"></section>
+
+    <p class="foot">Observed: 999 building footprints with heights, taxi trip paths (NYC TLC sample) and resident dots (US Census sample), from vis.gl's <a href="https://github.com/visgl/deck.gl-data">deck.gl example data</a>. Derived: streets traced from those taxi paths, the shoreline and approximate park outlines. Synthetic: every other building and every reading, schedule, rent, crash, request and sensor. Subway station names are real; positions are approximate and service is synthetic. <span id="dataVersion"></span></p>
+  </div>
+</aside>
+
+<div class="viewctl">
+  <button type="button" class="btn" id="view3d" aria-pressed="true">3D view</button>
+  <button type="button" class="btn" id="resetView">Reset view</button>
+</div>
+<section class="legend" id="legend" aria-label="Legend"></section>
+<div class="loading" id="loading" role="status" aria-live="polite">Loading Lower Manhattan…</div>
+<noscript><p class="loading">Enable JavaScript to explore the map.</p></noscript>
+</body>
+</html>
